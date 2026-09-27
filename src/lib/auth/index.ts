@@ -1,7 +1,8 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { twoFactor } from "better-auth/plugins";
 import { db } from "@/lib/db";
-import { account, session, user, verification } from "@/lib/db/schema";
+import { account, session, twoFactor as twoFactorTable, user, verification } from "@/lib/db/schema";
 
 const configuredBaseUrl = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
 const configuredHost = new URL(configuredBaseUrl).host;
@@ -26,11 +27,16 @@ export const auth = betterAuth({
   },
   database: drizzleAdapter(db, {
     provider: "pg",
-    schema: { user, session, account, verification },
+    schema: { user, session, account, verification, twoFactor: twoFactorTable },
   }),
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,
     maxPasswordLength: 128,
   },
+  plugins: [twoFactor({
+    issuer: "StayOps",
+    backupCodeOptions: { amount: 10, length: 10, storeBackupCodes: "encrypted" },
+    accountLockout: { enabled: true, maxFailedAttempts: 10, durationSeconds: 900 },
+  })],
 });

@@ -162,6 +162,13 @@
       "when": 1790755200000,
       "tag": "20260927000000_simplify_platform_down_payment",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1790791200000,
+      "tag": "20260927100000_add_account_profile_and_security",
+      "breakpoints": true
     }
   ]
 }

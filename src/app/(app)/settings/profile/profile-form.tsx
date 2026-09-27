@@ -14,10 +14,15 @@ export function ProfileForm({
   name,
   email,
   image,
+  profile,
 }: {
   name: string;
   email: string;
   image: string | null;
+  profile: {
+    preferredName: string | null; phone: string | null; gender: "woman" | "man" | "non_binary" | "prefer_not_to_say" | "self_describe" | null; genderDescription: string | null; birthday: string | null;
+    addressLine1: string | null; addressLine2: string | null; barangay: string | null; cityMunicipality: string | null; province: string | null; region: string | null; postalCode: string | null; country: string | null;
+  } | null;
 }) {
   const [state, formAction, pending] = useActionState<
     ProfileFormState,
@@ -33,9 +38,7 @@ export function ProfileForm({
   return (
     <form
       action={formAction}
-      onChange={(event) =>
-        setDirty(new FormData(event.currentTarget).get("name") !== name)
-      }
+      onChange={() => setDirty(true)}
       onSubmit={() => setDirty(false)}
       className={saveBarVisible ? "space-y-5" : "space-y-5"}
     >
@@ -63,12 +66,35 @@ export function ProfileForm({
               required
             />
           </div>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div><Label htmlFor="preferred-name">Preferred name <span className="font-normal text-ink/45">(optional)</span></Label><Input id="preferred-name" name="preferredName" defaultValue={profile?.preferredName ?? ""} /></div>
+            <div><Label htmlFor="phone">Phone <span className="font-normal text-ink/45">(optional)</span></Label><Input id="phone" name="phone" type="tel" placeholder="+639171234567" defaultValue={profile?.phone ?? ""} /></div>
+            <div><Label htmlFor="gender">Gender <span className="font-normal text-ink/45">(optional)</span></Label><select id="gender" name="gender" defaultValue={profile?.gender ?? ""} className="h-10 w-full rounded-lg border border-pine/15 bg-surface px-3 text-sm"><option value="">Prefer not to answer</option><option value="woman">Woman</option><option value="man">Man</option><option value="non_binary">Non-binary</option><option value="prefer_not_to_say">Prefer not to say</option><option value="self_describe">Self-describe</option></select></div>
+            <div><Label htmlFor="birthday">Birthday <span className="font-normal text-ink/45">(optional)</span></Label><Input id="birthday" name="birthday" type="date" defaultValue={profile?.birthday ?? ""} /></div>
+          </div>
+          <div className="mt-4"><Label htmlFor="gender-description">Gender description <span className="font-normal text-ink/45">(if self-describing)</span></Label><Input id="gender-description" name="genderDescription" defaultValue={profile?.genderDescription ?? ""} maxLength={100} /></div>
           <div className="mt-4">
             <Label htmlFor="email">Email</Label>
             <Input id="email" value={email} disabled />
             <p className="mt-1.5 text-xs text-ink/50">
               Email changes are not available yet.
             </p>
+          </div>
+        </CardBody>
+      </Card>
+      <Card className="min-w-0 bg-card">
+        <CardBody>
+          <h2 className="font-display text-xl text-pine">Personal address</h2>
+          <p className="mt-1 text-sm text-ink/60">Optional and visible only to you.</p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2"><Label htmlFor="address-line-1">Address line 1</Label><Input id="address-line-1" name="addressLine1" defaultValue={profile?.addressLine1 ?? ""} /></div>
+            <div className="sm:col-span-2"><Label htmlFor="address-line-2">Address line 2</Label><Input id="address-line-2" name="addressLine2" defaultValue={profile?.addressLine2 ?? ""} /></div>
+            <div><Label htmlFor="barangay">Barangay</Label><Input id="barangay" name="barangay" defaultValue={profile?.barangay ?? ""} /></div>
+            <div><Label htmlFor="city-municipality">City / municipality</Label><Input id="city-municipality" name="cityMunicipality" defaultValue={profile?.cityMunicipality ?? ""} /></div>
+            <div><Label htmlFor="province">Province</Label><Input id="province" name="province" defaultValue={profile?.province ?? ""} /></div>
+            <div><Label htmlFor="region">Region</Label><Input id="region" name="region" defaultValue={profile?.region ?? ""} /></div>
+            <div><Label htmlFor="postal-code">Postal code</Label><Input id="postal-code" name="postalCode" defaultValue={profile?.postalCode ?? ""} /></div>
+            <div><Label htmlFor="country">Country</Label><Input id="country" name="country" defaultValue={profile?.country ?? "Philippines"} /></div>
           </div>
         </CardBody>
       </Card>
