@@ -8,7 +8,7 @@ import { authClient, setTwoFactorChallengeHandler } from "@/lib/auth/client";
 import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/ui/password-input";
 import { AuthLoadingOverlay } from "@/components/ui/auth-loading-overlay";
-import { ArrowLeft, ChevronRight, CircleAlert, KeyRound, MailCheck, Smartphone } from "lucide-react";
+import { ArrowLeft, ChevronRight, CircleAlert, KeyRound, MailCheck, Smartphone, Users } from "lucide-react";
 import { afterAuthPath, inviteQuery } from "@/lib/auth/invite-redirect";
 import { Input, Label } from "@/components/ui/input";
 import { CodeInput } from "@/components/ui/code-input";
@@ -299,7 +299,7 @@ function LoginContent() {
       </p>
 
       <div className="mt-10 flex items-start gap-3 rounded-xl bg-sage/40 p-4 text-xs leading-relaxed text-ink/70">
-        <span aria-hidden>◱</span>
+        <Users className="mt-px h-4 w-4 shrink-0 text-pine" aria-hidden />
         <p>
           For hosts and their teams. Manage. Coordinate. Keep things moving.
         </p>
