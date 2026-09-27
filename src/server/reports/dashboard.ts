@@ -1,11 +1,14 @@
 import "server-only";
 
-import { and, eq, gte, inArray, lt, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lt, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   expenses,
   bookingPlatforms,
+  damageReports,
+  guests,
   paymentEntries,
+  paymentProofs,
   properties,
   refundEntries,
   reservations,
@@ -57,6 +60,44 @@ export async function getDashboardPlatformBreakdown(
     ))
     .groupBy(bookingPlatforms.id, bookingPlatforms.name, bookingPlatforms.logoUrl, bookingPlatforms.color)
     .orderBy(sql`${reservationCount} desc`, sql`coalesce(${bookingPlatforms.name}, 'Not recorded') asc`);
+}
+
+/** Open damage reports across the organization, newest first. */
+export async function listOpenDamage(organizationId: string) {
+  return db
+    .select({
+      id: damageReports.id,
+      description: damageReports.description,
+      estimatedAmountCents: damageReports.estimatedAmountCents,
+      createdAt: damageReports.createdAt,
+      reservationId: damageReports.reservationId,
+      unitId: units.id,
+      unitName: units.name,
+      propertyId: properties.id,
+      propertyName: properties.name,
+    })
+    .from(damageReports)
+    .innerJoin(units, and(eq(damageReports.unitId, units.id), eq(damageReports.organizationId, units.organizationId)))
+    .innerJoin(properties, eq(units.propertyId, properties.id))
+    .where(and(eq(damageReports.organizationId, organizationId), eq(damageReports.status, "open")))
+    .orderBy(desc(damageReports.createdAt));
+}
+
+/** Guest-submitted payment references still waiting for someone to review them. */
+export async function listPendingProofs(organizationId: string) {
+  return db
+    .select({
+      id: paymentProofs.id,
+      reservationId: paymentProofs.reservationId,
+      reference: paymentProofs.reference,
+      createdAt: paymentProofs.createdAt,
+      guestName: guests.name,
+    })
+    .from(paymentProofs)
+    .innerJoin(reservations, and(eq(paymentProofs.reservationId, reservations.id), eq(paymentProofs.organizationId, reservations.organizationId)))
+    .innerJoin(guests, and(eq(reservations.guestId, guests.id), eq(reservations.organizationId, guests.organizationId)))
+    .where(and(eq(paymentProofs.organizationId, organizationId), eq(paymentProofs.status, "unverified")))
+    .orderBy(desc(paymentProofs.createdAt));
 }
 
 /** Day-by-day cash, spending and occupancy for [from, to), organization-wide. */

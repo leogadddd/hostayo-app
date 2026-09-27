@@ -10,7 +10,7 @@ import { getOccupancySegments, listCalendarActivity } from "@/server/inventory/a
 import { listOrgUnits, listProperties } from "@/server/inventory/service";
 import { findFreeUnitIds } from "@/server/inventory/stay-search";
 import { listTasks } from "@/server/operations/service";
-import { getDashboardPlatformBreakdown, getDashboardSeries } from "@/server/reports/dashboard";
+import { getDashboardPlatformBreakdown, getDashboardSeries, listOpenDamage, listPendingProofs } from "@/server/reports/dashboard";
 import { getReport } from "@/server/reports/service";
 
 vi.mock("@/lib/auth/session", async () => (await import("./helpers/session-mock")).mockSessionModule());
@@ -20,7 +20,7 @@ vi.mock("@/server/inventory/stay-search", async (importOriginal) => ({ ...(await
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/server/operations/service", () => ({ listTasks: vi.fn() }));
 vi.mock("@/server/reports/service", () => ({ getReport: vi.fn() }));
-vi.mock("@/server/reports/dashboard", () => ({ getDashboardSeries: vi.fn(), getDashboardPlatformBreakdown: vi.fn() }));
+vi.mock("@/server/reports/dashboard", () => ({ getDashboardSeries: vi.fn(), getDashboardPlatformBreakdown: vi.fn(), listOpenDamage: vi.fn(), listPendingProofs: vi.fn() }));
 
 const owner: MembershipContext = {
   organizationId: "org-a",
@@ -108,6 +108,8 @@ beforeEach(() => {
     refunds: [],
     expenses: [{ date: today, category: "cleaning", classification: "operating", amountCents: 125_000 }],
   }));
+  vi.mocked(listOpenDamage).mockResolvedValue([]);
+  vi.mocked(listPendingProofs).mockResolvedValue([]);
   vi.mocked(getDashboardPlatformBreakdown).mockResolvedValue([
     { platformId: "platform-direct", name: "Direct", logoUrl: null, color: null, reservationCount: 1 },
   ]);
@@ -117,14 +119,18 @@ describe("operations dashboard", () => {
   it("shows owners today, the outlook and interactive performance", async () => {
     const html = renderToStaticMarkup(await DashboardPage());
     expect(html).toContain("Today&#x27;s schedule");
-    // Nothing is waiting, so this month's calendar takes the attention card's place.
-    expect(html).not.toContain("Needs attention");
+    // Nothing is waiting, but the card still answers the question.
+    expect(html).toContain("Needs attention");
+    expect(html).toContain("Nothing is waiting on you.");
     expect(html).toContain("Open calendar");
+    expect(html).toContain("Notes");
     expect(html).toContain(', 1 booking"');
     expect(html).toContain('href="/calendar/availability"');
     expect(html).not.toContain("Next 14 days");
-    expect(html).toContain("Bookings this month");
+    expect(html).toContain("Bookings in ");
+    expect(html).toContain("Occupancy in ");
     expect(html).toContain("Booking sources");
+    expect(html).toContain("Damage reports");
     expect(html).toContain("Direct");
     expect(html).toContain("How your stays are doing");
     expect(html).toContain("₱9,000");
@@ -146,12 +152,60 @@ describe("operations dashboard", () => {
       },
     ] as Awaited<ReturnType<typeof listCalendarActivity>>);
     const html = renderToStaticMarkup(await DashboardPage());
-    expect(html).toContain("Needs attention");
-    expect(html).toContain("Ben Reyes");
-    expect(html).not.toContain("Open calendar");
-    // Today's schedule runs full width first; Needs attention sits beside booking sources below it.
+    expect(html).toContain("Hold for Ben Reyes");
+    // Today's schedule leads, with what needs attention beside it and the month below.
     expect(html.indexOf("Today&#x27;s schedule")).toBeLessThan(html.indexOf("Needs attention"));
-    expect(html.indexOf("Needs attention")).toBeLessThan(html.indexOf("Booking sources"));
+    expect(html.indexOf("Needs attention")).toBeLessThan(html.indexOf("Open calendar"));
+    expect(html.indexOf("Open calendar")).toBeLessThan(html.indexOf("Booking sources"));
+  });
+
+  it("keeps completed check-outs on today's schedule as done", async () => {
+    const today = todayInTimeZone("Asia/Manila");
+    vi.mocked(listCalendarActivity).mockResolvedValue([
+      { id: "checked-out", unitId: "unit-a", status: "checked_out", guestName: "Ana Cruz", guestCount: 2, startDate: addDaysLocal(today, -2), endDate: today, expiresAt: null },
+    ] as Awaited<ReturnType<typeof listCalendarActivity>>);
+    const html = renderToStaticMarkup(await DashboardPage());
+    expect(html).toContain("Ana Cruz");
+    expect(html).toContain("1/1 done");
+    expect(html).toContain("1 of 1 checked out");
+  });
+
+  it("keeps completed check-ins on today's schedule as done", async () => {
+    const today = todayInTimeZone("Asia/Manila");
+    vi.mocked(listCalendarActivity).mockResolvedValue([
+      { id: "checked-in", unitId: "unit-a", status: "checked_in", guestName: "Ana Cruz", guestCount: 2, startDate: today, endDate: addDaysLocal(today, 2), expiresAt: null },
+    ] as Awaited<ReturnType<typeof listCalendarActivity>>);
+    const html = renderToStaticMarkup(await DashboardPage());
+    expect(html).toContain("Ana Cruz");
+    expect(html).toContain("Checked in");
+    expect(html).toContain("1 of 1 checked in");
+  });
+
+  it("flags a turnover that blocks today's arrival", async () => {
+    const today = todayInTimeZone("Asia/Manila");
+    vi.mocked(listCalendarActivity).mockResolvedValue([
+      { id: "arriving", unitId: "unit-a", status: "confirmed", guestName: "Ana Cruz", guestCount: 2, startDate: today, endDate: addDaysLocal(today, 2), expiresAt: null },
+    ] as Awaited<ReturnType<typeof listCalendarActivity>>);
+    vi.mocked(listTasks).mockResolvedValue([
+      { id: "task-a", status: "open", unitId: "unit-a", unitName: "Unit 12B", propertyName: "Riverside Residences", reservationId: null, createdAt: new Date(), markedReadyAt: null, totalItems: 4, doneItems: 1, requiredLeft: 3, lastActivityAt: null },
+    ]);
+    const html = renderToStaticMarkup(await DashboardPage());
+    expect(html).toContain("Unit not ready");
+    expect(html).toContain("Turn over Unit 12B");
+    expect(html).toContain("1 before today’s arrivals");
+  });
+
+  it("lists open damage, with costs only for people who see money", async () => {
+    vi.mocked(listOpenDamage).mockResolvedValue([
+      { id: "damage-a", description: "Cracked mirror", estimatedAmountCents: 150_000, createdAt: new Date(), reservationId: "stay-a", unitId: "unit-a", unitName: "Unit 12B", propertyId: "property-a", propertyName: "Riverside Residences" },
+    ]);
+    const ownerHtml = renderToStaticMarkup(await DashboardPage());
+    expect(ownerHtml).toContain("Cracked mirror");
+    expect(ownerHtml).toContain("₱1,500");
+    vi.mocked(requireMembership).mockResolvedValue({ ...owner, role: "staff" });
+    const staffHtml = renderToStaticMarkup(await DashboardPage());
+    expect(staffHtml).toContain("Cracked mirror");
+    expect(staffHtml).not.toContain("₱1,500");
   });
 
   it("counts this month's confirmed bookings but not holds", async () => {
@@ -162,7 +216,7 @@ describe("operations dashboard", () => {
       { kind: "reservation", id: "hold-a", startDate: `${month}-15`, endDate: `${month}-16`, status: "hold", guestName: "Cara Lim", expiresAt: null },
     ]]]) as Awaited<ReturnType<typeof getOccupancySegments>>);
     const html = renderToStaticMarkup(await DashboardPage());
-    expect(html).toMatch(/Bookings this month<\/p><p[^>]*>2<\/p>/);
+    expect(html).toMatch(/>2<\/p><p[^>]*>Bookings in /);
     expect(html).toContain("5 nights booked");
   });
 
@@ -180,7 +234,7 @@ describe("operations dashboard", () => {
     vi.mocked(requireMembership).mockResolvedValue({ ...owner, role: "staff" });
     const html = renderToStaticMarkup(await DashboardPage());
     expect(html).toContain("Today&#x27;s schedule");
-    expect(html).toContain("Bookings this month");
+    expect(html).toContain("Bookings in ");
     expect(html).not.toContain("How your stays are doing");
     expect(html).not.toContain("Spending by category");
     expect(html).not.toContain("₱");
