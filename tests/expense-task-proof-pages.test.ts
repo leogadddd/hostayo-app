@@ -17,7 +17,7 @@ import EditTaskPage from "@/app/(app)/tasks/[id]/edit/page";
 import NewTaskDamagePage from "@/app/(app)/tasks/[id]/damage/new/page";
 import ResolveTaskDamagePage from "@/app/(app)/tasks/[id]/damage/[damageReportId]/resolve/page";
 import TaskReadyPage from "@/app/(app)/tasks/[id]/ready/page";
-import { Checklist } from "@/app/(app)/tasks/[id]/checklist";
+import { TurnoverRun } from "@/app/(app)/tasks/[id]/turnover-run";
 import { TaskNotesForm } from "@/app/(app)/tasks/[id]/task-notes-form";
 import { MarkReadyForm } from "@/app/(app)/tasks/[id]/mark-ready-form";
 import { ResolveDamageForm } from "@/app/(app)/tasks/[id]/resolve-damage-form";
@@ -133,30 +133,28 @@ describe("dedicated expense page", () => {
 });
 
 describe("turnover detail and dedicated editors", () => {
-  it("keeps checklist toggles but removes embedded editors and staff resolution controls", async () => {
+  it("hands the staff run view checklist toggles but no damage resolution", async () => {
     const tree = await TaskDetailPage({ params });
-    expect(elements(tree).find((element) => element.type === Checklist)?.props.editable).toBe(true);
+    expect(tree.type).toBe(TurnoverRun);
     for (const form of [TaskNotesForm, MarkReadyForm, ResolveDamageForm, DamageReportForm]) expect(hasForm(tree, form)).toBe(false);
-    expect(links(tree)).toContain("/tasks/task-a/edit");
-    expect(links(tree)).toContain("/tasks/task-a/damage/new");
-    expect(links(tree)).not.toContain("/tasks/task-a/damage/damage-a/resolve");
-    expect(links(tree)).not.toContain("/tasks/task-a/ready");
-    expect(hasForm(tree, Table)).toBe(true);
+    expect(tree.props.permissions).toEqual({ work: true, reportDamage: true, resolveDamage: false, viewReservation: true });
+    expect(tree.props.canMarkReady).toBe(false);
+    expect(tree.props.items[0]).toMatchObject({ id: "item-a", required: true, completedAt: expect.any(String) });
     expect(getTaskDetail).toHaveBeenCalledWith("org-a", "task-a");
   });
-  it("offers owner resolution and override only after required checklist completion", async () => {
+  it("lets owners resolve damage and only marks ready once nothing blocks it", async () => {
     vi.mocked(requireMembership).mockResolvedValue(owner);
     const tree = await TaskDetailPage({ params });
-    expect(links(tree)).toContain("/tasks/task-a/damage/damage-a/resolve");
-    expect(links(tree)).toContain("/tasks/task-a/ready");
-    vi.mocked(getTaskDetail).mockResolvedValue(taskFixture({ completed: false }));
-    expect(links(await TaskDetailPage({ params }))).not.toContain("/tasks/task-a/ready");
+    expect(tree.props.permissions.resolveDamage).toBe(true);
+    vi.mocked(getTaskDetail).mockResolvedValue(taskFixture({ damage: false }));
+    expect((await TaskDetailPage({ params })).props.canMarkReady).toBe(true);
+    vi.mocked(getTaskDetail).mockResolvedValue(taskFixture({ completed: false, damage: false }));
+    expect((await TaskDetailPage({ params })).props.canMarkReady).toBe(false);
   });
   it("does not offer edits or new damage on a final ready task", async () => {
     vi.mocked(getTaskDetail).mockResolvedValue(taskFixture({ ready: true }));
     const tree = await TaskDetailPage({ params });
-    expect(elements(tree).find((element) => element.type === Checklist)?.props.editable).toBe(false);
-    for (const suffix of ["edit", "damage/new", "ready"]) expect(links(tree)).not.toContain(`/tasks/task-a/${suffix}`);
+    expect(tree.props.permissions).toMatchObject({ work: false, reportDamage: false });
     await expect(EditTaskPage({ params })).rejects.toThrow("Redirect: /tasks/task-a");
     await expect(NewTaskDamagePage({ params })).rejects.toThrow("Redirect: /tasks/task-a");
     await expect(TaskReadyPage({ params })).rejects.toThrow("Redirect: /tasks/task-a");

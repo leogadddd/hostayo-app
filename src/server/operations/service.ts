@@ -299,6 +299,12 @@ export async function listTasks(
       doneItems: sql<number>`count(*) filter (where ${taskItems.completedAt} is not null)`.mapWith(
         Number,
       ),
+      requiredLeft: sql<number>`count(*) filter (where ${taskItems.required} and ${taskItems.completedAt} is null)`.mapWith(
+        Number,
+      ),
+      lastActivityAt: sql<Date | null>`max(${taskItems.completedAt})`.mapWith((value) =>
+        value ? new Date(value) : null,
+      ),
     })
     .from(tasks)
     .innerJoin(
