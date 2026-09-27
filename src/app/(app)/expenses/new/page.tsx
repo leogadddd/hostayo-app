@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { UnderConstruction, UNDER_CONSTRUCTION } from "@/components/app/under-construction";
 import { requirePermission } from "@/lib/auth/session";
 import { todayInTimeZone } from "@/lib/dates";
 import { listOrgUnits, listProperties } from "@/server/inventory/service";
@@ -11,6 +12,7 @@ import { ExpenseForm } from "../expense-form";
 export const metadata: Metadata = { title: "Record expense" };
 
 export default async function NewExpensePage() {
+  if (UNDER_CONSTRUCTION.expenses) return <UnderConstruction title="Record expense" description="We’re reworking expenses. Recording and reviewing costs will be back here soon." />;
   const membership = await requirePermission("expenses.create");
   if (!membership) return <PermissionDenied description="Only the organization owner can record expenses." />;
 

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { UnderConstruction, UNDER_CONSTRUCTION } from "@/components/app/under-construction";
 import type { Metadata } from "next";
 import { requirePermission } from "@/lib/auth/session";
 import { EXPENSE_CATEGORY_LABELS } from "@/lib/labels";
@@ -34,6 +35,7 @@ export default async function ExpensesPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  if (UNDER_CONSTRUCTION.expenses) return <UnderConstruction title="Expenses" description="We’re reworking expenses. Recording and reviewing costs will be back here soon." />;
   const membership = await requirePermission("expenses.view");
   if (!membership) {
     return (

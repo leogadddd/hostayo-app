@@ -1,4 +1,5 @@
 import { DateInput } from "@/components/ui/date-input";
+import { UnderConstruction, UNDER_CONSTRUCTION } from "@/components/app/under-construction";
 import type { Metadata } from "next";
 import { PermissionDenied } from "@/components/app/permission-denied";
 import { Badge } from "@/components/ui/badge";
@@ -87,6 +88,7 @@ export default async function ReportsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  if (UNDER_CONSTRUCTION.reports) return <UnderConstruction title="Reports" description="We’re reworking reports. Occupancy, revenue and balance summaries will be back here soon." />;
   const membership = await requirePermission("reports.view");
   if (!membership) {
     return (
