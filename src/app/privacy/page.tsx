@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
+import { SUPPORT_EMAIL } from "@/lib/support";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -56,7 +57,7 @@ const sections = [
   {
     title: "10. Contact",
     content:
-      "For questions, requests, or concerns about privacy and personal information, please contact the StayOps team through the support channel available in your account.",
+      `For questions, requests, or concerns about privacy and personal information, please contact the StayOps team at ${SUPPORT_EMAIL}, or message us on Facebook or Instagram (@stayopsph). Signed-in users can also reach us from Settings → Support.`,
   },
 ];
 

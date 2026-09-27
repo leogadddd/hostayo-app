@@ -1,4 +1,4 @@
-import { Building2, Globe2, KeyRound, Share2, ShieldCheck, SlidersHorizontal, UserRound, UsersRound } from "lucide-react";
+import { Building2, Globe2, KeyRound, LifeBuoy, Share2, ShieldCheck, SlidersHorizontal, UserRound, UsersRound } from "lucide-react";
 import type { Permission } from "@/lib/permissions";
 
 /**
@@ -23,4 +23,5 @@ export const SETTINGS_NAVIGATION: readonly {
   { href: "/settings/team", label: "Team", icon: UsersRound, requires: "team.view" },
   { href: "/settings/permissions", label: "Permissions", icon: KeyRound, managesPermissions: true },
   { href: "/settings/region", label: "Region", icon: Globe2, requires: "organization.update" },
+  { href: "/settings/support", label: "Support", icon: LifeBuoy },
 ];
