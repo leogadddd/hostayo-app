@@ -21,14 +21,13 @@ export function reservationFeeRule(row: {
 }
 
 /**
- * The rule a new booking takes: the unit's, unless the platform collects
- * the guest's payment itself (Airbnb, Agoda).
+ * The rule a new booking takes: the unit's, when the selected platform uses it.
  */
 export function applicableReservationFee(
   unit: { reservationFeeType: ReservationFeeType | null; reservationFeeAmount: number | null },
-  platform: { collectsPayment: boolean } | null,
+  platform: { downPaymentApplies: boolean } | null,
 ): ReservationFeeRule | null {
-  if (platform?.collectsPayment) return null;
+  if (platform && !platform.downPaymentApplies) return null;
   return reservationFeeRule(unit);
 }
 

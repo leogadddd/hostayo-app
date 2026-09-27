@@ -10,6 +10,9 @@ import { ReservationError } from "./validation";
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 type Executor = Tx | typeof db;
 
+/** Core sources are always available when creating a reservation. */
+const REQUIRED_PLATFORM_KEYS = new Set(["direct", "walk_in", "referral"]);
+
 export interface PlatformOption {
   id: string;
   /** Built-in platform key ("airbnb"); null for custom ones. */
@@ -17,8 +20,8 @@ export interface PlatformOption {
   name: string;
   logoUrl: string | null;
   color: string | null;
-  /** The platform takes the guest's payment; no reservation fee applies. */
-  collectsPayment: boolean;
+  /** Whether the unit's down payment applies to its bookings. */
+  downPaymentApplies: boolean;
   isActive: boolean;
 }
 
@@ -34,7 +37,7 @@ export async function listPlatforms(organizationId: string, options: { includeIn
   const conditions = [eq(bookingPlatforms.organizationId, organizationId)];
   if (!options.includeInactive) conditions.push(eq(bookingPlatforms.isActive, true));
   return db
-    .select({ id: bookingPlatforms.id, key: bookingPlatforms.key, name: bookingPlatforms.name, logoUrl: bookingPlatforms.logoUrl, color: bookingPlatforms.color, collectsPayment: bookingPlatforms.collectsPayment, isActive: bookingPlatforms.isActive })
+    .select({ id: bookingPlatforms.id, key: bookingPlatforms.key, name: bookingPlatforms.name, logoUrl: bookingPlatforms.logoUrl, color: bookingPlatforms.color, downPaymentApplies: bookingPlatforms.downPaymentApplies, isActive: bookingPlatforms.isActive })
     .from(bookingPlatforms)
     .where(and(...conditions))
     .orderBy(asc(bookingPlatforms.position), asc(sql`lower(${bookingPlatforms.name})`));
@@ -48,7 +51,7 @@ export async function listPlatforms(organizationId: string, options: { includeIn
 export async function assertPlatform(tx: Executor, organizationId: string, platformId: string | null | undefined, currentPlatformId?: string | null) {
   if (!platformId) return null;
   const [platform] = await tx
-    .select({ id: bookingPlatforms.id, isActive: bookingPlatforms.isActive, collectsPayment: bookingPlatforms.collectsPayment })
+    .select({ id: bookingPlatforms.id, isActive: bookingPlatforms.isActive, downPaymentApplies: bookingPlatforms.downPaymentApplies })
     .from(bookingPlatforms)
     .where(and(eq(bookingPlatforms.id, platformId), eq(bookingPlatforms.organizationId, organizationId)))
     .limit(1);
@@ -61,7 +64,6 @@ export async function assertPlatform(tx: Executor, organizationId: string, platf
 /** A platform as the settings page manages it. */
 export interface ManagedPlatform extends PlatformOption {
   websiteUrl: string | null;
-  commissionBasisPoints: number | null;
   /** Reservations made through it; a used platform can only be archived. */
   reservationCount: number;
 }
@@ -82,8 +84,7 @@ export async function listManagedPlatforms(organizationId: string): Promise<Mana
       logoUrl: bookingPlatforms.logoUrl,
       color: bookingPlatforms.color,
       websiteUrl: bookingPlatforms.websiteUrl,
-      commissionBasisPoints: bookingPlatforms.commissionBasisPoints,
-      collectsPayment: bookingPlatforms.collectsPayment,
+      downPaymentApplies: bookingPlatforms.downPaymentApplies,
       isActive: bookingPlatforms.isActive,
       reservationCount: sql<number>`coalesce(${usage.total}, 0)::int`,
     })
@@ -107,9 +108,7 @@ export const platformInputSchema = z.object({
   name: z.string().trim().min(2, "Platform names need at least 2 characters.").max(60, "Platform names must be 60 characters or fewer."),
   color: optionalText.refine((value) => value === null || /^#[0-9a-fA-F]{6}$/.test(value), "Use a hex color like #1877F2."),
   websiteUrl: optionalText.refine((value) => value === null || /^https?:\/\/\S+\.\S+$/.test(value), "Use a full web address, like https://www.airbnb.com."),
-  // Basis points: 1500 = 15%.
-  commissionBasisPoints: z.number().int().min(0, "Commission can't be negative.").max(10_000, "Commission can't be over 100%.").nullable(),
-  collectsPayment: z.boolean(),
+  downPaymentApplies: z.boolean(),
 });
 
 export type PlatformInput = z.input<typeof platformInputSchema>;
@@ -194,6 +193,9 @@ export async function updatePlatform(input: { organizationId: string; actorUserI
 export async function removePlatform(input: { organizationId: string; actorUserId: string; platformId: string }): Promise<{ archived: boolean }> {
   return db.transaction(async (tx) => {
     const platform = await getPlatformOrThrow(tx, input.organizationId, input.platformId);
+    if (platform.key && REQUIRED_PLATFORM_KEYS.has(platform.key)) {
+      throw new PlatformError(`${platform.name} is a required booking platform and can't be removed.`);
+    }
     if (!platform.isActive) return { archived: true };
     const [active] = await tx
       .select({ total: count() })

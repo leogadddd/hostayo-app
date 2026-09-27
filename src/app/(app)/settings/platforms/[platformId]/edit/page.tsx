@@ -18,7 +18,7 @@ export default async function EditPlatformPage({ params }: { params: Promise<{ p
   if (!platform) notFound();
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeading title={`Edit ${platform.name}`} description="Changes apply to new reservations. Existing bookings keep their reservation fee." backHref="/settings/platforms" backLabel="Booking platforms" />
+      <PageHeading title={`Edit ${platform.name}`} description="Changes apply to new reservations, and only when the unit requires a down payment. Existing bookings keep their reservation fee." backHref="/settings/platforms" backLabel="Booking platforms" />
       <Card className="bg-card">
         <CardBody>
           <PlatformForm
@@ -29,8 +29,7 @@ export default async function EditPlatformPage({ params }: { params: Promise<{ p
               name: platform.name,
               color: platform.color ?? "",
               websiteUrl: platform.websiteUrl ?? "",
-              commissionPercent: platform.commissionBasisPoints === null ? "" : String(platform.commissionBasisPoints / 100),
-              collectsPayment: platform.collectsPayment,
+              downPaymentApplies: platform.downPaymentApplies,
               logoUrl: platform.logoUrl,
             }}
           />

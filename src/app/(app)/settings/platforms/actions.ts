@@ -25,18 +25,13 @@ function toFormError(error: unknown): PlatformFormState {
   return { error: unexpectedErrorMessage(error, "platforms") };
 }
 
-/** The platform form's fields; commission is typed as a percent ("15" → 1500). */
 function platformFromForm(formData: FormData): PlatformInput {
   const read = (key: string) => String(formData.get(key) ?? "").trim();
-  const commission = read("commissionPercent").replace(/%$/, "");
-  const percent = Number(commission);
-  if (commission && !Number.isFinite(percent)) throw new PlatformError("Enter the commission as a percent, like 15.", "commissionPercent");
   return {
     name: read("name"),
     color: read("color"),
     websiteUrl: read("websiteUrl"),
-    commissionBasisPoints: commission ? Math.round(percent * 100) : null,
-    collectsPayment: read("collectsPayment") === "true",
+    downPaymentApplies: read("downPaymentApplies") === "true",
   };
 }
 

@@ -192,7 +192,7 @@ export function ReservationForm({
   /** Show "New guest" (guests.create). */
   canCreateGuest?: boolean;
   /** Where bookings come from (Direct, Airbnb, …), in display order. */
-  platforms: (PlatformDisplay & { id: string; key: string | null; collectsPayment: boolean })[];
+  platforms: (PlatformDisplay & { id: string; key: string | null; downPaymentApplies: boolean })[];
   defaultCheckIn: string;
   defaultCheckOut: string;
   requestedUnitId?: string;
@@ -309,8 +309,7 @@ export function ReservationForm({
   const submittableLines = parsed.map((entry) => entry.line).filter((line): line is ChargeLineValues => line !== null);
   const totals = computeTotals(submittableLines);
   const paymentCents = noPayment ? null : parsePayment(payment.amount);
-  // Platforms like Airbnb collect payment themselves, so no fee applies there.
-  const feeRule = selectedPlatform?.collectsPayment ? null : (selectedUnit?.reservationFee ?? null);
+  const feeRule = selectedPlatform && !selectedPlatform.downPaymentApplies ? null : (selectedUnit?.reservationFee ?? null);
   const feeCents = feeRule ? reservationFeeCents(feeRule, totals.bookingTotalCents) : 0;
   const feeCovered = !feeCents || (payment.allocation === "booking" && (paymentCents ?? 0) >= feeCents);
 

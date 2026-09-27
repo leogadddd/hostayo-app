@@ -61,9 +61,9 @@ Retire a platform with `is_active = false` instead of deleting it; past
 reservations still reference it.
 Teams manage their list at Settings → Booking platforms (`platforms.*`
 permissions): built-in or used platforms are archived there, only unused
-custom ones are deleted. `collects_payment` marks platforms that take the
-guest's payment (Airbnb, Agoda); the unit's reservation fee
-(`src/lib/reservation-fee.ts`) only applies to the others.
+custom ones are deleted. `down_payment_applies` directly controls whether a
+unit's down payment (`src/lib/reservation-fee.ts`) applies to bookings from
+that platform.
 
 ## L1 operators
 

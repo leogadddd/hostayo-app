@@ -14,10 +14,10 @@ describe("reservation fee", () => {
     expect(reservationFeeCents({ type: "percent", amount: 10_000 }, 250_000)).toBe(250_000);
   });
 
-  it("doesn't apply to platforms that collect payment themselves", () => {
+  it("only applies to platforms configured to use the down payment", () => {
     const unit = { reservationFeeType: "fixed" as const, reservationFeeAmount: 100_000 };
-    expect(applicableReservationFee(unit, { collectsPayment: true })).toBeNull();
-    expect(applicableReservationFee(unit, { collectsPayment: false })).toEqual({ type: "fixed", amount: 100_000 });
+    expect(applicableReservationFee(unit, { downPaymentApplies: false })).toBeNull();
+    expect(applicableReservationFee(unit, { downPaymentApplies: true })).toEqual({ type: "fixed", amount: 100_000 });
     expect(applicableReservationFee(unit, null)).toEqual({ type: "fixed", amount: 100_000 });
     expect(applicableReservationFee({ reservationFeeType: null, reservationFeeAmount: null }, null)).toBeNull();
   });

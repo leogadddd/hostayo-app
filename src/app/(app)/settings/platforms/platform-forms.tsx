@@ -3,7 +3,7 @@
 import { useActionState, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowDown, ArrowUp, CreditCard, Pencil, RotateCcw, Trash2, Wallet } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, Pencil, RotateCcw, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button, buttonClassName } from "@/components/ui/button";
 import { ChoiceCards } from "@/components/ui/choice-cards";
@@ -23,15 +23,13 @@ export interface PlatformFormValues {
   name: string;
   color: string;
   websiteUrl: string;
-  /** Percent as typed, e.g. "15". */
-  commissionPercent: string;
-  collectsPayment: boolean;
+  downPaymentApplies: boolean;
   logoUrl: string | null;
 }
 
-const PAYMENT_OPTIONS = [
-  { value: "false", label: "Guest pays us", description: "Like Direct, Facebook or Messenger. The unit's reservation fee applies.", icon: Wallet },
-  { value: "true", label: "Platform collects payment", description: "Like Airbnb or Agoda. No reservation fee; the platform pays out.", icon: CreditCard },
+const DOWN_PAYMENT_OPTIONS = [
+  { value: "true", label: "Applies", description: "Require the unit's down payment when that unit has one.", icon: Check },
+  { value: "false", label: "Doesn't apply", description: "Never require a down payment for bookings from this platform.", icon: X },
 ] as const;
 
 /** Add or edit a booking platform. */
@@ -51,7 +49,7 @@ export function PlatformForm({
   useActionFeedback(state);
   const [name, setName] = useState(values.name);
   const [color, setColor] = useState(values.color || "#2F5D50");
-  const [collectsPayment, setCollectsPayment] = useState<"true" | "false">(values.collectsPayment ? "true" : "false");
+  const [downPaymentApplies, setDownPaymentApplies] = useState<"true" | "false">(values.downPaymentApplies ? "true" : "false");
 
   return (
     <form action={formAction} className="space-y-5">
@@ -79,23 +77,14 @@ export function PlatformForm({
       </div>
 
       <div>
-        <p id="platform-payment" className="mb-1.5 text-sm font-medium text-ink">Who collects the guest&apos;s payment?</p>
-        <input type="hidden" name="collectsPayment" value={collectsPayment} />
-        <ChoiceCards aria-labelledby="platform-payment" value={collectsPayment} onChange={setCollectsPayment} options={PAYMENT_OPTIONS} />
+        <p id="platform-down-payment" className="mb-1.5 text-sm font-medium text-ink">When a unit requires a down payment, does it apply to this platform?</p>
+        <input type="hidden" name="downPaymentApplies" value={downPaymentApplies} />
+        <ChoiceCards aria-labelledby="platform-down-payment" value={downPaymentApplies} onChange={setDownPaymentApplies} options={DOWN_PAYMENT_OPTIONS} />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-[10rem_minmax(0,1fr)]">
-        <div>
-          <Label htmlFor="platform-commission">Commission <span className="font-normal text-ink/45">(optional)</span></Label>
-          <div className="relative">
-            <Input id="platform-commission" name="commissionPercent" type="number" inputMode="decimal" min={0} max={100} step={0.01} defaultValue={values.commissionPercent} placeholder="15" className="pr-8 tabular-nums" />
-            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-ink/45">%</span>
-          </div>
-        </div>
-        <div>
+      <div>
           <Label htmlFor="platform-website">Website <span className="font-normal text-ink/45">(optional)</span></Label>
           <Input id="platform-website" name="websiteUrl" type="url" defaultValue={values.websiteUrl} placeholder="https://www.example.com" />
-        </div>
       </div>
 
       <FieldError message={state.error} />

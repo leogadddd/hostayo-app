@@ -28,11 +28,11 @@ async function setup(label: string, fee: { type: "fixed" | "percent"; amount: nu
 describe("reservation fee", () => {
   it("marks OTAs as collecting payment and messaging channels as not", async () => {
     const { byName } = await setup("fee-platforms", null);
-    expect(byName("Airbnb").collectsPayment).toBe(true);
-    expect(byName("Agoda").collectsPayment).toBe(true);
-    expect(byName("Direct").collectsPayment).toBe(false);
-    expect(byName("Facebook").collectsPayment).toBe(false);
-    expect(byName("Messenger").collectsPayment).toBe(false);
+    expect(byName("Airbnb").downPaymentApplies).toBe(false);
+    expect(byName("Agoda").downPaymentApplies).toBe(false);
+    expect(byName("Direct").downPaymentApplies).toBe(true);
+    expect(byName("Facebook").downPaymentApplies).toBe(true);
+    expect(byName("Messenger").downPaymentApplies).toBe(true);
   });
 
   it("copies the unit's fee onto direct and Messenger bookings, not Airbnb ones", async () => {

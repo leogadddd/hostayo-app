@@ -17,7 +17,7 @@ import {
 } from "@/server/reservations/platforms";
 import { createActiveUnit, createTestOrg, createTestProperty, createTestUser, stayDates } from "./helpers";
 
-const CUSTOM = { name: "TikTok", color: "#000000", websiteUrl: "https://www.tiktok.com", commissionBasisPoints: null, collectsPayment: false };
+const CUSTOM = { name: "TikTok", color: "#000000", websiteUrl: "https://www.tiktok.com", downPaymentApplies: true };
 
 describe("platform settings", () => {
   it("adds, edits and reorders an organization's own platforms", async () => {
@@ -27,8 +27,8 @@ describe("platform settings", () => {
     expect((await listPlatforms(org.id)).at(-1)?.name).toBe("TikTok");
     await expect(createPlatform({ ...args, data: { ...CUSTOM, name: "tiktok" } })).rejects.toThrow("already a platform called");
 
-    await updatePlatform({ ...args, platformId: tiktok.id, data: { ...CUSTOM, commissionBasisPoints: 500, collectsPayment: true } });
-    expect((await listManagedPlatforms(org.id)).find((row) => row.id === tiktok.id)).toMatchObject({ commissionBasisPoints: 500, collectsPayment: true });
+    await updatePlatform({ ...args, platformId: tiktok.id, data: { ...CUSTOM, downPaymentApplies: false } });
+    expect((await listManagedPlatforms(org.id)).find((row) => row.id === tiktok.id)).toMatchObject({ downPaymentApplies: false });
 
     await movePlatform({ ...args, platformId: tiktok.id, direction: "up" });
     const names = (await listPlatforms(org.id)).map((row) => row.name);
@@ -65,12 +65,14 @@ describe("platform settings", () => {
     expect((await listPlatforms(org.id)).at(-1)?.id).toBe(agoda.id);
   });
 
-  it("keeps at least one platform", async () => {
-    const { org, owner } = await createTestOrg("platform-last");
+  it("keeps Direct, Walk-in and Referral available", async () => {
+    const { org, owner } = await createTestOrg("required-platforms");
     const args = { organizationId: org.id, actorUserId: owner.id };
     const platforms = await listPlatforms(org.id);
-    for (const platform of platforms.slice(1)) await removePlatform({ ...args, platformId: platform.id });
-    await expect(removePlatform({ ...args, platformId: platforms[0]!.id })).rejects.toThrow("at least one platform");
+    for (const name of ["Direct", "Walk-in", "Referral"]) {
+      const platform = platforms.find((row) => row.name === name)!;
+      await expect(removePlatform({ ...args, platformId: platform.id })).rejects.toThrow("required booking platform");
+    }
   });
 });
 

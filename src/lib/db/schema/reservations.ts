@@ -111,11 +111,8 @@ export const bookingPlatforms = pgTable(
     websiteUrl: text("website_url"),
     // Hex brand color for badges, e.g. "#FF5A5F".
     color: text("color"),
-    // The platform's cut of each booking, in basis points (1500 = 15%).
-    commissionBasisPoints: integer("commission_basis_points"),
-    // The platform takes the guest's payment itself (Airbnb, Agoda), so the
-    // unit's reservation fee doesn't apply to its bookings.
-    collectsPayment: boolean("collects_payment").notNull().default(false),
+    // Whether the unit's down payment applies to bookings from this platform.
+    downPaymentApplies: boolean("down_payment_applies").notNull().default(true),
     isActive: boolean("is_active").notNull().default(true),
     position: integer("position").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -130,10 +127,6 @@ export const bookingPlatforms = pgTable(
     uniqueIndex("booking_platforms_org_name_unique").on(table.organizationId, sql`lower(${table.name})`),
     uniqueIndex("booking_platforms_org_key_unique").on(table.organizationId, table.key),
     check("booking_platforms_name_length", sql`char_length(trim(${table.name})) BETWEEN 2 AND 60`),
-    check(
-      "booking_platforms_commission_check",
-      sql`${table.commissionBasisPoints} IS NULL OR ${table.commissionBasisPoints} BETWEEN 0 AND 10000`,
-    ),
   ],
 );
 

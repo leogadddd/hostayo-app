@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import { requirePermission } from "@/lib/auth/session";
 import { can } from "@/lib/permissions";
-import { formatPercent } from "@/lib/reservation-fee";
 import { listManagedPlatforms } from "@/server/reservations/platforms";
 import { PermissionDenied } from "@/components/app/permission-denied";
 import { PlatformLogo } from "@/components/app/platform-badge";
@@ -25,6 +24,7 @@ export default async function PlatformSettingsPage() {
   const canUpdate = can(membership, "platforms.update");
   const canDelete = can(membership, "platforms.delete");
   const bookings = (count: number) => `${count} ${count === 1 ? "booking" : "bookings"}`;
+  const isRequired = (key: string | null) => key === "direct" || key === "walk_in" || key === "referral";
 
   return (
     <div className="min-w-0 space-y-6">
@@ -47,8 +47,7 @@ export default async function PlatformSettingsPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Platform</TableHead>
-              <TableHead>Payment</TableHead>
-              <TableHead className="text-right">Commission</TableHead>
+              <TableHead>Down payment</TableHead>
               <TableHead className="text-right">Used</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -64,12 +63,9 @@ export default async function PlatformSettingsPage() {
                   </span>
                 </TableCell>
                 <TableCell>
-                  {platform.collectsPayment
-                    ? <Badge tone="neutral">Platform collects</Badge>
-                    : <Badge tone="sage">Reservation fee applies</Badge>}
-                </TableCell>
-                <TableCell className="text-right tabular-nums">
-                  {platform.commissionBasisPoints === null ? <span className="text-ink/40">—</span> : formatPercent(platform.commissionBasisPoints)}
+                  {platform.downPaymentApplies
+                    ? <Badge tone="sage">Applies</Badge>
+                    : <Badge tone="neutral">Doesn&apos;t apply</Badge>}
                 </TableCell>
                 <TableCell className="text-right tabular-nums text-ink/65">{bookings(platform.reservationCount)}</TableCell>
                 <TableCell>
@@ -79,7 +75,7 @@ export default async function PlatformSettingsPage() {
                       isFirst={index === 0}
                       isLast={index === active.length - 1}
                       canUpdate={canUpdate}
-                      canDelete={canDelete && active.length > 1}
+                      canDelete={canDelete && active.length > 1 && !isRequired(platform.key)}
                     />
                   ) : <span className="block text-right text-ink/40">—</span>}
                 </TableCell>
@@ -118,8 +114,7 @@ export default async function PlatformSettingsPage() {
 
       <Card className="bg-card">
         <CardBody className="text-sm text-ink/65">
-          <p><span className="font-medium text-pine">Reservation fee applies</span>: the guest pays you directly, so the unit&apos;s reservation fee must be paid before a booking is confirmed.</p>
-          <p className="mt-2"><span className="font-medium text-pine">Platform collects</span>: the platform takes the guest&apos;s payment and pays you out, so no reservation fee is asked for.</p>
+          <p>This setting matters only when the selected unit has a required down payment. It decides whether that unit&apos;s down payment is required before bookings from this platform are confirmed.</p>
         </CardBody>
       </Card>
     </div>

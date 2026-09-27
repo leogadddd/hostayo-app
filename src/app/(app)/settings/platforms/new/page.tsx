@@ -20,7 +20,7 @@ export default async function NewPlatformPage() {
             action={createPlatformAction}
             submitLabel="Add platform"
             successMessage="Platform added."
-            values={{ name: "", color: "", websiteUrl: "", commissionPercent: "", collectsPayment: false, logoUrl: null }}
+            values={{ name: "", color: "", websiteUrl: "", downPaymentApplies: true, logoUrl: null }}
           />
         </CardBody>
       </Card>
