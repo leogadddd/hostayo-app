@@ -16,14 +16,11 @@ import {
   X,
   ChevronRight,
   LayoutDashboard,
+  House,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { APP_VERSION } from "@/lib/app-version";
-import {
-  can,
-  type Permission,
-  type RoleKey,
-} from "@/lib/permissions";
+import { can, type Permission, type RoleKey } from "@/lib/permissions";
 import { Logo } from "@/components/logo";
 import { AccountMenu } from "@/components/app/account-menu";
 import { LiveClock } from "@/components/app/live-clock";
@@ -39,7 +36,7 @@ const NAV_ITEMS: {
   icon: typeof LayoutDashboard;
   anyOf?: readonly Permission[];
 }[] = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard", label: "Dashboard", icon: House },
   {
     href: "/calendar",
     label: "Calendar",
