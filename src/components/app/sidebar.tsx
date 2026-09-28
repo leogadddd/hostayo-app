@@ -8,6 +8,7 @@ import {
   Building2,
   Calendar,
   ClipboardList,
+  Package,
   Receipt,
   BarChart3,
   Settings,
@@ -60,6 +61,12 @@ const NAV_ITEMS: {
     href: "/tasks",
     label: "Tasks",
     icon: ClipboardList,
+    anyOf: ["tasks.view"],
+  },
+  {
+    href: "/inventory",
+    label: "Inventory",
+    icon: Package,
     anyOf: ["tasks.view"],
   },
   {
@@ -189,6 +196,7 @@ const SEGMENT_LABELS: Record<string, string> = {
   reservations: "Reservations",
   guests: "Guests",
   tasks: "Tasks",
+  inventory: "Inventory",
   expenses: "Expenses",
   reports: "Reports",
   "audit-logs": "Audit logs",

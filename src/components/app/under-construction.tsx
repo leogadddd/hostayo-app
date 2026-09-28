@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { Construction } from "lucide-react";
 import { buttonClassName } from "@/components/ui/button";
@@ -12,7 +13,7 @@ export const UNDER_CONSTRUCTION = {
   reports: true,
 } as const;
 
-export function UnderConstruction({ title, description }: { title: string; description: string }) {
+export function UnderConstruction({ title, description, children }: { title: string; description: string; children?: ReactNode }) {
   return (
     <div className="min-w-0">
       <PageHeading title={title} />
@@ -22,6 +23,7 @@ export function UnderConstruction({ title, description }: { title: string; descr
         </span>
         <h2 className="mt-4 font-display text-xl text-pine">Under construction</h2>
         <p className="mt-2 max-w-md text-sm leading-relaxed text-ink/60">{description}</p>
+        {children}
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <Link href="/dashboard" className={buttonClassName("primary")}>Back to dashboard</Link>
           <Link href="/settings/support" className={buttonClassName("outline")}>Tell us what you need</Link>
