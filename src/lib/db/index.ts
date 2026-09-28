@@ -10,7 +10,12 @@ if (!connectionString) {
   );
 }
 
-const client = postgres(connectionString, { max: 10 });
+// Hot reloads in `next dev` re-run this module; without reusing the client,
+// every reload opens a fresh pool and the old ones hold their connections
+// until Postgres runs out ("too many clients already").
+const globalForDb = globalThis as unknown as { stayopsDbClient?: ReturnType<typeof postgres> };
+const client = globalForDb.stayopsDbClient ?? postgres(connectionString, { max: 10, idle_timeout: 30 });
+if (process.env.NODE_ENV !== "production") globalForDb.stayopsDbClient = client;
 
 export const db = drizzle(client, { schema });
 export { schema };
