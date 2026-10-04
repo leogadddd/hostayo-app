@@ -1,8 +1,9 @@
 /**
- * Advertising mode: set HIDE_LOGIN_LINKS=true to remove the "Sign in" buttons
- * from public pages (terms, privacy), e.g. when the host is only being shown
- * off. Read on the server at request time, so no rebuild is needed.
+ * APP_IS_LIVE=false puts the app in advertising mode: the "Sign in" buttons
+ * are removed from public pages (terms, privacy) while the host is only being
+ * shown off. Anything else, including unset, means the app is live. Read on
+ * the server at request time, so no rebuild is needed.
  */
 export function loginLinksHidden(): boolean {
-  return process.env.HIDE_LOGIN_LINKS === "true";
+  return process.env.APP_IS_LIVE === "false";
 }
