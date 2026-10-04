@@ -63,6 +63,7 @@ export default async function AppLayout({
       : (user.image ?? null),
     role: membership.role,
     viaL1: membership.viaL1 ?? false,
+    isDemoAccount: membership.isDemoAccount,
     l1,
     permissions: membership.permissions ?? resolvePermissions(membership.role),
   };

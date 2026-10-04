@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { requireUser } from "@/lib/auth/session";
+import { assertNotDemoAccount, getDemoAccountStatus, PermissionError, requireUser } from "@/lib/auth/session";
 import { createOrganization, OrgError } from "@/server/orgs/service";
 
 const createOrgSchema = z.object({
@@ -9,6 +9,12 @@ const createOrgSchema = z.object({
 
 export async function POST(request: Request) {
   const user = await requireUser();
+  try {
+    assertNotDemoAccount({ isDemoAccount: await getDemoAccountStatus(user.id) });
+  } catch (error) {
+    if (error instanceof PermissionError) return NextResponse.json({ error: error.message }, { status: 403 });
+    throw error;
+  }
 
   const parsed = createOrgSchema.safeParse(await request.json());
   if (!parsed.success) {

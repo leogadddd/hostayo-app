@@ -5,7 +5,7 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { memberships, organizationRolePermissions, organizations, roles, systemAdmins } from "@/lib/db/schema";
+import { memberships, organizationRolePermissions, organizations, roles, systemAdmins, user } from "@/lib/db/schema";
 import { and, asc, desc, eq } from "drizzle-orm";
 import { can, resolvePermissions, type Permission, type RoleKey } from "@/lib/permissions";
 
@@ -49,6 +49,8 @@ export interface MembershipContext {
   organizationSlug: string;
   role: RoleKey;
   userId: string;
+  /** The shared account seeded by the demo reset. */
+  isDemoAccount?: boolean;
   /** An L1 operator acting in an organization they aren't a member of (as its owner). */
   viaL1?: boolean;
   /**
@@ -69,10 +71,11 @@ export const requireMembership = cache(async (): Promise<MembershipContext> => {
     redirect("/login");
   }
 
-  const [rows, cookieStore, l1] = await Promise.all([
+  const [rows, cookieStore, l1, account] = await Promise.all([
     listMemberships(session.user.id),
     cookies(),
     isL1(session.user.id),
+    getDemoAccountStatus(session.user.id),
   ]);
   // The cookie is only a preference; always resolve it against this user's
   // current access before using it as a tenant boundary.
@@ -90,6 +93,7 @@ export const requireMembership = cache(async (): Promise<MembershipContext> => {
   return {
     ...membership,
     userId: session.user.id,
+    isDemoAccount: account,
     permissions: await getRolePermissions(membership.organizationId, membership.role),
   };
 });
@@ -126,6 +130,19 @@ export class PermissionError extends Error {
 export function assertCan(membership: MembershipContext, permission: Permission): void {
   if (!can(membership, permission)) throw new PermissionError();
 }
+
+/** Blocks actions that could turn the shared demo into a real account or team. */
+export function assertNotDemoAccount(user: { isDemoAccount?: boolean }): void {
+  if (user.isDemoAccount) {
+    throw new PermissionError("This action is unavailable in the shared demo.");
+  }
+}
+
+/** Read the persisted flag instead of relying on a demo email or hostname. */
+export const getDemoAccountStatus = cache(async (userId: string): Promise<boolean> => {
+  const [account] = await db.select({ isDemoAccount: user.isDemoAccount }).from(user).where(eq(user.id, userId)).limit(1);
+  return account?.isDemoAccount ?? false;
+});
 
 /** Onboarding creates the organization's first property; that flow stays with its owner. */
 export function assertOwner(membership: MembershipContext): void {

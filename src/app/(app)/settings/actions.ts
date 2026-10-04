@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireMembership, assertCan, PermissionError } from "@/lib/auth/session";
+import { requireMembership, assertCan, assertNotDemoAccount, PermissionError } from "@/lib/auth/session";
 import {
   inviteStaff,
   changeMemberRole,
@@ -165,6 +165,7 @@ export async function inviteStaffAction(
 ): Promise<OrgFormState> {
   const membership = await requireMembership();
   assertCan(membership, "team.create");
+  assertNotDemoAccount(membership);
   try {
     const invitation = await inviteStaff({
       organizationId: membership.organizationId,
@@ -183,6 +184,7 @@ export async function inviteStaffAction(
 export async function createOrganizationJoinCodeAction(): Promise<OrgFormState> {
   const membership = await requireMembership();
   assertCan(membership, "team.create");
+  assertNotDemoAccount(membership);
   try {
     const joinCode = await createOrganizationJoinCode({ organizationId: membership.organizationId, actorUserId: membership.userId });
     return { success: true, joinCode: joinCode.code };
@@ -194,6 +196,7 @@ export async function createOrganizationJoinCodeAction(): Promise<OrgFormState> 
 export async function reviewOrganizationJoinRequestAction(requestId: string, approve: boolean): Promise<OrgFormState> {
   const membership = await requireMembership();
   assertCan(membership, "team.update");
+  assertNotDemoAccount(membership);
   try {
     await reviewOrganizationJoinRequest({ organizationId: membership.organizationId, actorUserId: membership.userId, requestId, approve });
     revalidatePath("/settings");
@@ -206,6 +209,7 @@ export async function reviewOrganizationJoinRequestAction(requestId: string, app
 export async function changeMemberRoleAction(membershipId: string, role: InvitableRoleKey): Promise<OrgFormState> {
   const membership = await requireMembership();
   assertCan(membership, "team.update");
+  assertNotDemoAccount(membership);
   if (!(INVITABLE_ROLE_KEYS as readonly string[]).includes(role)) return { error: "Choose a valid role." };
   try {
     await changeMemberRole({ organizationId: membership.organizationId, actorUserId: membership.userId, membershipId, role });
@@ -240,6 +244,7 @@ export async function saveRolePermissionsAction(role: RoleKey, permissions: stri
 export async function removeStaffAction(membershipId: string): Promise<OrgFormState> {
   const membership = await requireMembership();
   assertCan(membership, "team.delete");
+  assertNotDemoAccount(membership);
   try {
     await removeStaff({
       organizationId: membership.organizationId,

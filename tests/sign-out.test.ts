@@ -32,4 +32,13 @@ describe("sign out", () => {
     await expect(signOutAndRedirect(redirect)).rejects.toThrow("Session service unavailable");
     expect(redirect).not.toHaveBeenCalled();
   });
+
+  it("returns a demo user to the public Hostayo site", async () => {
+    vi.mocked(authClient.signOut).mockResolvedValue({ data: { success: true }, error: null });
+    const redirect = vi.fn();
+
+    await signOutAndRedirect(redirect, true);
+
+    expect(redirect).toHaveBeenCalledExactlyOnceWith("https://hostayo.casa");
+  });
 });

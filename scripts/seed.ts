@@ -81,6 +81,9 @@ async function resolveSeedUserId(): Promise<string> {
 
 export async function seedDemoData() {
   const userId = await resolveSeedUserId();
+  // Do not infer demo mode from an email address at runtime. The persisted
+  // marker lets server-side code safely distinguish this shared account.
+  await db.update(user).set({ isDemoAccount: true, updatedAt: new Date() }).where(eq(user.id, userId));
   console.log(`seed: user ready (${SEED_USER.email})`);
 
   let organizationId: string;

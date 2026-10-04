@@ -1,15 +1,15 @@
 import "dotenv/config";
 
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { auditEvents, memberships, organizations, user } from "@/lib/db/schema";
-import { SEED_ORG_NAME, SEED_USER, seedDemoData } from "./seed";
+import { seedDemoData } from "./seed";
 
 /**
- * Removes only the shared seeded demo workspace, then restores its baseline
- * data. Organization-level foreign keys cascade the related demo records;
- * audit events are deleted explicitly because they intentionally have no
- * organization foreign key.
+ * Removes only organizations belonging to a persisted demo account, then
+ * restores the shared baseline. Organization-level foreign keys cascade the
+ * related demo records; audit events are deleted explicitly because they
+ * intentionally have no organization foreign key.
  */
 export async function resetDemoData() {
   const demoOrganizations = await db
@@ -20,12 +20,7 @@ export async function resetDemoData() {
       eq(memberships.organizationId, organizations.id),
     )
     .innerJoin(user, eq(memberships.userId, user.id))
-    .where(
-      and(
-        eq(user.email, SEED_USER.email),
-        eq(organizations.name, SEED_ORG_NAME),
-      ),
-    );
+    .where(eq(user.isDemoAccount, true));
 
   for (const organization of demoOrganizations) {
     await db.transaction(async (tx) => {
@@ -36,7 +31,7 @@ export async function resetDemoData() {
     });
   }
 
-  await db.delete(user).where(eq(user.email, SEED_USER.email));
+  await db.delete(user).where(eq(user.isDemoAccount, true));
 
   console.log("demo reset: previous shared workspace removed");
   await seedDemoData();

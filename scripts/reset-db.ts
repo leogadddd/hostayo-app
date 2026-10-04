@@ -5,6 +5,7 @@ import { stdin, stdout } from "node:process";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
+import { seedDemoData } from "./seed";
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
@@ -47,10 +48,11 @@ async function main() {
     await client.unsafe("DROP SCHEMA IF EXISTS public CASCADE");
     await client.unsafe("CREATE SCHEMA public AUTHORIZATION CURRENT_USER");
     await migrate(db, { migrationsFolder: "drizzle" });
-    // Roles and permissions are seeded by the migrations themselves; amenities
-    // and booking platforms are created per organization. No demo data or
-    // demo credentials are added.
-    console.log("Database reset and migrated. It contains no organizations or users.");
+    // Roles and permissions are seeded by the migrations themselves. Restore
+    // the shared, clearly fake demo workspace too, including its persisted
+    // is_demo_account marker.
+    await seedDemoData();
+    console.log("Database reset, migrated, and seeded with the shared demo workspace.");
   } finally {
     await client.end();
   }

@@ -6,6 +6,7 @@ import { clearL1Recents } from "@/lib/l1-recents";
 
 export async function signOutAndRedirect(
   redirect: (path: string) => void = (path) => window.location.replace(path),
+  isDemoAccount = false,
 ) {
   const { error } = await authClient.signOut();
   if (error) {
@@ -13,5 +14,5 @@ export async function signOutAndRedirect(
   }
   clearL1Recents();
   setToastAfterNavigation("success", "Signed out successfully.");
-  redirect("/login");
+  redirect(isDemoAccount ? "https://hostayo.casa" : "/login");
 }

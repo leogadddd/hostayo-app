@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { ZodError } from "zod";
 import {
   assertOwner,
+  assertNotDemoAccount,
+  getDemoAccountStatus,
   PermissionError,
   requireMembership,
   requireUser,
@@ -55,6 +57,7 @@ export async function saveOrganizationAction(
   const user = await requireUser();
   const name = readString(formData, "name");
   try {
+    assertNotDemoAccount({ isDemoAccount: await getDemoAccountStatus(user.id) });
     const { membership } = await getOnboardingState(user.id);
     if (!membership) {
       await createOrganization({ name, ownerUserId: user.id });

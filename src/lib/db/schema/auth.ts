@@ -9,6 +9,9 @@ export const user = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").notNull(),
   image: text("image"),
+  // Shared demo credentials can be identified without relying on email or host.
+  // This is intentionally persisted so server-side guards remain trustworthy.
+  isDemoAccount: boolean("is_demo_account").notNull().default(false),
   // Managed by Better Auth's two-factor plugin.
   twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull(),

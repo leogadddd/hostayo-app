@@ -7,13 +7,14 @@ import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { signOutAndRedirect } from "@/lib/auth/sign-out";
 import { roleLabel, type RoleKey } from "@/lib/permissions";
 
-export function AccountMenu({ userName, userEmail, userImage, role, viaL1 = false }: {
+export function AccountMenu({ userName, userEmail, userImage, role, viaL1 = false, isDemoAccount = false }: {
   userName: string;
   userEmail: string;
   userImage: string | null;
   role: RoleKey;
   /** An L1 operator in an organization they aren't a member of. */
   viaL1?: boolean;
+  isDemoAccount?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
@@ -71,7 +72,7 @@ export function AccountMenu({ userName, userEmail, userImage, role, viaL1 = fals
               confirmLabel="Sign out"
               successMessage={null}
               loadingLabel="Signing you out…"
-              onConfirm={signOutAndRedirect}
+              onConfirm={() => signOutAndRedirect(undefined, isDemoAccount)}
               trigger={<><LogOut className="h-4 w-4" aria-hidden />Sign out</>}
               triggerRole="menuitem"
               triggerClassName="w-full justify-start text-clay-deep hover:bg-clay-mist/70"

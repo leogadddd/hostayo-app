@@ -107,6 +107,8 @@ type SidebarProps = {
   role: RoleKey;
   /** An L1 operator in an organization they aren't a member of. */
   viaL1?: boolean;
+  /** The shared demo user returns to the public site after sign-out. */
+  isDemoAccount?: boolean;
   /** The user is an L1 operator: the organization picker searches every organization. */
   l1?: boolean;
   /** Only decides which links to show; every page checks access itself. Defaults to the role's. */
@@ -316,6 +318,7 @@ export function AppHeader({
           userImage={props.userImage ?? null}
           role={props.role}
           viaL1={props.viaL1}
+          isDemoAccount={props.isDemoAccount}
         />
       </div>
       <dialog

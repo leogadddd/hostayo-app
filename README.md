@@ -63,20 +63,19 @@ For role-based development, run `npm run seed:development`. It creates the
 | `npm run seed:casa-alon` | Import the illustrated Casa Alon Beach Villas sample property into the development workspace |
 | `npm run seed:amenities` / `seed:platforms` | Backfill default amenities or booking platforms for existing workspaces |
 | `npm run seed:calendar-demo` / `seed:reservations` | Add focused calendar or reservation sample data |
-| `npm run db:reset` | Interactively confirm, then erase the database and re-run every migration (roles and permissions come from the migrations). Adds no demo data or accounts; run a `seed:*` script afterwards if you want some |
+| `npm run db:reset` | Interactively confirm, then erase the database, re-run every migration, and restore the shared demo workspace |
 
 ## Nightly demo reset
 
 Vercel Cron calls `/api/cron/reset-demo` every day at 16:05 UTC (00:05 in
-Asia/Manila). It deletes only the `owner@hostayo.dev` demo user and its `Demo
-Stay Operations` workspace, then recreates the fake baseline data.
+Asia/Manila). It deletes only accounts marked `is_demo_account` and their
+workspaces, then recreates the fake baseline data.
 
 Before deploying, add a random `CRON_SECRET` to the Vercel project’s
 Production environment variables. Vercel sends it in the request’s
 `Authorization` header, and the endpoint rejects calls without it. The cron
 job is created after the next production deployment. `npm run seed:demo:reset`
-remains available for a deliberate local reset; do not run either reset against
-a production account that reuses the demo email or organization name.
+remains available for a deliberate local reset.
 
 ## Inventory and availability
 
