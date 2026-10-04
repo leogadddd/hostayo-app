@@ -21,6 +21,9 @@ export const auth = betterAuth({
     allowedHosts: [
       "localhost:3000",
       configuredHost,
+      // Same deployment on two hosts: the official app and the public demo.
+      "app.hostayo.casa",
+      "demo.hostayo.casa",
       "*.vercel.app",
     ],
     protocol: process.env.NODE_ENV === "development" ? "http" : "https",
