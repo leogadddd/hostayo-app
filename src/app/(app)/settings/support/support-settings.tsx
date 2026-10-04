@@ -38,7 +38,7 @@ function ContactCard() {
         <div className="min-w-0">
           <h2 className="font-display text-xl text-pine">Contact us</h2>
           <p className="mt-1 max-w-xl text-sm text-ink/60">
-            Reach the StayOps team by email or message us on Facebook or Instagram.
+            Reach the Hostayo team by email or message us on Facebook or Instagram.
           </p>
         </div>
       </CardHeader>
@@ -74,7 +74,7 @@ function ContactCard() {
         <ContactRow
           icon={FacebookIcon}
           title="Facebook"
-          value="StayOps on Facebook"
+          value="Hostayo on Facebook"
           action={<ExternalButton href={SUPPORT_FACEBOOK_URL}>Message</ExternalButton>}
         />
         <ContactRow
@@ -115,7 +115,7 @@ function ReportProblemCard({ context }: { context: ProblemReportContext }) {
         <div className="min-w-0">
           <h2 className="font-display text-xl text-pine">Report a problem</h2>
           <p className="mt-1 max-w-xl text-sm text-ink/60">
-            This opens an email to us with your report filled in. We add your name, organization, role, StayOps version and browser so we don’t have to ask.
+            This opens an email to us with your report filled in. We add your name, organization, role, Hostayo version and browser so we don’t have to ask.
           </p>
         </div>
       </CardHeader>
@@ -198,7 +198,7 @@ const HELP_TOPICS: readonly { question: string; answer: ReactNode }[] = [
     question: "How do I confirm a reservation?",
     answer: (
       <>
-        Open the reservation and use <strong>Record payment</strong> for the down payment you received. Once it’s recorded you can confirm the booking. To confirm without a recorded payment, StayOps asks you for a reason. A guest uploading payment proof never confirms a booking on its own; you check the payment first.
+        Open the reservation and use <strong>Record payment</strong> for the down payment you received. Once it’s recorded you can confirm the booking. To confirm without a recorded payment, Hostayo asks you for a reason. A guest uploading payment proof never confirms a booking on its own; you check the payment first.
       </>
     ),
   },
@@ -214,7 +214,7 @@ const HELP_TOPICS: readonly { question: string; answer: ReactNode }[] = [
     question: "Why isn’t the security deposit counted as income?",
     answer: (
       <>
-        A security deposit is the guest’s money that you hold and usually return. StayOps tracks it separately from booking payments so your income and balances aren’t overstated. Record refunds against the deposit when the guest checks out.
+        A security deposit is the guest’s money that you hold and usually return. Hostayo tracks it separately from booking payments so your income and balances aren’t overstated. Record refunds against the deposit when the guest checks out.
       </>
     ),
   },
@@ -238,7 +238,7 @@ const HELP_TOPICS: readonly { question: string; answer: ReactNode }[] = [
     question: "When does a guest show as checked in?",
     answer: (
       <>
-        Only when someone on your team presses <strong>Check in guest</strong> on the reservation. StayOps never checks guests in or out automatically based on the dates.
+        Only when someone on your team presses <strong>Check in guest</strong> on the reservation. Hostayo never checks guests in or out automatically based on the dates.
       </>
     ),
   },

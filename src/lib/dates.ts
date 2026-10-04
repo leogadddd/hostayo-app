@@ -1,5 +1,5 @@
 /**
- * StayOps uses date-only night semantics in the property's local timezone
+ * Hostayo uses date-only night semantics in the property's local timezone
  * (default Asia/Manila). A stay Sep 28–30 occupies the nights of the 28th
  * and 29th; the check-out date is exclusive. Check-in/check-out travel as
  * `yyyy-mm-dd` strings — never as UTC timestamps divided by 24.

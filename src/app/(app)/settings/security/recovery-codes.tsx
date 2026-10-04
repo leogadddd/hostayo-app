@@ -19,11 +19,11 @@ export function RecoveryCodes({ codes }: { codes: string[] }) {
   };
 
   const download = () => {
-    const text = `StayOps recovery codes\nEach code works once. Keep them somewhere safe.\n\n${codes.join("\n")}\n`;
+    const text = `Hostayo recovery codes\nEach code works once. Keep them somewhere safe.\n\n${codes.join("\n")}\n`;
     const url = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
     const link = document.createElement("a");
     link.href = url;
-    link.download = "stayops-recovery-codes.txt";
+    link.download = "hostayo-recovery-codes.txt";
     link.click();
     URL.revokeObjectURL(url);
   };

@@ -19,7 +19,7 @@ export function ThemeSelector({ defaultValue }: { defaultValue: ThemePreference 
     <div>
       <h2 id="theme-label" className="text-sm font-medium text-pine">Theme</h2>
       <p className="mt-1 text-sm leading-relaxed text-ink/60">
-        Choose how StayOps looks on this device.
+        Choose how Hostayo looks on this device.
       </p>
       <ChoiceCards
         aria-labelledby="theme-label"

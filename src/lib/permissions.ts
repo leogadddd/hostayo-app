@@ -166,7 +166,7 @@ export function permissionDescription(permission: Permission): string {
   return (group.actions as Partial<Record<PermissionAction, string>>)[action] ?? permission;
 }
 
-/** Defaults that match how StayOps behaved before roles were configurable. */
+/** Defaults that match how Hostayo behaved before roles were configurable. */
 export const DEFAULT_ROLE_PERMISSIONS: Record<RoleKey, readonly Permission[]> = {
   owner: PERMISSIONS,
   admin: PERMISSIONS,

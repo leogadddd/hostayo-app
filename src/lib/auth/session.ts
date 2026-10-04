@@ -9,7 +9,7 @@ import { memberships, organizationRolePermissions, organizations, roles, systemA
 import { and, asc, desc, eq } from "drizzle-orm";
 import { can, resolvePermissions, type Permission, type RoleKey } from "@/lib/permissions";
 
-export const ACTIVE_ORGANIZATION_COOKIE = "stayops_active_organization_id";
+export const ACTIVE_ORGANIZATION_COOKIE = "hostayo_active_organization_id";
 
 export type Session = NonNullable<
   Awaited<ReturnType<typeof auth.api.getSession>>

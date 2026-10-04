@@ -47,7 +47,7 @@ export function ProfileForm({
           <section>
             <h2 className="font-display text-xl text-pine">Profile picture</h2>
             <p className="mt-1 text-sm text-ink/60">
-              Upload a photo to personalize your StayOps account.
+              Upload a photo to personalize your Hostayo account.
             </p>
             <ProfileImageField currentImage={image} onApplied={() => setDirty(true)} />
           </section>

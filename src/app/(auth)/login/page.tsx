@@ -64,8 +64,8 @@ function useSessionRecovery(active: boolean) {
 }
 
 const DEMO_ACCOUNT = {
-  email: "owner@stayops.dev",
-  password: "stayops-demo-1234",
+  email: "owner@hostayo.dev",
+  password: "hostayo-demo-1234",
 };
 
 function LoginContent() {
@@ -166,7 +166,7 @@ function LoginContent() {
           {useRecoveryCode ? (
             <>Enter one of the recovery codes you saved when you turned on two-factor. Each code works once.</>
           ) : (
-            <>Open your authenticator app and enter the 6-digit code for StayOps{email ? <> (<span className="font-medium text-pine">{email}</span>)</> : null}.</>
+            <>Open your authenticator app and enter the 6-digit code for Hostayo{email ? <> (<span className="font-medium text-pine">{email}</span>)</> : null}.</>
           )}
         </p>
 
@@ -239,7 +239,7 @@ function LoginContent() {
     <div>
       <h1 className="font-display text-3xl text-pine">Welcome back</h1>
       <p className="mt-2 text-sm text-ink/60">
-        Sign in to your StayOps account.
+        Sign in to your Hostayo account.
       </p>
       {invite ? <InvitationNotice /> : null}
 
@@ -314,7 +314,7 @@ function LoginContent() {
             className="w-full max-w-md rounded-2xl bg-paper p-6 shadow-2xl sm:p-8"
           >
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-pine/60">
-              StayOps demo
+              Hostayo demo
             </p>
             <h2 id="demo-mode-title" className="mt-3 font-display text-3xl text-pine">
               You&apos;re entering demo mode.

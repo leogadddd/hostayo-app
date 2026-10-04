@@ -5,29 +5,29 @@ import { SUPPORT_EMAIL } from "@/lib/support";
 
 export const metadata: Metadata = {
   title: "Terms and Conditions",
-  description: "Terms and conditions for using StayOps.",
+  description: "Terms and conditions for using Hostayo.",
 };
 
 const sections = [
   {
     title: "1. Agreement to these terms",
     content:
-      "These Terms and Conditions govern your access to and use of StayOps. By creating an account, inviting a team member, or using the service, you agree to these terms. If you use StayOps for a business or organization, you confirm that you have authority to accept these terms for it.",
+      "These Terms and Conditions govern your access to and use of Hostayo. By creating an account, inviting a team member, or using the service, you agree to these terms. If you use Hostayo for a business or organization, you confirm that you have authority to accept these terms for it.",
   },
   {
     title: "2. Your account",
     content:
-      "Keep your account details accurate and your sign-in credentials secure. You are responsible for activity under your account and for ensuring that each person you invite uses StayOps appropriately. Let us know promptly if you believe your account has been accessed without permission.",
+      "Keep your account details accurate and your sign-in credentials secure. You are responsible for activity under your account and for ensuring that each person you invite uses Hostayo appropriately. Let us know promptly if you believe your account has been accessed without permission.",
   },
   {
-    title: "3. Using StayOps",
+    title: "3. Using Hostayo",
     content:
-      "StayOps is designed to help short-stay operators coordinate bookings, payments, turnovers, and expenses. You may use the service only in compliance with applicable laws and these terms. Do not interfere with the service, attempt to access accounts or data that are not yours, or use StayOps to store unlawful, misleading, or harmful content.",
+      "Hostayo is designed to help short-stay operators coordinate bookings, payments, turnovers, and expenses. You may use the service only in compliance with applicable laws and these terms. Do not interfere with the service, attempt to access accounts or data that are not yours, or use Hostayo to store unlawful, misleading, or harmful content.",
   },
   {
     title: "4. Your data",
     content:
-      "You retain ownership of the information you enter into StayOps. You give us permission to host, process, and display that information only as needed to operate, secure, and improve the service for you. You are responsible for ensuring that you have the right to provide any guest, staff, or property information you add.",
+      "You retain ownership of the information you enter into Hostayo. You give us permission to host, process, and display that information only as needed to operate, secure, and improve the service for you. You are responsible for ensuring that you have the right to provide any guest, staff, or property information you add.",
   },
   {
     title: "5. Fees and payments",
@@ -37,27 +37,27 @@ const sections = [
   {
     title: "6. Availability and changes",
     content:
-      "We aim to keep StayOps reliable and available, but the service may occasionally be unavailable for maintenance, updates, or matters beyond our control. We may update, add, or retire features as the product evolves. We will make reasonable efforts to communicate material changes that affect your use of the service.",
+      "We aim to keep Hostayo reliable and available, but the service may occasionally be unavailable for maintenance, updates, or matters beyond our control. We may update, add, or retire features as the product evolves. We will make reasonable efforts to communicate material changes that affect your use of the service.",
   },
   {
     title: "7. Disclaimer and limitation of liability",
     content:
-      "StayOps is provided on an “as is” and “as available” basis to the extent permitted by law. The service helps you organize operations; you remain responsible for your business decisions, guest communications, records, and legal obligations. To the maximum extent permitted by law, StayOps is not liable for indirect, incidental, special, consequential, or punitive damages arising from your use of the service.",
+      "Hostayo is provided on an “as is” and “as available” basis to the extent permitted by law. The service helps you organize operations; you remain responsible for your business decisions, guest communications, records, and legal obligations. To the maximum extent permitted by law, Hostayo is not liable for indirect, incidental, special, consequential, or punitive damages arising from your use of the service.",
   },
   {
     title: "8. Suspension and termination",
     content:
-      "You may stop using StayOps at any time. We may suspend or terminate access if we reasonably believe there is a breach of these terms, a security risk, or a legal requirement to do so. Where practical, we will provide notice and an opportunity to address the issue.",
+      "You may stop using Hostayo at any time. We may suspend or terminate access if we reasonably believe there is a breach of these terms, a security risk, or a legal requirement to do so. Where practical, we will provide notice and an opportunity to address the issue.",
   },
   {
     title: "9. Changes to these terms",
     content:
-      "We may update these terms from time to time. If we make a material change, we will update the effective date and provide notice through StayOps or another reasonable channel. Continuing to use the service after the updated terms take effect means you accept them.",
+      "We may update these terms from time to time. If we make a material change, we will update the effective date and provide notice through Hostayo or another reasonable channel. Continuing to use the service after the updated terms take effect means you accept them.",
   },
   {
     title: "10. Contact",
     content:
-      `For questions about these terms or your StayOps account, please contact the StayOps team at ${SUPPORT_EMAIL}, or message us on Facebook or Instagram (@stayopsph). Signed-in users can also reach us from Settings → Support.`,
+      `For questions about these terms or your Hostayo account, please contact the Hostayo team at ${SUPPORT_EMAIL}, or message us on Facebook or Instagram (@hostayoph). Signed-in users can also reach us from Settings → Support.`,
   },
 ];
 
@@ -66,7 +66,7 @@ export default function TermsPage() {
     <div className="min-h-screen bg-paper text-ink">
       <header className="border-b border-pine/10">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-5 sm:px-8">
-          <Link href="/" aria-label="StayOps home">
+          <Link href="/" aria-label="Hostayo home">
             <Logo />
           </Link>
           <Link
@@ -87,7 +87,7 @@ export default function TermsPage() {
             Terms and Conditions
           </h1>
           <p className="mt-5 text-sm leading-relaxed text-ink/65 sm:text-base">
-            These terms explain the rules for using StayOps and the
+            These terms explain the rules for using Hostayo and the
             responsibilities we share in keeping the service useful and secure.
           </p>
           <p className="mt-5 text-sm text-ink/50">

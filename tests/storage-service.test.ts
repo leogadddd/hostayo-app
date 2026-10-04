@@ -10,7 +10,7 @@ import { S3ObjectStorage, StorageError, createObjectStorageFromEnvironment } fro
 
 function storage(result: unknown = {}) {
   const send = vi.fn().mockResolvedValue(result);
-  return { send, service: new S3ObjectStorage({ bucket: "stayops-dev", client: { send } }) };
+  return { send, service: new S3ObjectStorage({ bucket: "hostayo-dev", client: { send } }) };
 }
 
 describe("S3ObjectStorage", () => {
@@ -20,7 +20,7 @@ describe("S3ObjectStorage", () => {
       .resolves.toEqual({ key: "orgs/o1/proof.png", contentType: "image/png", contentLength: 2, eTag: '"etag"' });
     const command = send.mock.calls[0]?.[0] as PutObjectCommand;
     expect(command).toBeInstanceOf(PutObjectCommand);
-    expect(command.input).toMatchObject({ Bucket: "stayops-dev", Key: "orgs/o1/proof.png", ContentType: "image/png" });
+    expect(command.input).toMatchObject({ Bucket: "hostayo-dev", Key: "orgs/o1/proof.png", ContentType: "image/png" });
   });
 
   it("reads object bytes and metadata", async () => {

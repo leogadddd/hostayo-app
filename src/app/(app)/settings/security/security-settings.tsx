@@ -216,7 +216,7 @@ function SecurityAlerts({ email, preferences }: { email: string; preferences: Re
       <CardHeader>
         <h2 className="font-display text-xl text-pine">Security alerts</h2>
         <p className="mt-1 max-w-xl text-sm text-ink/60">
-          Choose what we tell you about. Alerts go to <span className="font-medium text-pine">{email}</span> once email alerts are switched on for StayOps.
+          Choose what we tell you about. Alerts go to <span className="font-medium text-pine">{email}</span> once email alerts are switched on for Hostayo.
         </p>
       </CardHeader>
       <CardBody className="grid gap-3 sm:grid-cols-2">

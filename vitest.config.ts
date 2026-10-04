@@ -18,7 +18,7 @@ export default defineConfig({
     env: {
       // The db client is constructed at import time; unit tests never
       // connect, they just need the module to load.
-      DATABASE_URL: "postgres://test:test@localhost:5432/stayops_test",
+      DATABASE_URL: "postgres://test:test@localhost:5432/hostayo_test",
       BETTER_AUTH_SECRET: "vitest-secret",
     },
   },

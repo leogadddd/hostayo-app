@@ -1,20 +1,20 @@
 services:
   db:
     image: postgres:16-alpine
-    container_name: stayops-db
+    container_name: hostayo-db
     environment:
-      POSTGRES_USER: stayops
-      POSTGRES_PASSWORD: stayops
-      POSTGRES_DB: stayops
+      POSTGRES_USER: hostayo
+      POSTGRES_PASSWORD: hostayo
+      POSTGRES_DB: hostayo
     ports:
       - "5432:5432"
     volumes:
-      - stayops-pgdata:/var/lib/postgresql/data
+      - hostayo-pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U stayops -d stayops"]
+      test: ["CMD-SHELL", "pg_isready -U hostayo -d hostayo"]
       interval: 5s
       timeout: 3s
       retries: 10
 
 volumes:
-  stayops-pgdata:
+  hostayo-pgdata:

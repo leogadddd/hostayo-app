@@ -1,4 +1,4 @@
-# StayOps
+# Hostayo
 
 ## Database schema changes
 
@@ -30,7 +30,7 @@ without a migration makes queries fail at runtime with errors like
    decides which database it touches.
 6. Check nothing is left over: run `npm run db:generate` again. It must print
    `No schema changes, nothing to migrate`.
-7. Run `npm run test:integration` (applies all migrations to `stayops_test`
+7. Run `npm run test:integration` (applies all migrations to `hostayo_test`
    from scratch) and exercise the affected pages in `npm run dev`.
 
 Commit the schema edit, the `.sql` file, `drizzle/meta/_journal.json`, and the

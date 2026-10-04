@@ -1,10 +1,10 @@
-# StayOps
+# Hostayo
 
-A calmer way to run your stays. StayOps takes a direct booking from inquiry
+A calmer way to run your stays. Hostayo takes a direct booking from inquiry
 to checkout and shows the work and money attached to that stay — built for
 small Philippine short-stay operators (1–20 units).
 
-Built to the spec in [`StayOps-PRD-for-Qoder.md`](./StayOps-PRD-for-Qoder.md),
+Built to the spec in [`Hostayo-PRD-for-Qoder.md`](./Hostayo-PRD-for-Qoder.md),
 delivered in vertical slices (0–5). Brand palette: Pine `#203A35`, Paper
 `#F6F3ED`, Sage `#CFDDD3`, Clay `#A64E37`.
 
@@ -34,19 +34,19 @@ npm run db:migrate
 
 Demo credentials (from the demo seed, clearly fake):
 
-- email: `owner@stayops.dev`
-- password: `stayops-demo-1234`
+- email: `owner@hostayo.dev`
+- password: `hostayo-demo-1234`
 
 For role-based development, run `npm run seed:development`. It creates the
-`StayOps Development` workspace with these accounts (all use
-`stayops102499`):
+`Hostayo Development` workspace with these accounts (all use
+`hostayo102499`):
 
 | Role | Email |
 | --- | --- |
-| Owner | `dev-owner@stayops.dev` |
-| Admin | `admin@stayops.dev` |
-| Operations Manager | `operations-manager@stayops.dev` |
-| Staff | `staff@stayops.dev` |
+| Owner | `dev-owner@hostayo.dev` |
+| Admin | `admin@hostayo.dev` |
+| Operations Manager | `operations-manager@hostayo.dev` |
+| Staff | `staff@hostayo.dev` |
 
 ## Commands
 
@@ -54,7 +54,7 @@ For role-based development, run `npm run seed:development`. It creates the
 | --- | --- |
 | `npm run dev` / `build` / `start` | Next.js app |
 | `npm run lint` / `typecheck` / `test` | Quality gates |
-| `npm run test:integration` | Real PostgreSQL acceptance tests (dedicated `stayops_test` database) |
+| `npm run test:integration` | Real PostgreSQL acceptance tests (dedicated `hostayo_test` database) |
 | `npm run db:up` / `db:down` | Start/stop PostgreSQL |
 | `npm run db:generate` / `db:migrate` | Drizzle migration workflow (see *Database schema changes* in `CLAUDE.md`) |
 | `npm run seed:demo` | Idempotent fake demo workspace |
@@ -68,7 +68,7 @@ For role-based development, run `npm run seed:development`. It creates the
 ## Nightly demo reset
 
 Vercel Cron calls `/api/cron/reset-demo` every day at 16:05 UTC (00:05 in
-Asia/Manila). It deletes only the `owner@stayops.dev` demo user and its `Demo
+Asia/Manila). It deletes only the `owner@hostayo.dev` demo user and its `Demo
 Stay Operations` workspace, then recreates the fake baseline data.
 
 Before deploying, add a random `CRON_SECRET` to the Vercel project’s
@@ -95,13 +95,13 @@ a production account that reuses the demo email or organization name.
 Create the isolated database once, then run the suite:
 
 ```bash
-docker exec stayops-db createdb -U stayops stayops_test
+docker exec hostayo-db createdb -U hostayo hostayo_test
 npm run test:integration
 ```
 
 The suite applies migrations and truncates the test database between files.
 It ignores application `DATABASE_URL`; use `TEST_DATABASE_URL` to override the
-connection, always pointing to a dedicated database named `stayops_test`.
+connection, always pointing to a dedicated database named `hostayo_test`.
 Never point it at a database with data you want to keep. The lifecycle test
 exercises services against PostgreSQL; it is not a browser end-to-end test.
 

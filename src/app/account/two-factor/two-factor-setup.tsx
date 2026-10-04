@@ -17,7 +17,7 @@ import { RecoveryCodes } from "@/app/(app)/settings/security/recovery-codes";
 import { clearPendingSetup, startTwoFactorSetup, usePendingSetup } from "./pending-setup";
 
 const STEPS = [
-  { title: "Scan the QR code", hint: "Add StayOps to your authenticator app.", icon: QrCode },
+  { title: "Scan the QR code", hint: "Add Hostayo to your authenticator app.", icon: QrCode },
   { title: "Enter a code", hint: "Prove the app is set up right.", icon: Smartphone },
   { title: "Save recovery codes", hint: "Your way in if you lose your phone.", icon: KeyRound },
 ] as const;
@@ -211,7 +211,7 @@ function ScanStep({ totpURI, onNext }: { totpURI: string; onNext: () => void }) 
         </button>
         {showKey ? (
           <div className="border-t border-pine/10 px-4 pb-4 pt-3">
-            <p className="mb-3 text-sm text-ink/60">Choose “Enter a setup key” in your app, name it StayOps, and pick “Time based”.</p>
+            <p className="mb-3 text-sm text-ink/60">Choose “Enter a setup key” in your app, name it Hostayo, and pick “Time based”.</p>
             <CopyField label="Setup key" value={secret.replace(/(.{4})/g, "$1 ").trim()} />
           </div>
         ) : null}
@@ -254,7 +254,7 @@ function VerifyStep({ onBack, onVerified }: { onBack: () => void; onVerified: ()
       }}
     >
       <StepHeading eyebrow="Step 2 of 3" title="Enter the 6-digit code">
-        Type the code your app shows for StayOps. It checks as soon as all six digits are in.
+        Type the code your app shows for Hostayo. It checks as soon as all six digits are in.
       </StepHeading>
 
       <div key={shake} className={cn("mt-10", shake > 0 && "animate-shake")}>
@@ -317,7 +317,7 @@ function Finished() {
       </span>
       <h2 className="mt-8 font-display text-4xl tracking-tight text-pine">You’re protected</h2>
       <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-ink/65">
-        Next time you sign in, StayOps will ask for a code from your authenticator app after your password.
+        Next time you sign in, Hostayo will ask for a code from your authenticator app after your password.
       </p>
       <Link href="/settings/security" className={buttonClassName("primary", "lg", "mt-8")}>
         Back to security settings

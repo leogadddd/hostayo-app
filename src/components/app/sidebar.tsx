@@ -173,7 +173,7 @@ export function AppSidebar(props: SidebarProps) {
     >
       <Link
         href="/dashboard"
-        aria-label="StayOps dashboard"
+        aria-label="Hostayo dashboard"
         className="block px-6 pb-5 pt-7"
       >
         <Logo className="text-paper" />
@@ -257,7 +257,7 @@ export function AppHeader({
         </button>
         <Link
           href="/dashboard"
-          aria-label="StayOps dashboard"
+          aria-label="Hostayo dashboard"
           className="inline-flex sm:hidden"
         >
           <Logo className="h-8 w-32" />

@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import greenLoader from "@/assets/stayops-loader-green.gif";
-import whiteLoader from "@/assets/stayops-loader-white.gif";
+import greenLoader from "@/assets/hostayo-loader-green.gif";
+import whiteLoader from "@/assets/hostayo-loader-white.gif";
 
 export function AuthLoadingOverlay({
   label,

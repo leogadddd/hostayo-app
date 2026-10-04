@@ -25,7 +25,7 @@ export default function GlobalError({
         }}
       >
         <div>
-          <h1 style={{ fontSize: 24, marginBottom: 8 }}>StayOps couldn’t load</h1>
+          <h1 style={{ fontSize: 24, marginBottom: 8 }}>Hostayo couldn’t load</h1>
           <p style={{ color: "#555", fontSize: 14 }}>
             Something went wrong on our side. Please try again in a moment.
           </p>

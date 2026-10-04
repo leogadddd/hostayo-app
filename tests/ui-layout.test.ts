@@ -26,10 +26,10 @@ beforeEach(() => {
 describe("branded app shell", () => {
   it("uses supplied brand assets rather than a redrawn SVG", () => {
     const logo = renderToStaticMarkup(h(Logo));
-    expect(logo).toContain('aria-label="StayOps"');
-    expect(logo).toContain("/brand/stayops-logo.png");
+    expect(logo).toContain('aria-label="Hostayo"');
+    expect(logo).toContain("/brand/hostayo-logo.png");
     expect(logo).not.toContain("<svg");
-    expect(renderToStaticMarkup(h(LogoMark))).toContain("/brand/stayops-mark.png");
+    expect(renderToStaticMarkup(h(LogoMark))).toContain("/brand/hostayo-mark.png");
   });
 
   it("keeps audit logs under settings rather than sidebar navigation", () => {

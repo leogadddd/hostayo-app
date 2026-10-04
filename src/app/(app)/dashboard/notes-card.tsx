@@ -19,7 +19,7 @@ function read(key: string) {
  * and person), never on the server, and saves itself a moment after typing.
  */
 export function NotesCard({ organizationId, userId, className }: { organizationId: string; userId: string; className?: string }) {
-  const key = `stayops:dashboard-notes:${organizationId}:${userId}`;
+  const key = `hostayo:dashboard-notes:${organizationId}:${userId}`;
   const [text, setText] = useState("");
   const [loaded, setLoaded] = useState(false);
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "unavailable">("idle");
@@ -96,7 +96,7 @@ export function NotesCard({ organizationId, userId, className }: { organizationI
         />
         <div className="mt-2 flex items-center justify-between text-[11px] text-ink/45" aria-live="polite">
           <span>
-            {status === "saving" ? "Saving…" : status === "saved" ? <span className="inline-flex items-center gap-1 text-moss"><Check className="h-3 w-3" aria-hidden />Saved</span> : status === "unavailable" ? <span className="text-clay-deep">This browser isn’t letting StayOps save notes.</span> : null}
+            {status === "saving" ? "Saving…" : status === "saved" ? <span className="inline-flex items-center gap-1 text-moss"><Check className="h-3 w-3" aria-hidden />Saved</span> : status === "unavailable" ? <span className="text-clay-deep">This browser isn’t letting Hostayo save notes.</span> : null}
           </span>
           <span className="tabular-nums">{text.length}/{MAX_LENGTH}</span>
         </div>

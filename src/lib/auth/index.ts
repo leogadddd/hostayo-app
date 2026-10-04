@@ -8,7 +8,7 @@ const configuredBaseUrl = process.env.BETTER_AUTH_URL ?? "http://localhost:3000"
 const configuredHost = new URL(configuredBaseUrl).host;
 
 export const auth = betterAuth({
-  appName: "StayOps",
+  appName: "Hostayo",
   secret: process.env.BETTER_AUTH_SECRET,
   // Vercel preview deployments receive a unique vercel.app hostname. A static
   // base URL rejects that origin during Better Auth's CSRF/origin validation,
@@ -35,7 +35,7 @@ export const auth = betterAuth({
     maxPasswordLength: 128,
   },
   plugins: [twoFactor({
-    issuer: "StayOps",
+    issuer: "Hostayo",
     backupCodeOptions: { amount: 10, length: 10, storeBackupCodes: "encrypted" },
     accountLockout: { enabled: true, maxFailedAttempts: 10, durationSeconds: 900 },
   })],

@@ -59,14 +59,14 @@ export function AccountMenu({ userName, userEmail, userImage, role, viaL1 = fals
           <div className="border-b border-pine/10 px-4 py-4">
             <p className="truncate text-sm font-semibold text-pine">{userName}</p>
             <p className="mt-1 truncate text-xs text-ink/55" title={userEmail}>{userEmail}</p>
-            <p className="mt-2 inline-flex rounded-full bg-sage/45 px-2 py-1 text-[11px] font-medium text-pine">{viaL1 ? "L1 · StayOps operator" : role === "owner" ? "Organization owner" : `Team member · ${roleLabel(role)}`}</p>
+            <p className="mt-2 inline-flex rounded-full bg-sage/45 px-2 py-1 text-[11px] font-medium text-pine">{viaL1 ? "L1 · Hostayo operator" : role === "owner" ? "Organization owner" : `Team member · ${roleLabel(role)}`}</p>
           </div>
           <div className="p-2">
             <Link href="/settings/profile" role="menuitem" onClick={() => setOpen(false)} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-ink hover:bg-pine-mist hover:text-pine">
               <UserRound className="h-4 w-4" aria-hidden />Profile
             </Link>
             <ConfirmationDialog
-              title="Sign out of StayOps?"
+              title="Sign out of Hostayo?"
               description="You will return to the sign-in page. Any unsaved form changes on this page will be lost."
               confirmLabel="Sign out"
               successMessage={null}

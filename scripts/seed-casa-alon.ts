@@ -20,8 +20,8 @@ import { discardInventoryPhoto, storeInventoryPhoto } from "@/server/inventory/p
  *   npm run seed:casa-alon
  */
 const SOURCE_DIRECTORY = "/home/leogadil/Pictures/casa-alon-facebook";
-const DEVELOPMENT_ORGANIZATION_SLUG = "stayops-development";
-const OWNER_EMAIL = "dev-owner@stayops.dev";
+const DEVELOPMENT_ORGANIZATION_SLUG = "hostayo-development";
+const OWNER_EMAIL = "dev-owner@hostayo.dev";
 const PROPERTY_NAME = "Casa Alon Beach Villas";
 
 const PROPERTY = {

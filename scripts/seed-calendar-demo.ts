@@ -30,7 +30,7 @@ import { assertSafeDatabase, finishTurnover, removeReservations } from "./lib/sa
  * Guests use example.com emails and made-up +63 9XX numbers.
  */
 
-const OWNER_EMAIL = "owner@stayops.dev";
+const OWNER_EMAIL = "owner@hostayo.dev";
 const PROPERTY_NAME = "Makati Suites";
 // Earlier runs used this name; it is renamed in place rather than duplicated.
 const LEGACY_PROPERTY_NAMES = ["Demo Suites Makati"];

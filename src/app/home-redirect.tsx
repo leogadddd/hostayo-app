@@ -3,8 +3,8 @@
 import Image from "next/image";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import greenLoader from "@/assets/stayops-loader-green.gif";
-import whiteLoader from "@/assets/stayops-loader-white.gif";
+import greenLoader from "@/assets/hostayo-loader-green.gif";
+import whiteLoader from "@/assets/hostayo-loader-white.gif";
 
 /**
  * Avoids an App Router development-mode bug where a server-component redirect
@@ -25,7 +25,7 @@ export function HomeRedirect({
         {/* Same loader as sign-in: green on light, white on dark. */}
         <Image src={greenLoader} alt="" width={112} height={112} unoptimized priority className="dark:hidden" />
         <Image src={whiteLoader} alt="" width={112} height={112} unoptimized className="hidden dark:block" />
-        <p className="mt-4 text-sm font-medium text-pine">Opening StayOps…</p>
+        <p className="mt-4 text-sm font-medium text-pine">Opening Hostayo…</p>
       </div>
     </main>
   );

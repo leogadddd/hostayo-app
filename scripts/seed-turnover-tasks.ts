@@ -12,9 +12,9 @@ import { assertSafeDatabase } from "./lib/sample-data";
  * three open tasks: untouched, halfway, and all required items done with
  * bonus items left. Tasks aren't tied to a reservation.
  *
- *   npm run seed:turnovers -- "StayOps Development"          # add sample tasks
- *   npm run seed:turnovers -- "StayOps Development" --reset  # also reopen every existing task
- *   npm run seed:turnovers -- "StayOps Development" --clean  # remove the sample tasks
+ *   npm run seed:turnovers -- "Hostayo Development"          # add sample tasks
+ *   npm run seed:turnovers -- "Hostayo Development" --reset  # also reopen every existing task
+ *   npm run seed:turnovers -- "Hostayo Development" --clean  # remove the sample tasks
  *
  * Sample tasks are recognised by their notes. Only a local database is
  * allowed unless --allow-remote is passed.

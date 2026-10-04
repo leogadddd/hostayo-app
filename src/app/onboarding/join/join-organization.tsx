@@ -113,7 +113,7 @@ function PendingApproval({ requests, onEnterDifferentCode }: { requests: Pending
         Waiting for approval
       </h1>
       <p className="animate-rise mt-3 max-w-xl text-base leading-relaxed text-ink/65" style={{ animationDelay: "120ms" }}>
-        The owner needs to approve your request before you can use StayOps with their team. You’re not a member yet.
+        The owner needs to approve your request before you can use Hostayo with their team. You’re not a member yet.
       </p>
       <ul className="animate-rise mt-6 space-y-2" style={{ animationDelay: "160ms" }} aria-label="Pending requests">
         {requests.map((request) => (

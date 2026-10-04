@@ -31,14 +31,14 @@ import { createExpense } from "@/server/expenses/service";
 /**
  * Seed clearly-fake demo data. Idempotent: safe to run repeatedly.
  *
- *   email:    owner@stayops.dev
- *   password: stayops-demo-1234
+ *   email:    owner@hostayo.dev
+ *   password: hostayo-demo-1234
  */
 
 export const SEED_USER = {
   name: "Juan Dela Cruz",
-  email: "owner@stayops.dev",
-  password: "stayops-demo-1234",
+  email: "owner@hostayo.dev",
+  password: "hostayo-demo-1234",
 };
 
 export const SEED_ORG_NAME = "Demo Stay Operations";

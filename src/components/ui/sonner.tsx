@@ -4,8 +4,8 @@ import { useEffect } from "react";
 import { CircleCheck, CircleX, Info, LoaderCircle, TriangleAlert } from "lucide-react";
 import { Toaster as Sonner, toast } from "sonner";
 
-const FLASH_KEY = "stayops-toast";
-const FLASH_EVENT = "stayops:toast";
+const FLASH_KEY = "hostayo-toast";
+const FLASH_EVENT = "hostayo:toast";
 
 export type ToastKind = "success" | "error" | "info" | "warning";
 
@@ -14,7 +14,7 @@ export function setToastAfterNavigation(kind: ToastKind, message: string) {
   window.dispatchEvent(new Event(FLASH_EVENT));
 }
 
-export function StayOpsToaster() {
+export function HostayoToaster() {
   useEffect(() => {
     function showNavigationToast() {
       const value = sessionStorage.getItem(FLASH_KEY);
@@ -35,7 +35,7 @@ export function StayOpsToaster() {
 
   return (
     <Sonner
-      className="stayops-toaster"
+      className="hostayo-toaster"
       position="bottom-right"
       offset={{ bottom: 18, right: 18 }}
       mobileOffset={{ bottom: 12, right: 12, left: 12 }}
@@ -52,10 +52,10 @@ export function StayOpsToaster() {
       }}
       toastOptions={{
         classNames: {
-          toast: "stayops-toast",
-          title: "stayops-toast-title",
-          description: "stayops-toast-description",
-          closeButton: "stayops-toast-close",
+          toast: "hostayo-toast",
+          title: "hostayo-toast-title",
+          description: "hostayo-toast-description",
+          closeButton: "hostayo-toast-close",
         },
       }}
     />

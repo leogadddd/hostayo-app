@@ -18,7 +18,7 @@ export const joinRequestStatus = pgEnum("organization_join_request_status", ["pe
 export const roleKey = pgEnum("organization_role_key", ["owner", "admin", "operations_manager", "staff"]);
 
 /**
- * L1: StayOps operators. They act as an owner in every organization without
+ * L1: Hostayo operators. They act as an owner in every organization without
  * being a member of it, so they never show on a team list. Granted and
  * revoked only with `npm run l1 -- grant|revoke <email>`, never from the app.
  */

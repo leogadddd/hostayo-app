@@ -1,6 +1,6 @@
 # Frontend handoff: organization roles and onboarding invitations
 
-Update the existing StayOps Next.js frontend only. Do not change database schema, migrations, or server-side services unless a compile fix is strictly required. Preserve the current visual system and reusable UI components.
+Update the existing Hostayo Next.js frontend only. Do not change database schema, migrations, or server-side services unless a compile fix is strictly required. Preserve the current visual system and reusable UI components.
 
 ## Backend already available
 

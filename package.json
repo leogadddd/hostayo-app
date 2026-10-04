@@ -1,8 +1,8 @@
 {
-  "name": "stayops",
+  "name": "hostayo",
   "version": "0.9.0",
   "private": true,
-  "description": "StayOps — a calmer way to run your stays. Direct-booking operations for small Philippine short-stay operators.",
+  "description": "Hostayo — a calmer way to run your stays. Direct-booking operations for small Philippine short-stay operators.",
   "scripts": {
     "dev": "next dev --webpack",
     "build": "next build",

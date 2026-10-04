@@ -3,7 +3,7 @@
  * sent anywhere; cleared on sign-out and whenever a non-L1 user loads the app,
  * so they don't outlive the access that produced them.
  */
-const RECENT_KEY = "stayops:l1-recent-organizations";
+const RECENT_KEY = "hostayo:l1-recent-organizations";
 const RECENT_LIMIT = 6;
 
 export interface RecentOrganization {

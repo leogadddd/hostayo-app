@@ -13,7 +13,7 @@ const BLOCKS: [number, number, number, string][] = [
 ];
 
 /**
- * Split-screen auth layout, after the StayOps login reference:
+ * Split-screen auth layout, after the Hostayo login reference:
  * brand panel on the left, form on the right.
  */
 export default function AuthLayout({
@@ -48,7 +48,7 @@ export default function AuthLayout({
           />
         ))}
 
-        <Link href="/" aria-label="StayOps home" className="relative z-10">
+        <Link href="/" aria-label="Hostayo home" className="relative z-10">
           <Logo className="text-paper" />
         </Link>
         <div className="relative z-10 max-w-md">
@@ -73,7 +73,7 @@ export default function AuthLayout({
         <div className="w-full max-w-md">
           <Link
             href="/"
-            aria-label="StayOps home"
+            aria-label="Hostayo home"
             className="mb-12 flex justify-center lg:hidden"
           >
             <Logo />

@@ -7,7 +7,7 @@ import { requireUser } from "@/lib/auth/session";
 import { getOnboardingState, nextOnboardingPath } from "../state";
 import { StepNav } from "../step-nav";
 
-export const metadata: Metadata = { title: "Welcome to StayOps" };
+export const metadata: Metadata = { title: "Welcome to Hostayo" };
 
 export default async function OnboardingWelcomePage() {
   const user = await requireUser();

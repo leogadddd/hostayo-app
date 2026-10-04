@@ -66,7 +66,7 @@ export default async function OnboardingIntroPage({
         className="animate-rise mt-4 max-w-xl text-base leading-relaxed text-ink/65"
         style={{ animationDelay: "80ms" }}
       >
-        StayOps keeps your bookings, payments, cleaning and expenses in one
+        Hostayo keeps your bookings, payments, cleaning and expenses in one
         place.
       </p>
       <ul

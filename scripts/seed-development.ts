@@ -14,25 +14,25 @@ import { createOrganization } from "@/server/orgs/service";
  *   npm run seed:development
  */
 const DEVELOPMENT_ORGANIZATION = {
-  name: "StayOps Development",
-  slug: "stayops-development",
+  name: "Hostayo Development",
+  slug: "hostayo-development",
 };
 
-const DEVELOPMENT_PASSWORD = "stayops102499";
+const DEVELOPMENT_PASSWORD = "hostayo102499";
 
 const DEVELOPMENT_USERS: Array<{
   name: string;
   email: string;
   role: RoleKey;
 }> = [
-  { name: "Dev Owner", email: "dev-owner@stayops.dev", role: "owner" },
-  { name: "Dev Admin", email: "admin@stayops.dev", role: "admin" },
+  { name: "Dev Owner", email: "dev-owner@hostayo.dev", role: "owner" },
+  { name: "Dev Admin", email: "admin@hostayo.dev", role: "admin" },
   {
     name: "Dev Operations Manager",
-    email: "operations-manager@stayops.dev",
+    email: "operations-manager@hostayo.dev",
     role: "operations_manager",
   },
-  { name: "Dev Staff", email: "staff@stayops.dev", role: "staff" },
+  { name: "Dev Staff", email: "staff@hostayo.dev", role: "staff" },
 ];
 
 async function ensureUserId(account: (typeof DEVELOPMENT_USERS)[number]) {

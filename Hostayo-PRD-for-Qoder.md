@@ -1,14 +1,14 @@
-# StayOps — Product Requirements Document
+# Hostayo — Product Requirements Document
 
 **Status:** Build brief for Qoder  
 **Date:** 23 September 2026  
-**Working name:** StayOps; choose a final name after a separate name and trademark check.  
+**Working name:** Hostayo; choose a final name after a separate name and trademark check.  
 **Initial deployment:** Leo's apartment, then other small Philippine short-stay operators.  
 **Assumption:** The apartment will be offered for nightly or short-term stays. Month-to-month leases, rent billing and tenant accounting are a different product workflow and are out of scope for this release.
 
 ## 1. Product definition
 
-StayOps helps a small operator take a direct booking from inquiry to checkout and see the work and money attached to that stay. The first user is an owner with one apartment who currently could manage inquiries in chat and bookings in a spreadsheet. The product must continue to work for several properties, each with multiple rentable units, without redesigning its data model.
+Hostayo helps a small operator take a direct booking from inquiry to checkout and see the work and money attached to that stay. The first user is an owner with one apartment who currently could manage inquiries in chat and bookings in a spreadsheet. The product must continue to work for several properties, each with multiple rentable units, without redesigning its data model.
 
 **Core promise:** See whether a unit is available, hold it while waiting for a deposit, record payment, prepare the unit for arrival, complete turnover, and understand cash collected and expenses in one place.
 
@@ -197,4 +197,4 @@ These are configurable product choices, not blockers to starting the implementat
 
 ## 10. Instructions to paste into Qoder
 
-> Build the StayOps V1 described in this PRD in the current repository. First inspect the existing project and summarize its architecture and any repo instructions. Then implement slices 0 through 5 in order, keeping the app runnable and using the coding practices and acceptance criteria here as the definition of done. Begin with schema, auth and a working owner flow for one short-stay apartment. Enforce booking conflicts in PostgreSQL under concurrency, keep refundable deposits separate from booking revenue, and use Asia/Manila date-only night semantics. After each slice, run appropriate checks and report what works, what is incomplete, and how to run it locally. Make reasonable choices where the PRD gives a default. Do not invent payment integrations, tax compliance, or functional UI controls that have not been implemented.
+> Build the Hostayo V1 described in this PRD in the current repository. First inspect the existing project and summarize its architecture and any repo instructions. Then implement slices 0 through 5 in order, keeping the app runnable and using the coding practices and acceptance criteria here as the definition of done. Begin with schema, auth and a working owner flow for one short-stay apartment. Enforce booking conflicts in PostgreSQL under concurrency, keep refundable deposits separate from booking revenue, and use Asia/Manila date-only night semantics. After each slice, run appropriate checks and report what works, what is incomplete, and how to run it locally. Make reasonable choices where the PRD gives a default. Do not invent payment integrations, tax compliance, or functional UI controls that have not been implemented.

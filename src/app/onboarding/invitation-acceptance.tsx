@@ -47,7 +47,7 @@ export async function InvitationAcceptance({ code, email }: { code: string; emai
         Accept your invitation
       </h1>
       <p className="animate-rise mt-3 max-w-xl text-base leading-relaxed text-ink/65" style={{ animationDelay: "120ms" }}>
-        You’ve been invited to join a StayOps organization.
+        You’ve been invited to join a Hostayo organization.
       </p>
       <dl className="animate-rise mt-6 grid gap-4 rounded-xl border border-pine/12 bg-linen p-5 text-sm sm:grid-cols-2" style={{ animationDelay: "160ms" }}>
         <div>

@@ -6,7 +6,7 @@ export type ThemePreference = (typeof THEME_PREFERENCES)[number];
  * `<html data-theme>` on the server and the first paint is already right.
  * `system` is resolved in CSS (see the `dark` variant in globals.css).
  */
-export const THEME_COOKIE = "stayops-theme";
+export const THEME_COOKIE = "hostayo-theme";
 
 export function parseThemePreference(value: string | undefined): ThemePreference {
   return value === "light" || value === "dark" ? value : "system";

@@ -1,8 +1,8 @@
-/** Where people reach the StayOps team. Shown in Settings → Support and on the legal pages. */
-export const SUPPORT_EMAIL = "support@stayops.leogadil.online";
+/** Where people reach the Hostayo team. Shown in Settings → Support and on the legal pages. */
+export const SUPPORT_EMAIL = "support@hostayo.leogadil.online";
 export const SUPPORT_FACEBOOK_URL = "https://www.facebook.com/profile.php?id=61594931963512";
-export const SUPPORT_INSTAGRAM_URL = "https://www.instagram.com/stayopsph/";
-export const SUPPORT_INSTAGRAM_HANDLE = "@stayopsph";
+export const SUPPORT_INSTAGRAM_URL = "https://www.instagram.com/hostayoph/";
+export const SUPPORT_INSTAGRAM_HANDLE = "@hostayoph";
 
 export const PROBLEM_CATEGORIES = [
   { value: "bug", label: "Something isn’t working" },
@@ -35,7 +35,7 @@ export function problemReportMailto({ category, page, details, context, browser 
   browser: string;
 }): string {
   const label = PROBLEM_CATEGORIES.find((item) => item.value === category)?.label ?? category;
-  const subject = `[StayOps] ${label}${page ? ` — ${page}` : ""}`;
+  const subject = `[Hostayo] ${label}${page ? ` — ${page}` : ""}`;
   const body = [
     details.trim(),
     "",
@@ -44,7 +44,7 @@ export function problemReportMailto({ category, page, details, context, browser 
     `From: ${context.name} <${context.email}>`,
     `Organization: ${context.organizationName} (${context.organizationId})`,
     `Role: ${context.role}`,
-    `StayOps version: ${context.version}`,
+    `Hostayo version: ${context.version}`,
     `Browser: ${browser}`,
     `Sent: ${new Date().toISOString()}`,
   ].join("\n");

@@ -2,9 +2,9 @@ import { defineConfig } from "vitest/config";
 import path from "node:path";
 
 const testDatabaseUrl = process.env.TEST_DATABASE_URL ??
-  "postgres://stayops:stayops@localhost:5432/stayops_test";
-if (new URL(testDatabaseUrl).pathname !== "/stayops_test") {
-  throw new Error("Integration tests require a dedicated stayops_test database.");
+  "postgres://hostayo:hostayo@localhost:5432/hostayo_test";
+if (new URL(testDatabaseUrl).pathname !== "/hostayo_test") {
+  throw new Error("Integration tests require a dedicated hostayo_test database.");
 }
 
 export default defineConfig({

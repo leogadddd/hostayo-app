@@ -51,7 +51,7 @@ const READY_LABEL = new Intl.DateTimeFormat("en-PH", { dateStyle: "medium", time
 // When this device started the run. The checklist itself lives on the
 // server; only the stopwatch start is local.
 const startListeners = new Set<() => void>();
-const startKey = (taskId: string) => `stayops:turnover-start:${taskId}`;
+const startKey = (taskId: string) => `hostayo:turnover-start:${taskId}`;
 function readStart(taskId: string): string | null {
   try {
     return window.localStorage.getItem(startKey(taskId));
