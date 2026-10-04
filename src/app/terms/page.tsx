@@ -37,27 +37,32 @@ const sections = [
       "Where a paid plan applies, the price, billing interval, and payment terms will be presented before you subscribe. Fees are due in advance unless stated otherwise. You may cancel a paid plan at any time; access will continue through the end of the current paid period unless otherwise specified.",
   },
   {
-    title: "6. Availability and changes",
+    title: "6. Payments between hosts and guests",
+    content:
+      "Hostayo does not currently have a payment gateway. Hostayo does not collect, hold, process or transfer money between hosts and guests, and it is not a party to, or involved in, any transaction between a host and a guest. Deposits, balances, refunds and deductions you record in Hostayo are only your own records of payments made outside the platform. Any booking, payment, refund, cancellation or dispute is solely between you and your guest, and you are responsible for it.",
+  },
+  {
+    title: "7. Availability and changes",
     content:
       "We aim to keep Hostayo reliable and available, but the service may occasionally be unavailable for maintenance, updates, or matters beyond our control. We may update, add, or retire features as the product evolves. We will make reasonable efforts to communicate material changes that affect your use of the service.",
   },
   {
-    title: "7. Disclaimer and limitation of liability",
+    title: "8. Disclaimer and limitation of liability",
     content:
       "Hostayo is provided on an “as is” and “as available” basis to the extent permitted by law. The service helps you organize operations; you remain responsible for your business decisions, guest communications, records, and legal obligations. To the maximum extent permitted by law, Hostayo is not liable for indirect, incidental, special, consequential, or punitive damages arising from your use of the service.",
   },
   {
-    title: "8. Suspension and termination",
+    title: "9. Suspension and termination",
     content:
       "You may stop using Hostayo at any time. We may suspend or terminate access if we reasonably believe there is a breach of these terms, a security risk, or a legal requirement to do so. Where practical, we will provide notice and an opportunity to address the issue.",
   },
   {
-    title: "9. Changes to these terms",
+    title: "10. Changes to these terms",
     content:
       "We may update these terms from time to time. If we make a material change, we will update the effective date and provide notice through Hostayo or another reasonable channel. Continuing to use the service after the updated terms take effect means you accept them.",
   },
   {
-    title: "10. Contact",
+    title: "11. Contact",
     content:
       `For questions about these terms or your Hostayo account, please contact the Hostayo team at ${SUPPORT_EMAIL}, or message us on Facebook or Instagram (@hostayoph). Signed-in users can also reach us from Settings → Support.`,
   },

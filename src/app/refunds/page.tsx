@@ -26,7 +26,7 @@ const sections: LegalSection[] = [
   {
     title: "4. Payments between hosts and guests",
     content:
-      "Hostayo is a tool for managing stays. It is not a payment processor and does not collect, hold or move money between hosts and guests. Deposits, balances and refunds that you record in Hostayo are your own records of payments made outside the platform. Any refund owed to a guest is a matter between you and that guest, under your own booking and cancellation terms.",
+      "Hostayo does not currently have a payment gateway. It does not collect, hold, process or transfer money between hosts and guests, and it is not involved in any transaction between them. Deposits, balances and refunds that you record in Hostayo are your own records of payments made outside the platform. Any refund owed to a guest is solely between you and that guest, under your own booking and cancellation terms.",
   },
   {
     title: "5. Refunds recorded in Hostayo",
