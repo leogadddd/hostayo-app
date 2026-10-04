@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { loginLinksHidden } from "@/lib/flags";
+import { SITE_URL } from "@/lib/site";
 
 export interface LegalSection {
   title: string;
@@ -23,9 +24,9 @@ export function LegalPage({
     <div className="min-h-screen bg-paper text-ink">
       <header className="border-b border-pine/10">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-5 sm:px-8">
-          <Link href="/" aria-label="Hostayo home">
+          <a href={SITE_URL} aria-label="Hostayo home">
             <Logo />
-          </Link>
+          </a>
           {loginLinksHidden() ? null : (
             <Link href="/login" className="text-sm font-medium text-pine underline underline-offset-4 hover:text-pine-soft">
               Sign in
