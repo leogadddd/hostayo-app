@@ -63,7 +63,7 @@ For role-based development, run `npm run seed:development`. It creates the
 | `npm run seed:casa-alon` | Import the illustrated Casa Alon Beach Villas sample property into the development workspace |
 | `npm run seed:amenities` / `seed:platforms` | Backfill default amenities or booking platforms for existing workspaces |
 | `npm run seed:calendar-demo` / `seed:reservations` | Add focused calendar or reservation sample data |
-| `npm run db:reset` | Interactively confirm, then erase the database, migrate it, and seed demo data |
+| `npm run db:reset` | Interactively confirm, then erase the database and re-run every migration (roles and permissions come from the migrations). Adds no demo data or accounts; run a `seed:*` script afterwards if you want some |
 
 ## Nightly demo reset
 

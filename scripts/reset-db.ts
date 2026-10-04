@@ -5,7 +5,6 @@ import { stdin, stdout } from "node:process";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
-import { seedDemoData } from "./seed";
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
@@ -48,8 +47,10 @@ async function main() {
     await client.unsafe("DROP SCHEMA IF EXISTS public CASCADE");
     await client.unsafe("CREATE SCHEMA public AUTHORIZATION CURRENT_USER");
     await migrate(db, { migrationsFolder: "drizzle" });
-    await seedDemoData();
-    console.log("Database reset, migrated, and seeded with demo data.");
+    // Roles and permissions are seeded by the migrations themselves; amenities
+    // and booking platforms are created per organization. No demo data or
+    // demo credentials are added.
+    console.log("Database reset and migrated. It contains no organizations or users.");
   } finally {
     await client.end();
   }
@@ -58,7 +59,4 @@ async function main() {
 void main().catch((error) => {
   console.error("Database reset failed:", error instanceof Error ? error.message : error);
   process.exitCode = 1;
-}).finally(() => {
-  // seedDemoData uses the application's shared database pool.
-  setTimeout(() => process.exit(process.exitCode ?? 0), 250);
 });
