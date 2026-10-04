@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { SUPPORT_EMAIL } from "@/lib/support";
+import { loginLinksHidden } from "@/lib/flags";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -67,7 +68,7 @@ export default function PrivacyPage() {
       <header className="border-b border-pine/10">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-5 sm:px-8">
           <Link href="/" aria-label="Hostayo home"><Logo /></Link>
-          <Link href="/login" className="text-sm font-medium text-pine underline underline-offset-4 hover:text-pine-soft">Sign in</Link>
+          {loginLinksHidden() ? null : <Link href="/login" className="text-sm font-medium text-pine underline underline-offset-4 hover:text-pine-soft">Sign in</Link>}
         </div>
       </header>
       <main className="mx-auto max-w-4xl px-6 py-14 sm:px-8 sm:py-20">

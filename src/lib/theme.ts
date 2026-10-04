@@ -4,12 +4,12 @@ export type ThemePreference = (typeof THEME_PREFERENCES)[number];
 /**
  * Per-device preference, kept in a cookie so the root layout can render
  * `<html data-theme>` on the server and the first paint is already right.
- * `system` is resolved in CSS (see the `dark` variant in globals.css).
+ * Light is the default until someone picks otherwise. `system` is resolved in CSS (see the `dark` variant in globals.css).
  */
 export const THEME_COOKIE = "hostayo-theme";
 
 export function parseThemePreference(value: string | undefined): ThemePreference {
-  return value === "light" || value === "dark" ? value : "system";
+  return value === "system" || value === "dark" ? value : "light";
 }
 
 export function applyThemePreference(preference: ThemePreference) {

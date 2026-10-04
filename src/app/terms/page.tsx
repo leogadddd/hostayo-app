@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { SUPPORT_EMAIL } from "@/lib/support";
+import { loginLinksHidden } from "@/lib/flags";
 
 export const metadata: Metadata = {
   title: "Terms and Conditions",
@@ -69,12 +70,14 @@ export default function TermsPage() {
           <Link href="/" aria-label="Hostayo home">
             <Logo />
           </Link>
-          <Link
-            href="/login"
-            className="text-sm font-medium text-pine underline underline-offset-4 hover:text-pine-soft"
-          >
-            Sign in
-          </Link>
+          {loginLinksHidden() ? null : (
+            <Link
+              href="/login"
+              className="text-sm font-medium text-pine underline underline-offset-4 hover:text-pine-soft"
+            >
+              Sign in
+            </Link>
+          )}
         </div>
       </header>
 
