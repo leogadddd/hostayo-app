@@ -3,6 +3,7 @@
 import { authClient } from "@/lib/auth/client";
 import { setToastAfterNavigation } from "@/components/ui/sonner";
 import { clearL1Recents } from "@/lib/l1-recents";
+import { SITE_URL } from "@/lib/site";
 
 export async function signOutAndRedirect(
   redirect: (path: string) => void = (path) => window.location.replace(path),
@@ -14,5 +15,5 @@ export async function signOutAndRedirect(
   }
   clearL1Recents();
   setToastAfterNavigation("success", "Signed out successfully.");
-  redirect(isDemoAccount ? "https://hostayo.casa" : "/login");
+  redirect(isDemoAccount ? SITE_URL : "/login");
 }

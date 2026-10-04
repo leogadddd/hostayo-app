@@ -1,3 +1,5 @@
+import { readConsent } from "@/lib/cookie-consent";
+
 export const THEME_PREFERENCES = ["system", "light", "dark"] as const;
 export type ThemePreference = (typeof THEME_PREFERENCES)[number];
 
@@ -12,7 +14,15 @@ export function parseThemePreference(value: string | undefined): ThemePreference
   return value === "system" || value === "dark" ? value : "light";
 }
 
+/**
+ * Applies the theme now. It is only remembered across visits (as a cookie)
+ * when the visitor allowed preference cookies; otherwise any saved one is removed.
+ */
 export function applyThemePreference(preference: ThemePreference) {
   document.documentElement.dataset.theme = preference;
-  document.cookie = `${THEME_COOKIE}=${preference}; path=/; max-age=31536000; samesite=lax`;
+  if (readConsent() === "all") {
+    document.cookie = `${THEME_COOKIE}=${preference}; path=/; max-age=31536000; samesite=lax`;
+  } else {
+    document.cookie = `${THEME_COOKIE}=; path=/; max-age=0; samesite=lax`;
+  }
 }

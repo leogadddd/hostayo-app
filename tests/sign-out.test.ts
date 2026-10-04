@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { authClient } from "@/lib/auth/client";
 import { signOutAndRedirect } from "@/lib/auth/sign-out";
 import { setToastAfterNavigation } from "@/components/ui/sonner";
+import { SITE_URL } from "@/lib/site";
 
 vi.mock("@/lib/auth/client", () => ({
   authClient: { signOut: vi.fn() },
@@ -39,6 +40,6 @@ describe("sign out", () => {
 
     await signOutAndRedirect(redirect, true);
 
-    expect(redirect).toHaveBeenCalledExactlyOnceWith("https://hostayo.casa");
+    expect(redirect).toHaveBeenCalledExactlyOnceWith(SITE_URL);
   });
 });

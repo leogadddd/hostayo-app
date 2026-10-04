@@ -37,27 +37,32 @@ const sections = [
       "We do not sell personal information. We may share information with service providers that help us host, secure, and operate Hostayo, when required by law, or where necessary to protect the service, our users, or others. We require providers to handle information only for the services they perform for us.",
   },
   {
-    title: "6. Security and retention",
+    title: "6. Analytics",
+    content:
+      "With your consent, we use Google Analytics on Hostayo and on our website to understand how they are used and to improve them. Google may receive information such as your IP address, approximate location, device and the pages you visit, and sets cookies described in our Cookie Policy. We do not use analytics unless you choose Accept all, and we do not use it to identify you personally.",
+  },
+  {
+    title: "7. Security and retention",
     content:
       "We use reasonable technical and organizational measures to protect information from unauthorized access, loss, misuse, or disclosure. No system is perfectly secure, so please protect your credentials and notify us promptly of suspected unauthorized access. We retain information for as long as needed to provide the service, meet legal obligations, resolve disputes, and enforce agreements.",
   },
   {
-    title: "7. Your choices and rights",
+    title: "8. Your choices and rights",
     content:
       "You may update your account information through Hostayo. Depending on applicable law, you may also have rights to be informed about processing, access and correct personal information, object to certain processing, request erasure or blocking where appropriate, request data portability, or file a complaint. We will handle requests in accordance with applicable law and may need to verify your identity first.",
   },
   {
-    title: "8. International processing",
+    title: "9. International processing",
     content:
       "Hostayo and its service providers may process information in locations outside your province or country. Where this happens, we take reasonable steps to ensure the information receives protection consistent with this policy and applicable law.",
   },
   {
-    title: "9. Changes to this policy",
+    title: "10. Changes to this policy",
     content:
       "We may update this policy as Hostayo evolves or legal requirements change. If we make a material change, we will update the effective date and provide notice through Hostayo or another reasonable channel.",
   },
   {
-    title: "10. Contact",
+    title: "11. Contact",
     content:
       `For questions, requests, or concerns about privacy and personal information, please contact the Hostayo team at ${SUPPORT_EMAIL}, or message us on Facebook or Instagram (@hostayoph). Signed-in users can also reach us from Settings → Support.`,
   },

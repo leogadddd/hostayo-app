@@ -21,25 +21,35 @@ const sections: LegalSection[] = [
   {
     title: "3. Cookies that remember your choices",
     content:
-      "Hostayo remembers which organization you last opened (the cookie hostayo_active_organization_id) and your appearance setting of light, dark or system (the cookie hostayo-theme). Both are kept for up to one year, so the app opens the way you left it. The theme cookie is stored per device. It is not saved to your account.",
+      "Hostayo remembers which organization you last opened (the cookie hostayo_active_organization_id), which is needed for the app to open the right workspace. If you choose Accept all, it also remembers your appearance setting of light, dark or system (the cookie hostayo-theme). Both are kept for up to one year. The theme cookie is stored per device and is not saved to your account. If you choose Essential only, your theme is not remembered between visits.",
   },
   {
-    title: "4. Cookies we do not use",
+    title: "4. Analytics cookies",
     content:
-      "Hostayo does not use advertising cookies, and we do not sell or share cookie data for advertising. We do not use third-party analytics or tracking cookies at this time. If that changes, we will update this policy first.",
+      "If you choose Accept all, Hostayo and our website (hostayo.casa) use Google Analytics to understand how the service is used, such as which pages are visited and how people reach us. Google Analytics sets cookies in your browser (named _ga and _ga_ followed by an identifier) and receives information such as your approximate location and device details. We do not load it unless you accept. If you choose Essential only, it is never loaded.",
   },
   {
-    title: "5. Managing cookies",
+    title: "5. Cookies we do not use",
     content:
-      "You can block or delete cookies in your browser settings. Because the sign-in cookies are essential, blocking them will stop you from signing in. Deleting the choice cookies simply resets Hostayo to the light theme and your default organization.",
+      "Hostayo does not use advertising cookies, and we do not sell or share cookie data for advertising. We do not use any other third-party tracking cookies.",
   },
   {
-    title: "6. Changes to this policy",
+    title: "6. Your cookie choice",
+    content:
+      "The first time you visit, we ask whether to allow preference and analytics cookies or keep to essential cookies only. We remember your answer in a cookie named hostayo-cookie-consent, kept for one year. To change your mind, delete your Hostayo cookies in your browser settings and the question will appear again.",
+  },
+  {
+    title: "7. Managing cookies",
+    content:
+      "You can block or delete cookies in your browser settings. Because the sign-in cookies are essential, blocking them will stop you from signing in. Deleting the choice cookies, including any Google Analytics cookies, simply resets Hostayo to the light theme and your default organization.",
+  },
+  {
+    title: "8. Changes to this policy",
     content:
       "We may update this policy from time to time. If we make a material change, we will update the effective date and provide notice through Hostayo or another reasonable channel.",
   },
   {
-    title: "7. Contact",
+    title: "9. Contact",
     content: `For questions about cookies or this policy, contact the Hostayo team at ${SUPPORT_EMAIL}.`,
   },
 ];
