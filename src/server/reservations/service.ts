@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, desc, eq, gte, ilike, isNull, lte, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, ilike, isNull, lte, ne, or, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   accessTokens,
@@ -11,6 +11,7 @@ import {
   paymentEntries,
   refundEntries,
   reservationCharges,
+  reservationExtensions,
   reservationOccupants,
   reservationTransitions,
   reservations,
@@ -25,7 +26,9 @@ import { getUnitOrThrow } from "@/server/inventory/service";
 import {
   checkIntervalAvailability,
   findTurnoverArrivalConflict,
+  getLateCheckouts,
   getOccupancySegments,
+  lateCheckoutConflict,
 } from "@/server/inventory/availability";
 import { localDateTimeToUtc } from "@/lib/dates";
 import { expireStaleHolds } from "./holds";
@@ -728,6 +731,7 @@ async function createReservation(
       "checkIn",
     );
   }
+  await assertNoLateCheckoutConflict(organizationId, unit.id, values.checkIn, arrivalAt);
 
   try {
     return await db.transaction(async (tx) => {
@@ -1206,6 +1210,17 @@ async function resolvePrimaryGuest(
 }
 
 /** Edit only a future hold or confirmed booking; financial snapshots remain immutable. */
+/** Refuses an arrival while the previous guest's late check-out and turnover still run. */
+async function assertNoLateCheckoutConflict(organizationId: string, unitId: string, checkIn: string, arrivalAt: Date | null, excludeReservationId?: string) {
+  const late = lateCheckoutConflict((await getLateCheckouts(organizationId, [unitId], checkIn)).get(unitId), arrivalAt, excludeReservationId);
+  if (late) {
+    throw new ReservationError(
+      `${late.guestName} has a late check-out on that day, and the unit isn't ready until after turnover. Choose another arrival date or shorten their extension.`,
+      "checkIn",
+    );
+  }
+}
+
 export async function updateReservation(input: {
   organizationId: string;
   actorUserId: string;
@@ -1232,11 +1247,20 @@ export async function updateReservation(input: {
     const segments = (await getOccupancySegments(input.organizationId, [unit.id], data.checkIn, data.checkOut)).get(unit.id) ?? [];
     const availability = checkIntervalAvailability(segments.filter((segment) => segment.kind !== "reservation" || segment.id !== reservation.id), data.checkIn, data.checkOut);
     if (!availability.available) throw new ReservationError(`Those dates conflict with ${availability.conflict.reason}.`, "checkIn");
+    const [property] = await tx.select({ timezone: properties.timezone }).from(properties).where(and(eq(properties.id, unit.propertyId), eq(properties.organizationId, input.organizationId))).limit(1);
+    const arrivalAt = property ? localDateTimeToUtc(`${data.checkIn}T${unit.checkInTime}`, property.timezone) : null;
+    await assertNoLateCheckoutConflict(input.organizationId, unit.id, data.checkIn, arrivalAt, reservation.id);
+    // Late check-out hours belong to the check-out day and unit they were checked against.
+    const extensions = await tx.select({ id: reservationExtensions.id }).from(reservationExtensions).where(and(eq(reservationExtensions.reservationId, reservation.id), eq(reservationExtensions.organizationId, input.organizationId), ne(reservationExtensions.status, "declined")));
+    if (extensions.length > 0 && (unit.id !== reservation.unitId || data.checkOut !== reservation.checkOutDate)) {
+      throw new ReservationError("This stay has a late check-out or a request for one. Remove or cancel it before changing the unit or the check-out date.", "checkOut");
+    }
     const [updated] = await tx.update(reservations).set({ unitId: unit.id, guestId: guest.id, checkInDate: data.checkIn, checkOutDate: data.checkOut, guestCount: data.guestCount, platformId, platformReference: data.platformReference === undefined ? reservation.platformReference : data.platformReference || null, reservationFeeType: fee?.type ?? null, reservationFeeAmount: fee?.amount ?? null, updatedAt: new Date() }).where(eq(reservations.id, reservation.id)).returning();
     if (!updated) throw new ReservationError("Failed to update the reservation.");
     await tx.delete(reservationOccupants).where(and(eq(reservationOccupants.reservationId, reservation.id), eq(reservationOccupants.organizationId, input.organizationId)));
     if (data.occupantNames.length) await tx.insert(reservationOccupants).values(data.occupantNames.map((name, position) => ({ organizationId: input.organizationId, reservationId: reservation.id, name, position })));
-    await tx.delete(reservationCharges).where(and(eq(reservationCharges.reservationId, reservation.id), eq(reservationCharges.organizationId, input.organizationId)));
+    // Extension charges are managed from the stay's extensions, not this form.
+    await tx.delete(reservationCharges).where(and(eq(reservationCharges.reservationId, reservation.id), eq(reservationCharges.organizationId, input.organizationId), ne(reservationCharges.type, "extension")));
     await tx.insert(reservationCharges).values(data.charges.map((line) => ({ organizationId: input.organizationId, reservationId: reservation.id, type: line.type, description: line.description, quantity: line.quantity, unitAmountCents: line.unitAmountCents, amountCents: line.quantity * line.unitAmountCents, isRefundableDeposit: line.type === "security_deposit" })));
     await recordAudit(tx, { organizationId: input.organizationId, actorUserId: input.actorUserId, entity: "reservation", entityId: reservation.id, action: "reservation.updated", metadata: { unitId: unit.id, guestId: guest.id, checkIn: data.checkIn, checkOut: data.checkOut, guestCount: data.guestCount, platformId: data.platformId ?? reservation.platformId, occupantCount: data.occupantNames.length, chargeCount: data.charges.length } });
     return updated;

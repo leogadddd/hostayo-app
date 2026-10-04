@@ -6,6 +6,7 @@ import { listNights } from "@/lib/dates";
 import { getOccupancySegments, listCalendarActivity, type OccupancySegment } from "@/server/inventory/availability";
 import { listOrgUnits, listProperties } from "@/server/inventory/service";
 import { listTasks } from "@/server/operations/service";
+import { getExtensionHours } from "@/server/reservations/extensions";
 import { requireMembership } from "@/lib/auth/session";
 import { useRouter } from "next/navigation";
 import CalendarPage from "@/app/(app)/calendar/page";
@@ -19,6 +20,7 @@ vi.mock("@/lib/auth/session", async () => (await import("./helpers/session-mock"
 vi.mock("@/server/inventory/service", () => ({ listOrgUnits: vi.fn(), listProperties: vi.fn() }));
 vi.mock("@/server/inventory/availability", () => ({ getOccupancySegments: vi.fn(), listCalendarActivity: vi.fn() }));
 vi.mock("@/server/operations/service", () => ({ listTasks: vi.fn() }));
+vi.mock("@/server/reservations/extensions", () => ({ getExtensionHours: vi.fn(async () => new Map()) }));
 vi.mock("@/app/(app)/calendar/availability-check-form", () => ({ AvailabilityCheckForm: () => null }));
 vi.mock("next/navigation", async (importOriginal) => {
   const actual = await importOriginal<typeof import("next/navigation")>();
@@ -376,6 +378,17 @@ describe("calendar page data boundaries", () => {
     expect(early!.quickView.href).toBe("/reservations/reservation-1");
     expect(upcoming).toMatchObject({ endDate: "2026-09-07", endTime: "11:00", timeLabel: "3PM → 11AM" });
     expect(upcoming!.quickView.checkOut).toMatchObject({ actual: false });
+  });
+
+  it("ends an extended stay at its late check-out and labels it in the quick view", async () => {
+    vi.mocked(getOccupancySegments).mockResolvedValue(new Map([["unit-a", [
+      { ...reservation("2026-09-05", "2026-09-07", "checked_in", "reservation-2"), guestCount: 1, actualCheckoutAt: null },
+    ]]]));
+    vi.mocked(getExtensionHours).mockResolvedValueOnce(new Map([["reservation-2", 2]]));
+    const tree = await CalendarPage({ searchParams: Promise.resolve({ unit: "unit-a" }) });
+    const [stay] = propsFor(tree, MonthCalendar).events;
+    expect(stay).toMatchObject({ endDate: "2026-09-07", endTime: "13:00", timeLabel: "3PM → 1PM" });
+    expect(stay!.quickView.checkOut).toMatchObject({ time: "1:00 PM", actual: false, late: "+2h late check-out", expected: "Sep 7, 11:00 AM before extending" });
   });
 
   it("does not turn an inactive unit status into a calendar event", async () => {

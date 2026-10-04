@@ -111,7 +111,8 @@ const centavosInt = z
  */
 export const chargeLineSchema = z
   .object({
-    type: z.enum(CHARGE_TYPES),
+    // Late check-out charges come only from extending the stay.
+    type: z.enum(CHARGE_TYPES).refine((type): boolean => type !== "extension", "Add late check-out by extending the stay."),
     description: z
       .string()
       .trim()

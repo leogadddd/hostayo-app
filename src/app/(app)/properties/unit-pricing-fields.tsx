@@ -252,3 +252,45 @@ export function ReservationFeeFields({ defaultType, defaultAmount }: { defaultTy
     </div>
   );
 }
+
+/**
+ * Late check-out by the hour. Submits `extensionsEnabled` ("on"),
+ * `maxExtensionHours` and `extensionHourlyRate` (pesos; empty means the
+ * stay's accommodation total divided by its length).
+ */
+export function LateCheckoutFields({ defaultEnabled, defaultMaxHours, defaultRate }: { defaultEnabled: boolean; defaultMaxHours: string; defaultRate: string }) {
+  const [enabled, setEnabled] = useState(defaultEnabled);
+  return (
+    <div className="rounded-xl border border-pine/10 bg-linen/50 p-4">
+      <label className="flex cursor-pointer items-start gap-3">
+        <input type="checkbox" name="extensionsEnabled" checked={enabled} onChange={(event) => setEnabled(event.target.checked)} className="mt-1 h-4 w-4 accent-[var(--color-pine)]" />
+        <span>
+          <span className="block text-sm font-medium text-pine">Allow late check-out</span>
+          <span className="block text-xs text-ink/55">
+            Guests can stay extra hours on their check-out day, but only when the extra time plus turnover ends before the next arrival.
+          </span>
+        </span>
+      </label>
+      {enabled ? (
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="unit-max-extension">Most extra hours per stay</Label>
+            <Input id="unit-max-extension" name="maxExtensionHours" type="number" min={1} max={12} step={1} defaultValue={defaultMaxHours} className="tabular-nums" required />
+          </div>
+          <div>
+            <Label htmlFor="unit-extension-rate">
+              Hourly rate <span className="font-normal text-ink/45">(optional)</span>
+            </Label>
+            <PesoInput id="unit-extension-rate" name="extensionHourlyRate" defaultValue={defaultRate} placeholder="Auto" />
+            <p className="mt-1 text-xs text-ink/55">Leave empty to charge the stay’s accommodation total ÷ its length in hours.</p>
+          </div>
+        </div>
+      ) : (
+        <>
+          <input type="hidden" name="maxExtensionHours" value={defaultMaxHours} />
+          <input type="hidden" name="extensionHourlyRate" value={defaultRate} />
+        </>
+      )}
+    </div>
+  );
+}

@@ -39,6 +39,8 @@ import {
   listCalendarActivity,
   type OccupancySegment,
 } from "@/server/inventory/availability";
+import { extendedCheckoutTime } from "@/lib/extensions";
+import { getExtensionHours, getPendingExtensionHours } from "@/server/reservations/extensions";
 import { listOrgUnits, listProperties } from "@/server/inventory/service";
 import { listTasks } from "@/server/operations/service";
 import {
@@ -232,6 +234,18 @@ export default async function DashboardPage() {
     (item) =>
       item.status !== "hold" && item.endDate === todayByUnit.get(item.unitId),
   );
+  // Approved late check-out pushes today's departures later; open requests
+  // are flagged so someone approves or declines them (src/lib/extensions.ts).
+  const [extensionHours, pendingExtensionHours] = await Promise.all([
+    getExtensionHours(
+      membership.organizationId,
+      departures.map((item) => item.id),
+    ).catch(logAndSkip("late check-outs")),
+    getPendingExtensionHours(
+      membership.organizationId,
+      departures.map((item) => item.id),
+    ).catch(logAndSkip("late check-out requests")),
+  ]);
   const arrivalsDone = arrivals.filter(
     (item) => item.status === "checked_in" || item.status === "checked_out",
   ).length;
@@ -567,7 +581,12 @@ export default async function DashboardPage() {
                     rows={departures
                       .map((stay) => {
                         const property = propertyForUnit(stay.unitId);
-                        const time = property?.checkOutTime ?? null;
+                        const lateHours = extensionHours?.get(stay.id) ?? 0;
+                        const baseTime = property?.checkOutTime ?? null;
+                        // An extension counts from the unit's own check-out time.
+                        const time = lateHours
+                          ? extendedCheckoutTime(unitById.get(stay.unitId)?.checkOutTime ?? baseTime ?? "11:00", lateHours)
+                          : baseTime;
                         const done = stay.status === "checked_out";
                         const late =
                           !done &&
@@ -577,7 +596,7 @@ export default async function DashboardPage() {
                           id: stay.id,
                           time,
                           guestName: stay.guestName,
-                          detail: `${unitLabel(stay.unitId)} · ${plural(stay.guestCount, "guest")}`,
+                          detail: `${unitLabel(stay.unitId)} · ${plural(stay.guestCount, "guest")}${lateHours ? ` · late check-out +${lateHours}h` : ""}${!done && pendingExtensionHours?.get(stay.id) ? ` · asked for +${pendingExtensionHours.get(stay.id)}h, awaiting approval` : ""}`,
                           status: done
                             ? ({ label: "Checked out", tone: "done" } as const)
                             : late

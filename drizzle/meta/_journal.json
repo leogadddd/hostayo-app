@@ -169,6 +169,20 @@
       "when": 1790791200000,
       "tag": "20260927100000_add_account_profile_and_security",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1790791200100,
+      "tag": "20260928075307_add_stay_extensions",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1790791200200,
+      "tag": "20260928082535_extension_requests",
+      "breakpoints": true
     }
   ]
 }

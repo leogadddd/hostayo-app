@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, ArrowRight, Banknote, Bath, BedDouble, CalendarCheck, Check, CircleAlert, CircleCheck, Clock, Landmark, LoaderCircle, Minus, Pencil, Plus, Receipt, RotateCcw, ShieldCheck, Smartphone, Sparkles, Tag, Trash2, Users, X } from "lucide-react";
 import type { ChargeType } from "@/lib/db/schema";
-import { CHARGE_TYPES } from "@/lib/db/schema";
+import { EDITABLE_CHARGE_TYPES } from "@/lib/db/schema";
 import { PAYMENT_ALLOCATION_LABELS, PAYMENT_METHOD_LABELS } from "@/lib/labels";
 import {
   buildDefaultCharges,
@@ -116,7 +116,7 @@ const PAYMENT_METHODS = ["gcash", "maya", "bank_transfer", "cash"] as const;
 type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 type PaymentAllocation = "booking" | "security_deposit";
 
-const CHARGE_TYPE_OPTIONS: SelectMenuOption<ChargeType>[] = CHARGE_TYPES.map((type) => ({
+const CHARGE_TYPE_OPTIONS: SelectMenuOption<ChargeType>[] = EDITABLE_CHARGE_TYPES.map((type) => ({
   value: type,
   label: CHARGE_TYPE_LABELS[type],
   icon: { accommodation: BedDouble, cleaning: Sparkles, fee: Receipt, discount: Tag, security_deposit: ShieldCheck }[type],
@@ -388,6 +388,13 @@ export function ReservationForm({
       data.append("chargeAmountPesos", draft.amountInput || "0");
     }
     startTransition(() => formAction(data));
+  }
+
+  /** Edit mode: save from any step once nothing blocks it. */
+  function saveNow() {
+    if (firstBlocked !== -1) { goTo(steps[firstBlocked]!); setShowIssue(true); return; }
+    setReviewError(null);
+    submitEdit();
   }
 
   function submit() {
@@ -797,9 +804,13 @@ export function ReservationForm({
                 {pending ? "Saving…" : edit ? "Save changes" : submitMode === "hold" ? "Place hold" : "Confirm booking"}
               </Button>
             ) : (
-              <Button type="button" variant="clay" size="lg" onClick={next}>Continue to {STEP_LABELS[steps[stepIndex + 1]!].toLowerCase()}<ArrowRight className="h-4 w-4" aria-hidden /></Button>
+              <div className="flex flex-wrap items-center gap-3">
+                {edit ? <SaveNowButton pending={pending} blocked={firstBlocked !== -1} onSave={saveNow} /> : null}
+                <Button type="button" variant="clay" size="lg" onClick={next}>Continue to {STEP_LABELS[steps[stepIndex + 1]!].toLowerCase()}<ArrowRight className="h-4 w-4" aria-hidden /></Button>
+              </div>
             )}
           </div>
+          {edit && step !== "review" ? <FieldError message={reviewError ?? state.error} /> : null}
         </section>
       </div>
 
@@ -818,6 +829,14 @@ export function ReservationForm({
           alreadyPaid={edit?.paid}
           showPricing={canSetCharges}
         />
+        {edit ? (
+          <div className="mt-4 rounded-2xl border border-pine/10 bg-surface p-4 shadow-[0_1px_2px_rgba(32,58,53,0.06)]">
+            <SaveNowButton pending={pending} blocked={firstBlocked !== -1} onSave={saveNow} wide />
+            <p className="mt-2 text-xs text-ink/55">
+              {firstBlocked !== -1 ? `Fix ${STEP_LABELS[steps[firstBlocked]!].toLowerCase()} before saving.` : "Saves your changes without going through every step."}
+            </p>
+          </div>
+        ) : null}
       </aside>
     </div>
     </div>
@@ -876,13 +895,51 @@ function AvailabilityBanner({ valid, unitChosen, result, nights, checkIn, checkO
   checkOut: string;
   compact?: boolean;
 }) {
-  if (!unitChosen || !valid) return <p className="flex items-center gap-2 rounded-xl bg-clay-mist px-4 py-3 text-sm text-clay-deep"><CircleAlert className="h-4 w-4 shrink-0" aria-hidden />Pick a check-out after check-in.</p>;
   const range = `${dayLabel(checkIn)} → ${dayLabel(checkOut)} · ${plural(nights ?? 0, "night")}`;
-  if (current) return <p className={cn("flex items-center gap-2 rounded-xl bg-pine-mist px-4 py-3 text-sm text-pine", compact && "mt-4")}><CalendarCheck className="h-4 w-4 shrink-0" aria-hidden />Booked for this reservation: {range}. Change the unit or dates to check other availability.</p>;
-  if (!result) return <p className={cn("flex items-center gap-2 rounded-xl bg-linen px-4 py-3 text-sm text-ink/60", compact && "mt-4")}><LoaderCircle className="h-4 w-4 shrink-0 animate-spin" aria-hidden />Checking {range}…</p>;
-  if (result.status === "available") return <p className={cn("flex items-center gap-2 rounded-xl bg-sage/50 px-4 py-3 text-sm font-medium text-pine-deep", compact && "mt-4")}><CircleCheck className="h-4 w-4 shrink-0" aria-hidden />{changed ? `New dates are free: ${range}` : `Free for ${range}`}</p>;
-  if (result.status === "unavailable") return <p className={cn("flex items-center gap-2 rounded-xl bg-clay-mist px-4 py-3 text-sm font-medium text-clay-deep", compact && "mt-4")}><CircleAlert className="h-4 w-4 shrink-0" aria-hidden />Not free: {result.reason}</p>;
-  return <p className={cn("flex items-center gap-2 rounded-xl bg-linen px-4 py-3 text-sm text-ink/60", compact && "mt-4")}><CircleAlert className="h-4 w-4 shrink-0" aria-hidden />{result.message} Saving still runs the full check.</p>;
+  const card = !unitChosen || !valid
+    ? { tone: "blocked", icon: CircleAlert, title: "Dates needed", detail: "Pick a check-out after check-in." } as const
+    : current
+      ? { tone: "current", icon: CalendarCheck, title: "Booked for this reservation", detail: `${range}. Change the unit or dates to check other availability.` } as const
+      : !result
+        ? { tone: "pending", icon: LoaderCircle, title: "Checking availability…", detail: range } as const
+        : result.status === "available"
+          ? { tone: "free", icon: CircleCheck, title: changed ? "New dates are free" : "Dates are free", detail: range } as const
+          : result.status === "unavailable"
+            ? { tone: "blocked", icon: CircleAlert, title: "Not free", detail: result.reason } as const
+            : { tone: "pending", icon: CircleAlert, title: "Couldn’t check", detail: `${result.message} Saving still runs the full check.` } as const;
+  const Icon = card.icon;
+  return (
+    <div role="status" aria-live="polite" className={cn(
+      "flex items-start gap-3 rounded-xl border border-l-4 p-4",
+      compact && "mt-4",
+      card.tone === "free" && "border-sage border-l-pine bg-sage/30",
+      card.tone === "blocked" && "border-clay/25 border-l-clay bg-clay-mist/60",
+      card.tone === "current" && "border-pine/15 border-l-pine/60 bg-pine-mist/60",
+      card.tone === "pending" && "border-pine/10 border-l-ink/25 bg-linen",
+    )}>
+      <span className={cn(
+        "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
+        card.tone === "free" && "bg-pine text-white",
+        card.tone === "blocked" && "bg-clay text-white",
+        card.tone === "current" && "bg-pine/15 text-pine",
+        card.tone === "pending" && "bg-ink/10 text-ink/60",
+      )}><Icon className={cn("h-4 w-4", card.icon === LoaderCircle && "animate-spin")} aria-hidden /></span>
+      <div className="min-w-0">
+        <p className="text-xs font-medium uppercase tracking-wide text-ink/45">Availability</p>
+        <p className={cn("font-medium", card.tone === "blocked" ? "text-clay-deep" : card.tone === "pending" ? "text-ink/70" : "text-pine-deep")}>{card.title}</p>
+        <p className="mt-0.5 break-words text-sm text-ink/65">{card.detail}</p>
+      </div>
+    </div>
+  );
+}
+
+function SaveNowButton({ pending, blocked, onSave, wide }: { pending: boolean; blocked: boolean; onSave: () => void; wide?: boolean }) {
+  return (
+    <Button type="button" variant={wide ? "clay" : "outline"} size="lg" onClick={onSave} disabled={pending} aria-disabled={blocked} className={cn(wide && "w-full", blocked && "opacity-60")}>
+      {pending ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden /> : <Check className="h-4 w-4" aria-hidden />}
+      {pending ? "Saving…" : "Save changes"}
+    </Button>
+  );
 }
 
 function ReviewBlock({ title, onEdit, children }: { title: string; onEdit: () => void; children: ReactNode }) {

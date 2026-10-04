@@ -37,8 +37,9 @@ import {
   ReservationError,
 } from "@/server/reservations/service";
 import { expireStaleHolds } from "@/server/reservations/holds";
+import { getExtensionState } from "@/server/reservations/extensions";
 import { getReservationLedger } from "@/server/payments/service";
-import { getTaskForReservation } from "@/server/operations/service";
+import { getTaskForReservation, listReservationDamageReports } from "@/server/operations/service";
 import { ReservationStatusBadge } from "@/components/app/reservation-status-badge";
 import { PlatformBadge } from "@/components/app/platform-badge";
 import { reservationFeeCents, reservationFeeRule } from "@/lib/reservation-fee";
@@ -59,6 +60,8 @@ import {
   timeLabel,
   UnitPhoto,
 } from "../../calendar/availability/stay-display";
+import { DamageCard } from "./damage-card";
+import { ExtensionsCard } from "./extensions-card";
 import { GuestLinkCard } from "./guest-link-card";
 import { PaymentsCard } from "./payments-card";
 import { ReservationHistory } from "./reservation-history";
@@ -126,6 +129,32 @@ export default async function ReservationDetailPage({
     reservation.status === "checked_out"
       ? await getTaskForReservation(membership.organizationId, id)
       : null;
+  const damage = await listReservationDamageReports(membership.organizationId, id);
+  // Late check-out: requested by staff, approved by someone with extensions.update.
+  const inStay = reservation.status === "confirmed" || reservation.status === "checked_in";
+  const extension = inStay || reservation.status === "checked_out"
+    ? await getExtensionState(membership.organizationId, id)
+    : null;
+  const canRequestLate = can(membership, "extensions.create") && inStay && Boolean(extension?.enabled);
+  const canReviewLate = can(membership, "extensions.update") && inStay && Boolean(extension?.openRequest);
+  const showExtensions = Boolean(extension && (extension.extensions.length > 0 || canRequestLate));
+  const extensionRows = (extension?.extensions ?? []).map((row, index, all) => {
+    // Each row's departure: check-out plus the approved hours before it, plus its own.
+    const approvedBefore = all.slice(0, index).reduce((sum, earlier) => sum + (earlier.status === "approved" ? earlier.hours : 0), 0);
+    const untilAt = new Date(extension!.checkoutAt.getTime() + (approvedBefore + row.hours) * 3_600_000).toISOString();
+    return {
+      id: row.id,
+      status: row.status,
+      hours: row.hours,
+      hourlyRateCents: row.hourlyRateCents,
+      note: row.note,
+      requestedBy: row.requestedBy,
+      requestedAt: row.createdAt.toISOString(),
+      decidedBy: row.decidedBy,
+      decisionNote: row.decisionNote,
+      untilAt,
+    };
+  });
   const totals = canSeeMoney ? computeTotals(charges) : null;
   const nights = listNights(reservation.checkInDate, reservation.checkOutDate);
   const liveHold = isLiveHold(reservation.status, reservation.expiresAt);
@@ -292,7 +321,9 @@ export default async function ReservationDetailPage({
           checkIn={dayLabel(reservation.checkInDate)}
           checkInDetail={checkInTime ? `From ${timeLabel(checkInTime)}` : undefined}
           checkOut={dayLabel(reservation.checkOutDate)}
-          checkOutDetail={checkOutTime ? `By ${timeLabel(checkOutTime)}` : undefined}
+          checkOutDetail={extension && extension.extendedHours > 0
+            ? `Late check-out · by ${new Intl.DateTimeFormat("en-PH", { hour: "numeric", minute: "2-digit", timeZone: timezone }).format(extension.departureAt)}`
+            : checkOutTime ? `By ${timeLabel(checkOutTime)}` : undefined}
           nights={nights.length}
         />
         <StatTile
@@ -543,6 +574,20 @@ export default async function ReservationDetailPage({
             </div>
           </section>
 
+          {extension && showExtensions ? (
+            <ExtensionsCard
+              reservationId={reservation.id}
+              rows={extensionRows}
+              departureAt={extension.departureAt.toISOString()}
+              timeZone={extension.timezone}
+              canRequest={canRequestLate}
+              requestBlockedReason={extension.requestBlockedReason}
+              canReview={canReviewLate}
+              canRemove={can(membership, "extensions.delete") && inStay}
+              showMoney={canSeeMoney}
+            />
+          ) : null}
+
           {canSeeMoney && ledger && totals ? (
             <>
               <Card>
@@ -620,6 +665,19 @@ export default async function ReservationDetailPage({
                 canRecord={moneyEditable}
               />
             </>
+          ) : null}
+
+          {canReportDamage || damage.length > 0 ? (
+            <DamageCard
+              href={href}
+              reports={damage}
+              deductions={ledger?.deductions ?? []}
+              timeFormat={timeFormat}
+              canReport={canReportDamage}
+              canResolve={can(membership, "damage.update")}
+              canDeduct={moneyEditable && canDeduct}
+              taskId={turnoverTask?.id ?? null}
+            />
           ) : null}
 
           <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)] sm:p-6">
@@ -796,17 +854,29 @@ export default async function ReservationDetailPage({
                   <Pencil className="h-4 w-4" aria-hidden />
                 </Link>
               ) : null}
-              {canReportDamage ? (
+              {canReviewLate ? (
                 <Link
-                  href={`${href}/damage/new`}
+                  href={`${href}/extend/review`}
+                  className={buttonClassName(
+                    "clay",
+                    "md",
+                    "w-full justify-between",
+                  )}
+                >
+                  Review late check-out request
+                  <Clock className="h-4 w-4" aria-hidden />
+                </Link>
+              ) : canRequestLate && !extension?.requestBlockedReason ? (
+                <Link
+                  href={`${href}/extend`}
                   className={buttonClassName(
                     "outline",
                     "md",
                     "w-full justify-between",
                   )}
                 >
-                  Report damage
-                  <Plus className="h-4 w-4" aria-hidden />
+                  Request late check-out
+                  <Clock className="h-4 w-4" aria-hidden />
                 </Link>
               ) : null}
               {canCancel ? (

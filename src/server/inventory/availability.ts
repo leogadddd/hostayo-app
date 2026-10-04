@@ -1,9 +1,10 @@
 import "server-only";
 
-import { and, eq, gt, inArray, lt, or } from "drizzle-orm";
+import { and, eq, gt, inArray, lt, or, sum } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { bookingPlatforms, guests, properties, reservations, turnoverBlocks, unitBlocks, units } from "@/lib/db/schema";
-import { addDaysLocal, listNights, utcToLocalDateTimeParts } from "@/lib/dates";
+import { bookingPlatforms, guests, properties, reservationExtensions, reservations, turnoverBlocks, unitBlocks, units } from "@/lib/db/schema";
+import { addDaysLocal, listNights, localDateTimeToUtc, utcToLocalDateTimeParts } from "@/lib/dates";
+import { lateCheckoutBlocksArrival } from "@/lib/extensions";
 import { expireStaleHolds } from "@/server/reservations/holds";
 
 /**
@@ -382,4 +383,67 @@ export function findTurnoverArrivalConflict(
     (segment): segment is Extract<OccupancySegment, { kind: "turnover" }> =>
       segment.kind === "turnover" && segment.startsAt <= arrivalAt && arrivalAt < segment.endsAt,
   );
+}
+
+export interface LateCheckout {
+  reservationId: string;
+  guestName: string;
+  /** Departure including the extra hours. */
+  departureAt: Date;
+  turnoverMinutes: number;
+}
+
+/**
+ * Stays leaving late on `date` (extended past check-out, not yet checked
+ * out), by unit. Date-based availability can't see these: the nights don't
+ * overlap, only the check-out day's hours do. See src/lib/extensions.ts.
+ */
+export async function getLateCheckouts(
+  organizationId: string,
+  unitIds: string[],
+  date: string,
+): Promise<Map<string, LateCheckout>> {
+  const late = new Map<string, LateCheckout>();
+  if (unitIds.length === 0) return late;
+  const rows = await db
+    .select({
+      reservationId: reservations.id,
+      unitId: reservations.unitId,
+      guestName: guests.name,
+      hours: sum(reservationExtensions.hours).mapWith(Number),
+      checkOutTime: units.checkOutTime,
+      timezone: properties.timezone,
+      turnoverMinutes: properties.turnoverDurationMinutes,
+    })
+    .from(reservationExtensions)
+    .innerJoin(reservations, and(eq(reservationExtensions.reservationId, reservations.id), eq(reservationExtensions.organizationId, reservations.organizationId)))
+    .innerJoin(guests, and(eq(reservations.guestId, guests.id), eq(reservations.organizationId, guests.organizationId)))
+    .innerJoin(units, and(eq(reservations.unitId, units.id), eq(reservations.organizationId, units.organizationId)))
+    .innerJoin(properties, and(eq(units.propertyId, properties.id), eq(units.organizationId, properties.organizationId)))
+    .where(and(
+      eq(reservationExtensions.organizationId, organizationId),
+      // Requests hold nothing until they're approved.
+      eq(reservationExtensions.status, "approved"),
+      inArray(reservations.unitId, unitIds),
+      eq(reservations.checkOutDate, date),
+      inArray(reservations.status, ["confirmed", "checked_in"]),
+    ))
+    .groupBy(reservations.id, reservations.unitId, guests.name, units.checkOutTime, properties.timezone, properties.turnoverDurationMinutes);
+  for (const row of rows) {
+    const checkoutAt = localDateTimeToUtc(`${date}T${row.checkOutTime}`, row.timezone);
+    if (!checkoutAt || !row.hours) continue;
+    late.set(row.unitId, {
+      reservationId: row.reservationId,
+      guestName: row.guestName,
+      departureAt: new Date(checkoutAt.getTime() + row.hours * 3_600_000),
+      turnoverMinutes: row.turnoverMinutes,
+    });
+  }
+  return late;
+}
+
+/** Whether a late check-out (plus turnover) is still running at `arrivalAt`. */
+export function lateCheckoutConflict(late: LateCheckout | undefined, arrivalAt: Date | null, excludeReservationId?: string): LateCheckout | null {
+  if (!late || !arrivalAt || late.reservationId === excludeReservationId) return null;
+  return lateCheckoutBlocksArrival(late.departureAt, late.turnoverMinutes, arrivalAt) ? late : null;
 }

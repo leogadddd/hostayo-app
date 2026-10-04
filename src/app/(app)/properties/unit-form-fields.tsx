@@ -13,7 +13,7 @@ import { useSaveAndReturn } from "@/hooks/use-save-and-return";
 import type { InventoryFormState } from "./actions";
 import { AmenityPicker, type AmenityOption } from "./amenity-picker";
 import { FormAside, FormLayout, FormSection, PesoInput, PhotoField, useFormValues } from "./form-kit";
-import { DayRatesFields, ReservationFeeFields, StayTimesFields, type ReservationFeeChoice } from "./unit-pricing-fields";
+import { DayRatesFields, LateCheckoutFields, ReservationFeeFields, StayTimesFields, type ReservationFeeChoice } from "./unit-pricing-fields";
 import { stayLengthHours, stayLengthLabel } from "@/lib/stay-times";
 import { dayRateSummary, WEEKDAYS, type DayRates, type Weekday } from "@/lib/rates";
 import { UnitStatusBadge } from "./inventory-display";
@@ -31,6 +31,10 @@ export interface UnitFormValues {
   reservationFeeType: ReservationFeeChoice;
   /** Pesos for a fixed fee, a percent for a percentage. */
   reservationFeeAmount: string;
+  /** Late check-out: whether it's offered, the hour cap, and pesos per hour ("" = automatic). */
+  extensionsEnabled?: boolean;
+  maxExtensionHours?: string;
+  extensionHourlyRate?: string;
   /** Weekday rates in pesos, only for days that differ. */
   dayRates?: Partial<Record<Weekday, string>>;
   checkInTime: string;
@@ -224,6 +228,9 @@ export function UnitForm({
           </div>
           <div className="mt-4">
             <ReservationFeeFields defaultType={values.reservationFeeType} defaultAmount={values.reservationFeeAmount} />
+          </div>
+          <div className="mt-4">
+            <LateCheckoutFields defaultEnabled={values.extensionsEnabled ?? false} defaultMaxHours={values.maxExtensionHours ?? "4"} defaultRate={values.extensionHourlyRate ?? ""} />
           </div>
         </FormSection>
 

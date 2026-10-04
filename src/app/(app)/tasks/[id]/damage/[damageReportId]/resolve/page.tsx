@@ -26,7 +26,7 @@ export default async function ResolveTaskDamagePage({ params }: {
       <PageHeading title="Resolve damage" description={`${propertyName} · ${unitName}`} backHref={`/tasks/${task.id}`} backLabel="Back to task" />
       <Card><CardBody className="space-y-5">
         <p className="whitespace-pre-line rounded-lg bg-sage/35 p-4 text-sm text-pine">{report.description}</p>
-        <ResolveDamageForm taskId={task.id} damageReportId={report.id} />
+        <ResolveDamageForm from={{ taskId: task.id }} damageReportId={report.id} />
       </CardBody></Card>
     </div>
   );

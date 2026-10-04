@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   date,
   foreignKey,
@@ -124,6 +125,11 @@ export const units = pgTable(
     reservationFeeAmount: integer("reservation_fee_amount"),
     checkInTime: text("check_in_time").notNull().default("15:00"),
     checkOutTime: text("check_out_time").notNull().default("11:00"),
+    // Late check-out by the hour (see src/lib/extensions.ts). A null hourly
+    // rate means the stay's accommodation total divided by its length.
+    extensionsEnabled: boolean("extensions_enabled").notNull().default(false),
+    maxExtensionHours: integer("max_extension_hours").notNull().default(4),
+    extensionHourlyRateCents: integer("extension_hourly_rate_cents"),
     status: unitStatus("status").notNull().default("renovating"),
     // A small, self-contained cover photo uploaded by the owner.
     imageUrl: text("image_url"),
@@ -162,6 +168,11 @@ export const units = pgTable(
       sql`(${table.reservationFeeType} IS NULL AND ${table.reservationFeeAmount} IS NULL)
         OR (${table.reservationFeeType} = 'fixed' AND ${table.reservationFeeAmount} > 0)
         OR (${table.reservationFeeType} = 'percent' AND ${table.reservationFeeAmount} BETWEEN 1 AND 10000)`,
+    ),
+    check(
+      "units_extension_check",
+      sql`${table.maxExtensionHours} BETWEEN 1 AND 12
+        AND (${table.extensionHourlyRateCents} IS NULL OR ${table.extensionHourlyRateCents} >= 0)`,
     ),
     check(
       "units_capacity_positive",

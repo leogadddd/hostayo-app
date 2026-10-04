@@ -34,6 +34,7 @@ import { CheckOutForm } from "@/app/(app)/reservations/[id]/check-out-form";
 import { DamageReportForm } from "@/app/(app)/tasks/damage-report-form";
 import { RecordProofForm } from "@/app/(app)/reservations/[id]/record-proof-form";
 import { PaymentsCard } from "@/app/(app)/reservations/[id]/payments-card";
+import { DamageCard } from "@/app/(app)/reservations/[id]/damage-card";
 import { ProofQueue } from "@/app/(app)/reservations/[id]/proof-queue";
 import { recordProofPaymentAction } from "@/app/(app)/reservations/[id]/payment-actions";
 
@@ -59,7 +60,10 @@ vi.mock("@/server/reservations/service", () => ({ getReservationDetail: vi.fn(),
 vi.mock("@/server/reservations/platforms", () => ({ listPlatforms: vi.fn(async () => []) }));
 vi.mock("@/server/reservations/holds", () => ({ expireStaleHolds: vi.fn() }));
 vi.mock("@/server/payments/service", () => ({ getReservationLedger: vi.fn(), recordPayment: vi.fn(), dismissProof: vi.fn() }));
-vi.mock("@/server/operations/service", () => ({ getTaskForReservation: vi.fn(), listOpenDamageReports: vi.fn() }));
+vi.mock("@/server/operations/service", () => ({ getTaskForReservation: vi.fn(), listOpenDamageReports: vi.fn(), listReservationDamageReports: vi.fn(async () => []) }));
+vi.mock("@/server/reservations/extensions", () => ({
+  getExtensionState: vi.fn(async () => ({ enabled: false, extensions: [], extendedHours: 0, blockedReason: null })),
+}));
 vi.mock("@/server/inventory/service", () => ({ listOrgUnits: vi.fn() }));
 vi.mock("@/app/(app)/reservations/actions", () => ({}));
 vi.mock("@/app/(app)/tasks/actions", () => ({}));
@@ -243,7 +247,8 @@ describe("read-only reservation detail and shared tables", () => {
     expect(serialized).toContain("History");
     expect(serialized).toContain("Late arrival");
     if (status === "confirmed") expect(serialized).toContain("/reservations/reservation-a/check-in");
-    else expect(serialized).toContain("/reservations/reservation-a/damage/new");
+    // Report damage lives in the damage card once the guest has arrived.
+    else expect(elements.find((node) => node.type === DamageCard)?.props.canReport).toBe(true);
     if (status === "checked_in") expect(serialized).toContain("/reservations/reservation-a/check-out");
   });
 

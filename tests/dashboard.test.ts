@@ -19,6 +19,7 @@ vi.mock("@/server/inventory/service", () => ({ listOrgUnits: vi.fn(), listProper
 vi.mock("@/server/inventory/stay-search", async (importOriginal) => ({ ...(await importOriginal<typeof import("@/server/inventory/stay-search")>()), findFreeUnitIds: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/server/operations/service", () => ({ listTasks: vi.fn() }));
+vi.mock("@/server/reservations/extensions", () => ({ getExtensionHours: vi.fn(async () => new Map()), getPendingExtensionHours: vi.fn(async () => new Map()) }));
 vi.mock("@/server/reports/service", () => ({ getReport: vi.fn() }));
 vi.mock("@/server/reports/dashboard", () => ({ getDashboardSeries: vi.fn(), getDashboardPlatformBreakdown: vi.fn(), listOpenDamage: vi.fn(), listPendingProofs: vi.fn() }));
 
@@ -60,7 +61,7 @@ const unit = {
   securityDepositCents: 200_000,
   reservationFeeType: null,
   reservationFeeAmount: null,
-  checkInTime: "15:00", checkOutTime: "11:00",
+  checkInTime: "15:00", checkOutTime: "11:00", extensionsEnabled: false, maxExtensionHours: 4, extensionHourlyRateCents: null,
   checklistTemplate: [],
   createdAt: new Date("2026-09-01T00:00:00Z"),
   updatedAt: new Date("2026-09-01T00:00:00Z"),

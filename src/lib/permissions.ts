@@ -47,6 +47,15 @@ export const PERMISSION_AREAS = [
     actions: { update: "Check guests in and out" },
   },
   {
+    area: "extensions",
+    label: "Late check-out",
+    actions: {
+      create: "Request late check-out for a guest, before their check-out time",
+      update: "Approve or decline late check-out requests",
+      delete: "Remove an approved late check-out and its charge",
+    },
+  },
+  {
     area: "payments",
     label: "Rates & payments",
     actions: {
@@ -170,6 +179,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<RoleKey, readonly Permission[]> = 
     "reservations.view",
     "reservations.create",
     "stays.update",
+    "extensions.create",
     "guests.view",
     "guests.create",
     "tasks.view",

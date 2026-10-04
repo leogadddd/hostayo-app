@@ -171,7 +171,7 @@ describe("turnover detail and dedicated editors", () => {
     vi.mocked(requirePermission).mockResolvedValue(owner);
     await expect(ResolveTaskDamagePage({ params: Promise.resolve({ id: "task-a", damageReportId: "other-report" }) })).rejects.toThrow("Not found");
     const form = elements(await ResolveTaskDamagePage({ params: resolveParams })).find((element) => element.type === ResolveDamageForm);
-    expect(form?.props).toEqual({ taskId: "task-a", damageReportId: "damage-a" });
+    expect(form?.props).toEqual({ from: { taskId: "task-a" }, damageReportId: "damage-a" });
   });
   it("never exposes an override form to staff or while required items are missing", async () => {
     expect(hasForm(await TaskReadyPage({ params }), MarkReadyForm)).toBe(false);

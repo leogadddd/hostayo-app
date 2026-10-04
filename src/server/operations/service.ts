@@ -865,6 +865,20 @@ export async function listDamageReports(organizationId: string, unitId: string) 
     .orderBy(desc(damageReports.createdAt));
 }
 
+/** Damage reported against one reservation, newest first. */
+export async function listReservationDamageReports(organizationId: string, reservationId: string) {
+  return db
+    .select()
+    .from(damageReports)
+    .where(
+      and(
+        eq(damageReports.reservationId, reservationId),
+        eq(damageReports.organizationId, organizationId),
+      ),
+    )
+    .orderBy(desc(damageReports.createdAt));
+}
+
 export async function listOpenDamageReports(organizationId: string, unitId: string) {
   return db
     .select()

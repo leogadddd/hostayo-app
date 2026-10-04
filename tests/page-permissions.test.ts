@@ -23,6 +23,7 @@ import ReportsPage from "@/app/(app)/reports/page";
 import ExpensesPage from "@/app/(app)/expenses/page";
 import ReservationDetailPage from "@/app/(app)/reservations/[id]/page";
 import { PaymentsCard } from "@/app/(app)/reservations/[id]/payments-card";
+import { DamageCard } from "@/app/(app)/reservations/[id]/damage-card";
 import { CheckInForm } from "@/app/(app)/reservations/[id]/check-in-form";
 import { CheckOutForm } from "@/app/(app)/reservations/[id]/check-out-form";
 import { DamageReportForm } from "@/app/(app)/tasks/damage-report-form";
@@ -87,6 +88,10 @@ vi.mock("@/server/payments/service", () => ({ getReservationLedger: vi.fn() }));
 vi.mock("@/server/operations/service", () => ({
   getTaskForReservation: vi.fn(),
   listOpenDamageReports: vi.fn(),
+  listReservationDamageReports: vi.fn(async () => []),
+}));
+vi.mock("@/server/reservations/extensions", () => ({
+  getExtensionState: vi.fn(async () => ({ enabled: false, extensions: [], extendedHours: 0, blockedReason: null })),
 }));
 
 const owner: MembershipContext = {
@@ -195,7 +200,7 @@ describe("independent owner page boundaries", () => {
       name: "Test unit", status: "active", capacity: 2, bedrooms: 1, bathrooms: 1,
       imageUrl: null,
       defaultNightlyRateCents: 100_000, dayRates: {}, cleaningFeeCents: null,
-      securityDepositCents: null, reservationFeeType: null, reservationFeeAmount: null, checkInTime: "15:00", checkOutTime: "11:00", checklistTemplate: [],
+      securityDepositCents: null, reservationFeeType: null, reservationFeeAmount: null, checkInTime: "15:00", checkOutTime: "11:00", extensionsEnabled: false, maxExtensionHours: 4, extensionHourlyRateCents: null, checklistTemplate: [],
       createdAt: new Date("2026-09-01T00:00:00Z"),
       updatedAt: new Date("2026-09-01T00:00:00Z"),
       deletedAt: null,
@@ -302,7 +307,7 @@ describe("reservation financial boundary", () => {
       const hasLink = (suffix: string) => nodes.some((node) => node.props.href === `/reservations/reservation-a/${suffix}`);
       expect(hasLink("check-in")).toBe(status === "confirmed");
       expect(hasLink("check-out")).toBe(status === "checked_in");
-      expect(hasLink("damage/new")).toBe(status === "checked_in" || status === "checked_out");
+      expect(nodes.find((node) => node.type === DamageCard)?.props.canReport ?? false).toBe(status === "checked_in" || status === "checked_out");
       for (const suffix of ["payments/new", "refunds/new", "deductions/new", "confirm", "cancel"]) expect(hasLink(suffix)).toBe(false);
       if (status === "checked_out") {
         expect(getTaskForReservation).toHaveBeenCalledWith(owner.organizationId, "reservation-a");
@@ -328,9 +333,10 @@ describe("reservation financial boundary", () => {
     for (const component of [RecordPaymentForm, RecordRefundForm, AddDeductionForm, CheckOutForm, DamageReportForm]) {
       expect(nodes.some((node) => node.type === component)).toBe(false);
     }
-    for (const suffix of ["payments/new", "refunds/new", "deductions/new", "check-out", "damage/new"]) {
+    for (const suffix of ["payments/new", "refunds/new", "deductions/new", "check-out"]) {
       expect(nodes.some((node) => node.props.href === `/reservations/reservation-a/${suffix}`)).toBe(true);
     }
+    expect(nodes.find((node) => node.type === DamageCard)?.props.canReport).toBe(true);
     const serialized = JSON.stringify(tree, (_key, value) => React.isValidElement(value) ? value.props : value);
     expect(serialized).toContain("Booking charges");
     expect(serialized).toContain("Private negotiated rate");

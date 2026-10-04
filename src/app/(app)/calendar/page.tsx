@@ -1,3 +1,5 @@
+import { extendedCheckoutTime } from "@/lib/extensions";
+import { getExtensionHours } from "@/server/reservations/extensions";
 import { unitOrPropertyPhotoSrc } from "@/lib/photos";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -140,6 +142,11 @@ export default async function CalendarPage({
     listCalendarActivity(membership.organizationId, unitDays),
     listTasks(membership.organizationId, { status: "open" }),
   ]);
+  // Late check-out hours move the expected departure (src/lib/extensions.ts).
+  const extensionHours = await getExtensionHours(membership.organizationId, [
+    ...[...segmentsByUnit.values()].flat().flatMap((segment) => (segment.kind === "reservation" ? [segment.id] : [])),
+    ...activity.map((reservation) => reservation.id),
+  ]);
   // Money for the quick view, only for people who may see it.
   const showMoney = can(membership, "payments.view");
   const balances = showMoney
@@ -246,12 +253,14 @@ export default async function CalendarPage({
     }
 
     // The bar ends at the recorded departure when there is one, otherwise at
-    // the unit's expected check-out time on the checkout date.
+    // the unit's expected check-out time (plus any late check-out) on the checkout date.
     const actual = event.actualCheckoutAt
       ? utcToLocalDateTimeParts(event.actualCheckoutAt, timezone)
       : null;
+    const lateHours = event.reservationId ? extensionHours.get(event.reservationId) ?? 0 : 0;
+    const expectedTime = extendedCheckoutTime(unit.checkOutTime, lateHours);
     const endDate = actual?.date ?? event.endDate;
-    const endTime = actual?.time ?? unit.checkOutTime;
+    const endTime = actual?.time ?? expectedTime;
     const tone =
       event.kind === "hold"
         ? "hold"
@@ -267,7 +276,7 @@ export default async function CalendarPage({
         ? `Hold · ${nightLabel}${event.expiresAt ? ` · expires ${expiryLabel(event.expiresAt, event.unitId)}` : ""}`
         : `${kindLabel} · ${nightLabel}`;
     const checkInLabel = `${shortDate(event.startDate)}, ${timeLabel(unit.checkInTime)}`;
-    const checkOutLabel = `${shortDate(endDate)}, ${timeLabel(endTime)}${actual ? " (actual)" : ""}`;
+    const checkOutLabel = `${shortDate(endDate)}, ${timeLabel(endTime)}${actual ? " (actual)" : lateHours ? ` (late check-out +${lateHours}h)` : ""}`;
     const facts = [
       { label: "Nights", value: String(nights) },
       ...(event.guestCount
@@ -337,9 +346,12 @@ export default async function CalendarPage({
             date: dayLabel(endDate),
             time: timeLabel(endTime),
             actual: Boolean(actual),
+            late: !actual && lateHours ? `+${lateHours}h late check-out` : undefined,
             expected: actual
-              ? `${shortDate(event.endDate)}, ${timeLabel(unit.checkOutTime)}`
-              : undefined,
+              ? `${shortDate(event.endDate)}, ${timeLabel(expectedTime)}`
+              : lateHours
+                ? `${shortDate(event.endDate)}, ${timeLabel(unit.checkOutTime)} before extending`
+                : undefined,
           },
           facts,
           turnover: turnoverWindow
@@ -384,9 +396,12 @@ export default async function CalendarPage({
     checkInTime:
       unitMap.get(reservation.unitId)!.checkInTime ??
       propertyForUnit(reservation.unitId).checkInTime,
-    checkOutTime:
+    checkOutTime: extendedCheckoutTime(
       unitMap.get(reservation.unitId)!.checkOutTime ??
-      propertyForUnit(reservation.unitId).checkOutTime,
+        propertyForUnit(reservation.unitId).checkOutTime,
+      extensionHours.get(reservation.id) ?? 0,
+    ),
+    lateHours: extensionHours.get(reservation.id) ?? 0,
     expiryLabel: reservation.expiresAt
       ? expiryLabel(reservation.expiresAt, reservation.unitId)
       : null,

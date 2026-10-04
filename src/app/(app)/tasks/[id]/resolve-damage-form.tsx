@@ -7,17 +7,25 @@ import { CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { FieldError, Input, Label, Textarea } from "@/components/ui/input";
-import { resolveDamageReportAction, type DamageFormState } from "../actions";
+import { resolveDamageReportAction, resolveReservationDamageAction, type DamageFormState } from "../actions";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
 
-export function ResolveDamageForm({ taskId, damageReportId }: { taskId: string; damageReportId: string }) {
+/** Resolves from the turnover task or from the reservation the damage was reported on. */
+export function ResolveDamageForm({ from, damageReportId, defaultActualPesos }: {
+  from: { taskId: string } | { reservationId: string };
+  damageReportId: string;
+  defaultActualPesos?: string;
+}) {
   const router = useRouter();
+  const returnHref = "taskId" in from ? `/tasks/${from.taskId}` : `/reservations/${from.reservationId}`;
   const [state, formAction, pending] = useActionState<DamageFormState, FormData>(
     async (previous, formData) => {
-      const result = await resolveDamageReportAction(taskId, damageReportId, previous, formData);
+      const result = "taskId" in from
+        ? await resolveDamageReportAction(from.taskId, damageReportId, previous, formData)
+        : await resolveReservationDamageAction(from.reservationId, damageReportId, previous, formData);
       if (result.success) {
         toast.success("Damage report resolved.");
-        router.push(`/tasks/${taskId}`);
+        router.push(returnHref);
         router.refresh();
       }
       return result;
@@ -57,6 +65,7 @@ export function ResolveDamageForm({ taskId, damageReportId }: { taskId: string; 
           id={`resolve-actual-${damageReportId}`}
           name="actualAmountPesos"
           inputMode="decimal"
+          defaultValue={defaultActualPesos}
           placeholder="e.g. 1,200"
         />
       </div>
@@ -65,7 +74,7 @@ export function ResolveDamageForm({ taskId, damageReportId }: { taskId: string; 
         <Button type="submit" variant="clay" disabled={pending}>
           {pending ? "Resolving…" : "Mark resolved"}
         </Button>
-        <Link href={`/tasks/${taskId}`} className="text-sm text-pine hover:underline">Cancel</Link>
+        <Link href={returnHref} className="text-sm text-pine hover:underline">Cancel</Link>
       </div>
     </form>
   );

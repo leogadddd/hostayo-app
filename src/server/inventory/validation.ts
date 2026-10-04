@@ -110,6 +110,10 @@ export const unitInputSchema = z.object({
   // Optional so a partial update keeps the stored fee; null clears it.
   reservationFeeType: z.enum(RESERVATION_FEE_TYPES).nullable().optional(),
   reservationFeeAmount: z.number().int().nullable().optional(),
+  // Late check-out (src/lib/extensions.ts). Optional so a partial update keeps them.
+  extensionsEnabled: z.boolean().optional(),
+  maxExtensionHours: z.number().int("Use whole hours for the late check-out limit.").min(1, "Allow at least 1 late check-out hour.").max(12, "Allow at most 12 late check-out hours.").optional(),
+  extensionHourlyRateCents: centavosField("Late check-out rate").nullable().optional(),
   checkInTime: z.string().default("15:00").refine(isValidHmTime, { message: "Use a 24-hour arrival time like 15:00." }),
   checkOutTime: z.string().default("11:00").refine(isValidHmTime, { message: "Use a 24-hour departure time like 11:00." }),
   status: z.enum(UNIT_STATUSES),

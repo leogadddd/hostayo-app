@@ -4,7 +4,7 @@ import { useActionState, useState, type ReactNode } from "react";
 import { CheckCircle2, CircleCheck, FileWarning, ShieldCheck, Unlink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FieldError, Label, Textarea } from "@/components/ui/input";
-import { formatPHP } from "@/lib/money";
+import { centavosToPesosInput, formatPHP } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import { addDeductionAction, type PaymentFormState } from "./payment-actions";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
@@ -14,6 +14,8 @@ import { AmountField, ChoiceCard, parseAmount } from "./money-inputs";
 interface DamageOption {
   id: string;
   description: string;
+  /** Actual cost if known, else the estimate. */
+  amountCents?: number | null;
 }
 
 const REASONS = ["Damaged item", "Missing item", "Extra cleaning", "Late checkout", "House rules broken"];
@@ -22,9 +24,12 @@ export function AddDeductionForm({
   reservationId,
   damageReports = [],
   depositHeldCents,
+  defaultDamageReportId,
 }: {
   reservationId: string;
   damageReports?: DamageOption[];
+  /** Starts linked to this report, with its description and cost filled in. */
+  defaultDamageReportId?: string;
   /** Deposit still held; a deduction can't take more than this. */
   depositHeldCents?: number;
 }) {
@@ -32,9 +37,11 @@ export function AddDeductionForm({
   const [state, formAction, pending] = useActionState<PaymentFormState, FormData>(save, {});
   useActionFeedback(state);
 
-  const [amountInput, setAmountInput] = useState("");
-  const [reason, setReason] = useState("");
-  const [damageReportId, setDamageReportId] = useState("");
+  const preset = damageReports.find((report) => report.id === defaultDamageReportId);
+  const presetCents = preset?.amountCents != null && depositHeldCents !== undefined ? Math.min(preset.amountCents, depositHeldCents) : preset?.amountCents ?? null;
+  const [amountInput, setAmountInput] = useState(presetCents ? centavosToPesosInput(presetCents) : "");
+  const [reason, setReason] = useState(preset?.description ?? "");
+  const [damageReportId, setDamageReportId] = useState(preset?.id ?? "");
 
   const held = depositHeldCents ?? 0;
   const known = depositHeldCents !== undefined;

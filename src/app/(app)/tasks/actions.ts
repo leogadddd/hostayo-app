@@ -7,6 +7,7 @@ import { can } from "@/lib/permissions";
 import {
   createDamageReport,
   getTaskDetail,
+  listReservationDamageReports,
   markTaskReady,
   OperationsError,
   resolveDamageReport,
@@ -170,5 +171,37 @@ export async function resolveDamageReportAction(
   }
   revalidatePath("/tasks");
   revalidatePath("/tasks/[id]", "page");
+  return { success: true };
+}
+
+/** Resolves a damage report from the reservation it was reported on. */
+export async function resolveReservationDamageAction(
+  reservationId: string,
+  damageReportId: string,
+  _prev: DamageFormState,
+  formData: FormData,
+): Promise<DamageFormState> {
+  const membership = await requireMembership();
+  try {
+    assertCan(membership, "damage.update");
+    const reports = await listReservationDamageReports(membership.organizationId, reservationId);
+    if (!reports.some((report) => report.id === damageReportId && report.status === "open")) {
+      throw new OperationsError("Open damage report not found for this reservation.");
+    }
+    await resolveDamageReport({
+      organizationId: membership.organizationId,
+      actorUserId: membership.userId,
+      damageReportId,
+      data: {
+        resolutionNote: readString(formData, "resolutionNote"),
+        actualAmountPesos: readString(formData, "actualAmountPesos"),
+      },
+    });
+  } catch (error) {
+    return toFormError(error);
+  }
+  revalidatePath("/tasks");
+  revalidatePath("/tasks/[id]", "page");
+  revalidatePath("/reservations/[id]", "page");
   return { success: true };
 }

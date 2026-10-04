@@ -5,7 +5,10 @@ import { isLocalDate, localDateTimeToUtc, nightsBetween } from "@/lib/dates";
 import {
   checkIntervalAvailability,
   findTurnoverArrivalConflict,
+  getLateCheckouts,
   getOccupancySegments,
+  lateCheckoutConflict,
+  type LateCheckout,
   type OccupancySegment,
 } from "./availability";
 
@@ -53,11 +56,14 @@ function stayConflict(
   unit: Pick<Unit, "checkInTime">,
   timezone: string | undefined,
   search: Pick<StaySearch, "checkIn" | "checkOut">,
+  late?: LateCheckout,
+  excludeReservationId?: string,
 ): string | null {
   const check = checkIntervalAvailability(segments, search.checkIn, search.checkOut);
   if (!check.available) return check.conflict.reason;
   const arrivalAt = timezone ? localDateTimeToUtc(`${search.checkIn}T${unit.checkInTime}`, timezone) : null;
-  return arrivalAt && findTurnoverArrivalConflict(segments, arrivalAt) ? "Turnover still running at check-in time" : null;
+  if (arrivalAt && findTurnoverArrivalConflict(segments, arrivalAt)) return "Turnover still running at check-in time";
+  return lateCheckoutConflict(late, arrivalAt, excludeReservationId) ? "Previous guest has a late check-out that runs into check-in time" : null;
 }
 
 /**
@@ -72,9 +78,13 @@ export async function findFreeUnitIds(
   search: Pick<StaySearch, "checkIn" | "checkOut">,
 ): Promise<Set<string>> {
   if (units.length === 0) return new Set();
-  const segmentsByUnit = await getOccupancySegments(organizationId, units.map((unit) => unit.id), search.checkIn, search.checkOut);
+  const unitIds = units.map((unit) => unit.id);
+  const [segmentsByUnit, late] = await Promise.all([
+    getOccupancySegments(organizationId, unitIds, search.checkIn, search.checkOut),
+    getLateCheckouts(organizationId, unitIds, search.checkIn),
+  ]);
   return new Set(units
-    .filter((unit) => stayConflict(segmentsByUnit.get(unit.id) ?? [], unit, timezoneByProperty.get(unit.propertyId), search) === null)
+    .filter((unit) => stayConflict(segmentsByUnit.get(unit.id) ?? [], unit, timezoneByProperty.get(unit.propertyId), search, late.get(unit.id)) === null)
     .map((unit) => unit.id));
 }
 
@@ -90,10 +100,13 @@ export async function explainUnitStay(
   search: Pick<StaySearch, "checkIn" | "checkOut">,
   excludeReservationId?: string,
 ): Promise<{ available: true } | { available: false; reason: string }> {
-  const segmentsByUnit = await getOccupancySegments(organizationId, [unit.id], search.checkIn, search.checkOut);
+  const [segmentsByUnit, late] = await Promise.all([
+    getOccupancySegments(organizationId, [unit.id], search.checkIn, search.checkOut),
+    getLateCheckouts(organizationId, [unit.id], search.checkIn),
+  ]);
   const segments = (segmentsByUnit.get(unit.id) ?? []).filter((segment) =>
     !excludeReservationId
     || !(segment.kind === "reservation" ? segment.id === excludeReservationId : segment.kind === "turnover" && segment.reservationId === excludeReservationId));
-  const reason = stayConflict(segments, unit, timezone, search);
+  const reason = stayConflict(segments, unit, timezone, search, late.get(unit.id), excludeReservationId);
   return reason ? { available: false, reason } : { available: true };
 }

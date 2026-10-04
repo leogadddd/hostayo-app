@@ -249,6 +249,9 @@ function unitDataFromForm(formData: FormData) {
     cleaningFeeCents: readOptionalPesos(formData, "cleaningFee"),
     securityDepositCents: readOptionalPesos(formData, "securityDeposit"),
     ...readReservationFee(formData),
+    extensionsEnabled: formData.get("extensionsEnabled") === "on",
+    maxExtensionHours: Number(readString(formData, "maxExtensionHours") || "4"),
+    extensionHourlyRateCents: readOptionalPesos(formData, "extensionHourlyRate"),
     checkInTime: readString(formData, "checkInTime") || "15:00",
     checkOutTime: readString(formData, "checkOutTime") || "11:00",
     status: readString(formData, "status") as

@@ -25,7 +25,8 @@ export interface EventQuickViewData {
   /** Next steps for this stay, e.g. "Check in". */
   actions?: { label: string; href: string }[];
   checkIn?: { date: string; time: string };
-  checkOut?: { date: string; time: string; actual: boolean; expected?: string };
+  /** `late` labels a late check-out (extension) that hasn't happened yet. */
+  checkOut?: { date: string; time: string; actual: boolean; late?: string; expected?: string };
   facts: { label: string; value: string }[];
   turnover?: string;
   href?: string;
@@ -130,6 +131,7 @@ export function QuickViewProvider({ children }: { children: ReactNode }) {
                       <p className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-ink/50">
                         Check-out
                         {data.checkOut.actual ? <span className="rounded-full bg-pine-mist px-1.5 py-px text-[10px] normal-case tracking-normal text-pine">Actual</span> : null}
+                        {data.checkOut.late ? <span className="rounded-full bg-clay-mist px-1.5 py-px text-[10px] normal-case tracking-normal text-clay-deep">{data.checkOut.late}</span> : null}
                       </p>
                       <p className="mt-1 text-sm font-medium">{data.checkOut.date}</p>
                       <p className="text-sm text-ink/70">{data.checkOut.time}</p>

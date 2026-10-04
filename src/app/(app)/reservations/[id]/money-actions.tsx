@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { computeTotals } from "@/lib/charges";
 import { getReservationLedger } from "@/server/payments/service";
-import { listOpenDamageReports } from "@/server/operations/service";
+import { listOpenDamageReports, listReservationDamageReports } from "@/server/operations/service";
 import { loadActionReservation } from "./action-page";
 import { AddDeductionForm } from "./add-deduction-form";
 import { RecordPaymentForm } from "./record-payment-form";
@@ -76,13 +76,20 @@ export async function refundPanel(organizationId: string, id: string): Promise<M
   };
 }
 
-export async function deductionPanel(organizationId: string, id: string): Promise<MoneyActionPanel> {
+/** `damageReportId` pre-fills the form from that report (the reservation's damage card links here). */
+export async function deductionPanel(organizationId: string, id: string, damageReportId?: string): Promise<MoneyActionPanel> {
   const detail = await loadActionReservation(organizationId, id);
   const { guest, unit, charges } = detail;
   const base = { title: "Record deposit deduction", description: `${guest.name} · ${unit.name}. Explain the amount kept from the security deposit.` };
   if (ended(detail) || computeTotals(charges).depositTotalCents <= 0) return { ...base, unavailable: "A deposit deduction is not available for this reservation." };
   const { balances } = await getReservationLedger(organizationId, id);
   if (balances.depositHeldCents <= 0) return { ...base, unavailable: "No deposit has been collected yet, so there is nothing to deduct from." };
-  const reports = await listOpenDamageReports(organizationId, unit.id);
-  return { ...base, form: <AddDeductionForm reservationId={id} depositHeldCents={balances.depositHeldCents} damageReports={reports.map((report) => ({ id: report.id, description: report.description }))} /> };
+  // Open damage on the unit, plus anything reported on this stay even if already resolved.
+  const [openOnUnit, onStay] = await Promise.all([
+    listOpenDamageReports(organizationId, unit.id),
+    listReservationDamageReports(organizationId, id),
+  ]);
+  const reports = [...onStay, ...openOnUnit.filter((report) => !onStay.some((own) => own.id === report.id))];
+  const preselected = reports.find((report) => report.id === damageReportId);
+  return { ...base, form: <AddDeductionForm reservationId={id} depositHeldCents={balances.depositHeldCents} defaultDamageReportId={preselected?.id} damageReports={reports.map((report) => ({ id: report.id, description: report.description, amountCents: report.actualAmountCents ?? report.estimatedAmountCents }))} /> };
 }

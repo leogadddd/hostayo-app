@@ -14,6 +14,7 @@ export const CHARGE_TYPE_LABELS: Record<ChargeType, string> = {
   fee: "Extra fee",
   discount: "Discount",
   security_deposit: "Security deposit (refundable)",
+  extension: "Late check-out",
 };
 
 export interface ChargeLineValues {

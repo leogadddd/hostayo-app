@@ -13,7 +13,10 @@ interface TodayReservation {
   unitLabel: string;
   timezone: string;
   checkInTime: string;
+  /** Includes any late check-out hours. */
   checkOutTime: string;
+  /** Late check-out hours added to the stay; 0 when none. */
+  lateHours?: number;
   expiryLabel: string | null;
 }
 interface TodayTask {
@@ -63,7 +66,7 @@ function buildSchedule(arrivals: TodayReservation[], departures: TodayReservatio
       title: reservation.guestName,
       subtitle: reservation.unitLabel,
       done: reservation.status === "checked_out",
-      status: reservation.status === "checked_out" ? "Checked out" : "Due",
+      status: reservation.status === "checked_out" ? "Checked out" : reservation.lateHours ? `Late +${reservation.lateHours}h` : "Due",
       href: `/reservations/${reservation.id}`,
       action: "View",
       timezone: multipleTimezones ? reservation.timezone : undefined,

@@ -4,6 +4,7 @@ import {
   check,
   date,
   foreignKey,
+  index,
   integer,
   pgEnum,
   pgTable,
@@ -38,9 +39,15 @@ export const CHARGE_TYPES = [
   "fee",
   "discount",
   "security_deposit",
+  "extension",
 ] as const;
 
 export type ChargeType = (typeof CHARGE_TYPES)[number];
+
+/** Types a person can put on a booking; `extension` is added only by extending the stay. */
+export const EDITABLE_CHARGE_TYPES = CHARGE_TYPES.filter(
+  (type): type is Exclude<ChargeType, "extension"> => type !== "extension",
+);
 
 export const chargeType = pgEnum("charge_type", CHARGE_TYPES);
 
@@ -280,6 +287,70 @@ export const reservationCharges = pgTable(
     ),
   ],
 );
+
+export const EXTENSION_STATUSES = ["requested", "approved", "declined"] as const;
+export type ExtensionStatus = (typeof EXTENSION_STATUSES)[number];
+export const extensionStatus = pgEnum("extension_status", EXTENSION_STATUSES);
+
+/**
+ * Late check-out requests on a stay (src/lib/extensions.ts). A request changes
+ * nothing until it is approved: approval re-checks the next arrival, adds the
+ * `extension` charge and moves the departure. An approved extension owns its
+ * charge, so removing the charge removes it too. Only approved hours count.
+ */
+export const reservationExtensions = pgTable(
+  "reservation_extensions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    reservationId: uuid("reservation_id").notNull(),
+    status: extensionStatus("status").notNull().default("requested"),
+    // Set on approval; null while requested or once declined.
+    chargeId: uuid("charge_id"),
+    hours: integer("hours").notNull(),
+    // The rate quoted with the request, then the rate charged on approval.
+    hourlyRateCents: integer("hourly_rate_cents").notNull(),
+    note: text("note"),
+    // Who asked (usually on the guest's behalf).
+    createdBy: text("created_by").references(() => user.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    decidedBy: text("decided_by").references(() => user.id, {
+      onDelete: "set null",
+    }),
+    decidedAt: timestamp("decided_at", { withTimezone: true }),
+    decisionNote: text("decision_note"),
+  },
+  (table) => [
+    // One open request per stay at a time.
+    uniqueIndex("reservation_extensions_one_open_request")
+      .on(table.reservationId)
+      .where(sql`${table.status} = 'requested'`),
+    check(
+      "reservation_extensions_charge_status_check",
+      sql`(${table.status} = 'approved') = (${table.chargeId} IS NOT NULL)`,
+    ),
+    index("reservation_extensions_reservation_idx").on(table.organizationId, table.reservationId),
+    uniqueIndex("reservation_extensions_charge_unique").on(table.chargeId),
+    foreignKey({
+      columns: [table.organizationId, table.reservationId],
+      foreignColumns: [reservations.organizationId, reservations.id],
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.organizationId, table.chargeId],
+      foreignColumns: [reservationCharges.organizationId, reservationCharges.id],
+    }).onDelete("cascade"),
+    check("reservation_extensions_hours_check", sql`${table.hours} BETWEEN 1 AND 24`),
+    check("reservation_extensions_rate_check", sql`${table.hourlyRateCents} >= 0`),
+  ],
+);
+
+export type ReservationExtension = typeof reservationExtensions.$inferSelect;
 
 export const reservationTransitions = pgTable(
   "reservation_transitions",
