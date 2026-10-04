@@ -915,7 +915,7 @@ export default async function ReservationDetailPage({
 
           {can(membership, "guests.update") ? (
             <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)]">
-              <h2 className="font-display text-lg text-pine">Guest link</h2>
+              <h2 className="font-display text-lg text-pine">Welcome link</h2>
               <div className="mt-4">
                 <GuestLinkCard
                   reservationId={reservation.id}

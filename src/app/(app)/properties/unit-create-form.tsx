@@ -3,11 +3,13 @@
 import { createUnitAction } from "./actions";
 import { UnitForm } from "./unit-form-fields";
 import type { AmenityOption } from "./amenity-picker";
+import type { ContactChannel } from "@/lib/contact-channels";
 
-export function UnitCreateForm({ propertyId, propertyName, defaults, amenityOptions }: {
+export function UnitCreateForm({ propertyId, propertyName, defaults, amenityOptions, contactChannels }: {
   propertyId: string;
   propertyName?: string;
   amenityOptions?: AmenityOption[];
+  contactChannels?: ContactChannel[];
   /** New units start from the property's default arrival and departure. */
   defaults?: { checkInTime: string; checkOutTime: string };
 }) {
@@ -26,7 +28,9 @@ export function UnitCreateForm({ propertyId, propertyName, defaults, amenityOpti
         checkInTime: defaults?.checkInTime ?? "15:00", checkOutTime: defaults?.checkOutTime ?? "11:00",
         // New units are bookable straight away; the other statuses are one click away.
         status: "active",
+        contactChannelIds: contactChannels?.map((channel) => channel.id) ?? [],
       }}
+      contactChannels={contactChannels}
     />
   );
 }

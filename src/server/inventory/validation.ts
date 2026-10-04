@@ -118,6 +118,8 @@ export const unitInputSchema = z.object({
   checkOutTime: z.string().default("11:00").refine(isValidHmTime, { message: "Use a 24-hour departure time like 11:00." }),
   status: z.enum(UNIT_STATUSES),
   imageUrl: z.string().max(7_000_000, "The image is too large.").optional(),
+  // Omitted preserves the unit's setting; [] deliberately hides all channels.
+  contactChannelIds: z.array(z.string().uuid("Choose a valid contact channel.")).max(10).optional(),
 }).superRefine((value, ctx) => {
   if (value.reservationFeeType === undefined) return;
   const amount = value.reservationFeeAmount ?? null;

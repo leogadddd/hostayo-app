@@ -39,23 +39,23 @@ export function GuestLinkCard({
     GuestLinkFormState,
     FormData
   >(revokeGuestLinkAction.bind(null, reservationId, activeToken?.id ?? ""), {});
-  useActionFeedback(created, { success: "Guest link created. Copy it before leaving this page." });
-  useActionFeedback(revokeState, { success: "Guest link revoked." });
+  useActionFeedback(created, { success: "Welcome link created. Copy it before leaving this page." });
+  useActionFeedback(revokeState, { success: "Welcome link revoked." });
 
   const [copied, setCopied] = useState(false);
   const shownToken = created.token ?? null;
-  const url = shownToken ? `${window.location.origin}/g/${shownToken}` : null;
+  const url = shownToken ? `${window.location.origin}/g/${shownToken}/stay` : null;
 
   async function copyUrl() {
     if (!url) return;
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
-      toast.info("Guest link copied to clipboard.");
+      toast.success("Welcome link copied");
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error("Couldn’t copy the guest link", {
-        description: "Copy the link manually instead.",
+      toast.error("Couldn’t copy the welcome link", {
+        description: "Select the link above and copy it manually.",
       });
     }
   }
@@ -63,38 +63,34 @@ export function GuestLinkCard({
   return (
     <div className="space-y-3">
       <p className="text-sm text-ink/60">
-        A private link the guest can open to see their booking status, dates
-        and balance. Creating a new link disables the old one.
+        A private welcome-page link for the guest. It includes stay details and
+        links through to their booking status and balance. Creating a new link
+        disables the old one.
       </p>
 
       {url ? (
-        <div className="space-y-2">
-          <Label htmlFor="guest-link-url">Link (shown once — copy it now)</Label>
-          <div className="flex flex-wrap gap-2">
-            <Input id="guest-link-url" readOnly value={url} className="min-w-56 flex-1" />
-            <Button type="button" variant="outline" size="md" onClick={copyUrl}>
-              {copied ? (
-                <>
-                  <Check className="h-4 w-4" aria-hidden /> Copied
-                </>
-              ) : (
-                <>
-                  <Copy className="h-4 w-4" aria-hidden /> Copy
-                </>
-              )}
-            </Button>
+        <div className="space-y-3 rounded-xl border border-moss/40 bg-sage/35 p-4">
+          <div>
+            <Label htmlFor="guest-link-url">Welcome link</Label>
+            <p className="-mt-1 mb-2 text-xs text-ink/55">Shown once. Copy it now and send it to your guest.</p>
+            <Input id="guest-link-url" readOnly value={url} onFocus={(event) => event.currentTarget.select()} className="w-full font-mono text-xs" />
           </div>
+          <Button type="button" variant="clay" size="lg" onClick={copyUrl} className="w-full sm:w-auto">
+            {copied ? <Check className="h-4 w-4" aria-hidden /> : <Copy className="h-4 w-4" aria-hidden />}
+            {copied ? "Welcome link copied" : "Copy welcome link"}
+          </Button>
+          <span className="sr-only" role="status">{copied ? "Welcome link copied" : ""}</span>
         </div>
       ) : null}
 
       {activeToken ? (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-pine/10 p-3">
           <p className="text-sm text-ink/70">
-            Active link created {formatDateTime(activeToken.createdAt)} · expires{" "}
+            Welcome link created {formatDateTime(activeToken.createdAt)} · expires{" "}
             {formatDateTime(activeToken.expiresAt)}
           </p>
           <form action={revokeAction}>
-            <Button type="submit" variant="ghost" size="sm" disabled={revokePending}>
+            <Button type="submit" variant="ghost" size="sm" disabled={revokePending} className="text-clay-deep hover:bg-clay-mist/70">
               <ShieldX className="h-4 w-4" aria-hidden />
               {revokePending ? "Revoking…" : "Revoke link"}
             </Button>
@@ -102,13 +98,13 @@ export function GuestLinkCard({
         </div>
       ) : (
         <form action={createAction}>
-          <Button type="submit" variant="outline" size="md" disabled={createPending}>
+          <Button type="submit" variant={url ? "outline" : "clay"} size="md" disabled={createPending}>
             <Link2 className="h-4 w-4" aria-hidden />
             {createPending
               ? "Creating link…"
               : url
-                ? "Create another link"
-                : "Create guest link"}
+                ? "Create another welcome link"
+                : "Create welcome link"}
           </Button>
         </form>
       )}

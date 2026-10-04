@@ -18,6 +18,8 @@ import { stayLengthHours, stayLengthLabel } from "@/lib/stay-times";
 import { dayRateSummary, WEEKDAYS, type DayRates, type Weekday } from "@/lib/rates";
 import { UnitStatusBadge } from "./inventory-display";
 import { timeLabel, UnitPhoto } from "../calendar/availability/stay-display";
+import { ChannelIcon } from "@/components/public/contact-channel-list";
+import { channelName, type ContactChannel } from "@/lib/contact-channels";
 
 export interface UnitFormValues {
   name: string;
@@ -42,6 +44,8 @@ export interface UnitFormValues {
   status: UnitStatus;
   /** A browser-ready photo src (see photoSrc), not the stored key. */
   imageUrl?: string | null;
+  /** IDs of organization channels displayed on this unit's public page. */
+  contactChannelIds?: string[] | null;
 }
 
 function pesosLabel(value: string | undefined): string | null {
@@ -65,6 +69,7 @@ export function UnitForm({
   propertyName,
   amenityOptions = [],
   selectedAmenityIds = [],
+  contactChannels = [],
 }: {
   action: (state: InventoryFormState, formData: FormData) => Promise<InventoryFormState>;
   destination: string;
@@ -75,6 +80,7 @@ export function UnitForm({
   propertyName?: string;
   amenityOptions?: AmenityOption[];
   selectedAmenityIds?: string[];
+  contactChannels?: ContactChannel[];
 }) {
   const save = useSaveAndReturn(action, destination, successMessage);
   const [state, formAction, pending] = useActionState<InventoryFormState, FormData>(save, {});
@@ -240,6 +246,26 @@ export function UnitForm({
 
         <FormSection title="Amenities" description="What guests get inside the unit, like towels, toiletries and kitchen tools.">
           <AmenityPicker scope="unit" options={amenityOptions} defaultSelected={selectedAmenityIds} />
+        </FormSection>
+
+        <FormSection title="Guest contact options" description="Choose which of your enabled contact channels guests see for this unit. They can use these when asking about dates.">
+          {contactChannels.length ? (
+            <fieldset className="space-y-2">
+              <legend className="sr-only">Contact channels shown for this unit</legend>
+              {contactChannels.map((channel) => {
+                const selected = values.contactChannelIds === null || values.contactChannelIds?.includes(channel.id);
+                return (
+                  <label key={channel.id} className="flex cursor-pointer items-center gap-3 rounded-lg border border-pine/12 bg-surface px-3 py-2.5 has-[:checked]:border-pine has-[:checked]:bg-pine-mist">
+                    <input type="checkbox" name="contactChannelId" value={channel.id} defaultChecked={selected} className="h-4 w-4 accent-[var(--color-primary)]" />
+                    <ChannelIcon kind={channel.kind} className="h-7 w-7 rounded-md" />
+                    <span className="min-w-0"><span className="block text-sm font-medium text-pine">{channelName(channel)}</span><span className="block truncate text-xs text-ink/55">{channel.value}</span></span>
+                  </label>
+                );
+              })}
+            </fieldset>
+          ) : (
+            <p className="rounded-lg bg-pine-mist px-3 py-3 text-sm text-ink/65">Add contact channels in Settings before choosing which ones to show here.</p>
+          )}
         </FormSection>
       </FormLayout>
     </form>

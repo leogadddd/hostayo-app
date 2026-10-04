@@ -9,6 +9,7 @@ import { seedDefaultAmenities } from "@/server/inventory/amenities";
 import { seedDefaultPlatforms } from "@/server/reservations/platforms";
 import { isSupportedTimeZone } from "@/lib/timezones";
 import { isValidPhilippineAddress } from "@/lib/philippine-locations";
+import { CHANNEL_KINDS, channelValueError, type ChannelKind, type ContactChannel } from "@/lib/contact-channels";
 
 export const ORG_NAME_MAX = 80;
 export const ORG_SLUG_MAX = 60;
@@ -22,6 +23,69 @@ export class OrgError extends Error {
     super(message);
     this.name = "OrgError";
   }
+}
+
+const CONTACT_CHANNEL_LIMIT = 10;
+
+/** Validates the JSON payload stored on an organization and preserves its order. */
+export function normalizeContactChannels(value: unknown): ContactChannel[] {
+  if (!Array.isArray(value)) throw new OrgError("Contact channels must be a list.");
+  if (value.length > CONTACT_CHANNEL_LIMIT) throw new OrgError(`Add up to ${CONTACT_CHANNEL_LIMIT} contact channels.`);
+  const ids = new Set<string>();
+  return value.map((item, index) => {
+    if (!item || typeof item !== "object") throw new OrgError(`Contact channel ${index + 1} is invalid.`);
+    const row = item as Record<string, unknown>;
+    const id = typeof row.id === "string" ? row.id.trim() : "";
+    const kind = typeof row.kind === "string" ? row.kind : "";
+    const rawValue = typeof row.value === "string" ? row.value.trim() : "";
+    const label = typeof row.label === "string" ? row.label.trim() : "";
+    if (!id || id.length > 100 || ids.has(id)) throw new OrgError(`Contact channel ${index + 1} needs a unique ID.`);
+    ids.add(id);
+    if (!(CHANNEL_KINDS as readonly string[]).includes(kind)) throw new OrgError(`Contact channel ${index + 1} has an unsupported type.`);
+    const valueError = channelValueError(kind as ChannelKind, rawValue);
+    if (valueError) throw new OrgError(valueError);
+    if (rawValue.length > 254) throw new OrgError("Contact channel details must be 254 characters or fewer.");
+    if (label.length > 40) throw new OrgError("Contact channel names must be 40 characters or fewer.");
+    return { id, kind: kind as ChannelKind, value: rawValue, ...(label ? { label } : {}), enabled: row.enabled === true };
+  });
+}
+
+export async function getOrganizationContactChannels(organizationId: string): Promise<ContactChannel[]> {
+  const organization = await db.query.organizations.findFirst({
+    columns: { contactChannels: true },
+    where: eq(organizations.id, organizationId),
+  });
+  if (!organization) throw new OrgError("Organization not found.");
+  // Existing organizations receive the database default. Guarding the read
+  // also keeps a malformed legacy JSON value from breaking Settings.
+  try {
+    return normalizeContactChannels(organization.contactChannels);
+  } catch {
+    return [];
+  }
+}
+
+export async function updateOrganizationContactChannels(input: {
+  organizationId: string;
+  actorUserId: string;
+  channels: unknown;
+}): Promise<void> {
+  const contactChannels = normalizeContactChannels(input.channels);
+  await db.transaction(async (tx) => {
+    const [updated] = await tx.update(organizations)
+      .set({ contactChannels, updatedAt: new Date() })
+      .where(eq(organizations.id, input.organizationId))
+      .returning({ id: organizations.id });
+    if (!updated) throw new OrgError("Organization not found.");
+    await tx.insert(auditEvents).values({
+      organizationId: input.organizationId,
+      actorUserId: input.actorUserId,
+      entity: "organization",
+      entityId: input.organizationId,
+      action: "organization.contact_channels_updated",
+      metadata: { count: contactChannels.length, enabledCount: contactChannels.filter((channel) => channel.enabled).length },
+    });
+  });
 }
 
 function normalizeEmail(value: string): string {

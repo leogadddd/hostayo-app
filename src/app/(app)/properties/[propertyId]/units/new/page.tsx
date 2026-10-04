@@ -7,6 +7,7 @@ import { listAmenities } from "@/server/inventory/amenities";
 import { PageHeading } from "@/components/app/page-heading";
 import { PermissionDenied } from "@/components/app/permission-denied";
 import { UnitCreateForm } from "../../../unit-create-form";
+import { getOrganizationContactChannels } from "@/server/orgs/service";
 
 export const metadata: Metadata = { title: "Add unit" };
 
@@ -34,6 +35,7 @@ export default async function NewUnitPage({ params }: { params: Promise<{ proper
         propertyName={property.name}
         defaults={{ checkInTime: property.checkInTime, checkOutTime: property.checkOutTime }}
         amenityOptions={await listAmenities(membership.organizationId, "unit")}
+        contactChannels={await getOrganizationContactChannels(membership.organizationId)}
       />
     </div>
   );

@@ -2,7 +2,7 @@ import { accommodationTotal } from "@/lib/rates";
 import { unitOrPropertyPhotoSrc } from "@/lib/photos";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Bath, BedDouble, CalendarSearch, ChevronRight, Users } from "lucide-react";
+import { ArrowUpRight, Bath, BedDouble, CalendarSearch, Users } from "lucide-react";
 import { PageHeading } from "@/components/app/page-heading";
 import { buttonClassName } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -20,6 +20,7 @@ export const metadata: Metadata = { title: "Check availability" };
 
 interface ResultCard {
   id: string;
+  publicSlug: string;
   name: string;
   propertyName: string | null;
   imageUrl: string | null;
@@ -53,6 +54,7 @@ export default async function AvailabilityPage({ searchParams }: { searchParams:
       const property = propertyById.get(unit.propertyId);
       return {
         id: unit.id,
+        publicSlug: unit.publicSlug,
         name: unit.name,
         propertyName: property?.name ?? null,
         imageUrl: unitOrPropertyPhotoSrc(unit, property),
@@ -81,7 +83,7 @@ export default async function AvailabilityPage({ searchParams }: { searchParams:
           defaults={{ checkIn: search?.checkIn ?? "", checkOut: search?.checkOut ?? "", guestCount: search?.guestCount ?? 2 }}
           error={error}
         >
-          {search && results ? <Results search={search} showRates={showRates} {...results} /> : <IdleState activeUnitCount={activeUnits.length} />}
+          {search && results ? <Results search={search} showRates={showRates} hostSlug={membership.organizationSlug} {...results} /> : <IdleState activeUnitCount={activeUnits.length} />}
         </AvailabilityCheckForm>
       ) : (
         <EmptyState
@@ -94,12 +96,13 @@ export default async function AvailabilityPage({ searchParams }: { searchParams:
   );
 }
 
-function Results({ search, cards, tooSmallCount, occupiedCount, showRates }: {
+function Results({ search, cards, tooSmallCount, occupiedCount, showRates, hostSlug }: {
   search: StaySearch;
   cards: ResultCard[];
   tooSmallCount: number;
   occupiedCount: number;
   showRates: boolean;
+  hostSlug: string;
 }) {
   const query = staySearchQuery(search).toString();
   const excluded = [
@@ -119,7 +122,7 @@ function Results({ search, cards, tooSmallCount, occupiedCount, showRates }: {
         <ul className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
           {cards.map((card) => (
             <li key={card.id} className="min-w-0">
-              <Link href={`/calendar/availability/${card.id}?${query}`} className="group flex h-full min-h-40 overflow-hidden rounded-2xl border border-pine/10 bg-surface shadow-[0_1px_2px_rgba(32,58,53,0.06)] transition-shadow hover:border-pine/20 hover:shadow-[0_8px_24px_rgba(32,58,53,0.10)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage">
+              <Link href={`/h/${encodeURIComponent(hostSlug)}/${encodeURIComponent(card.publicSlug)}?${query}`} title={`View the public page for ${card.name}`} className="group flex h-full min-h-40 overflow-hidden rounded-2xl border border-pine/10 bg-surface shadow-[0_1px_2px_rgba(32,58,53,0.06)] transition-shadow hover:border-pine/20 hover:shadow-[0_8px_24px_rgba(32,58,53,0.10)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage">
                 <UnitPhoto src={card.imageUrl} className="w-2/5 max-w-56 shrink-0" imageClassName="transition-transform duration-500 group-hover:scale-[1.04]" />
                 <div className="flex min-w-0 flex-1 flex-col p-4">
                   {card.propertyName ? <p className="truncate text-xs font-medium uppercase tracking-wide text-clay-deep">{card.propertyName}</p> : null}
@@ -138,7 +141,10 @@ function Results({ search, cards, tooSmallCount, occupiedCount, showRates }: {
                         </div>
                       ) : <p className="text-sm text-ink/50">No rate set</p>
                     ) : <span />}
-                    <ChevronRight className="h-5 w-5 shrink-0 text-pine/35 transition-transform group-hover:translate-x-0.5 group-hover:text-clay" aria-hidden />
+                    <span className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-clay-deep">
+                      View public page
+                      <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden />
+                    </span>
                   </div>
                 </div>
               </Link>

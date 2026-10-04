@@ -2,7 +2,7 @@ import "server-only";
 
 import { and, asc, eq, gt, inArray, isNull, lt, ne, or } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { auditEvents, properties, reservations, unitBlocks, units } from "@/lib/db/schema";
+import { auditEvents, organizations, properties, reservations, unitBlocks, units } from "@/lib/db/schema";
 import {
   InventoryError,
   propertyInputSchema,
@@ -30,6 +30,37 @@ async function recordAudit(tx: Parameters<Parameters<typeof db.transaction>[0]>[
     action: input.action,
     metadata: input.metadata,
   });
+}
+
+async function assertKnownContactChannels(organizationId: string, channelIds: string[] | undefined) {
+  if (channelIds === undefined) return;
+  const [organization] = await db.select({ contactChannels: organizations.contactChannels })
+    .from(organizations).where(eq(organizations.id, organizationId)).limit(1);
+  if (!organization) throw new InventoryError("Organization not found.");
+  const known = new Set(
+    Array.isArray(organization.contactChannels)
+      ? organization.contactChannels.map((channel) => channel.id)
+      : [],
+  );
+  if (channelIds.some((id) => !known.has(id))) {
+    throw new InventoryError("Choose contact channels from your organization settings.", "contactChannelId");
+  }
+}
+
+function publicSlugBase(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "unit";
+}
+
+async function allocateUnitPublicSlug(tx: Parameters<Parameters<typeof db.transaction>[0]>[0], organizationId: string, name: string) {
+  const base = publicSlugBase(name);
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const suffix = attempt ? `-${attempt + 1}` : "";
+    const slug = `${base.slice(0, 60 - suffix.length)}${suffix}`;
+    const [existing] = await tx.select({ id: units.id }).from(units)
+      .where(and(eq(units.organizationId, organizationId), eq(units.publicSlug, slug))).limit(1);
+    if (!existing) return slug;
+  }
+  throw new InventoryError("Could not create a public link for this unit.");
 }
 
 export async function listProperties(organizationId: string) {
@@ -177,6 +208,7 @@ export async function createUnit(input: {
   amenityIds?: string[];
 }) {
   const data = unitInputSchema.parse(input.data);
+  await assertKnownContactChannels(input.organizationId, data.contactChannelIds);
   return db.transaction(async (tx) => {
     const [property] = await tx
       .select({ id: properties.id })
@@ -196,6 +228,7 @@ export async function createUnit(input: {
       .values({
         organizationId: input.organizationId,
         propertyId: input.propertyId,
+        publicSlug: await allocateUnitPublicSlug(tx, input.organizationId, data.name),
         ...data,
         imageUrl: data.imageUrl || null,
       })
@@ -243,6 +276,7 @@ export async function updateUnit(input: {
   amenityIds?: string[];
 }) {
   const data = unitInputSchema.parse(input.data);
+  await assertKnownContactChannels(input.organizationId, data.contactChannelIds);
   const existing = await getUnitOrThrow(input.organizationId, input.unitId);
   await db.transaction(async (tx) => {
     await tx

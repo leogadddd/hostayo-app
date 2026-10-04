@@ -14,6 +14,7 @@ import {
   updateOrganizationName,
   updatePaymentInstructions,
   getOrganizationLogoUrl,
+  updateOrganizationContactChannels,
 } from "@/server/orgs/service";
 import { unexpectedErrorMessage } from "@/lib/errors";
 import { INVITABLE_ROLE_KEYS, canManagePermissions, type InvitableRoleKey, type RoleKey } from "@/lib/permissions";
@@ -21,6 +22,7 @@ import { updateRolePermissions } from "@/server/orgs/permissions";
 import { imageUploadFromDataUrl } from "@/server/inventory/image-upload";
 import { InventoryError } from "@/server/inventory/validation";
 import { createObjectStorageFromEnvironment, StorageError } from "@/server/storage/service";
+import type { ContactChannel } from "@/lib/contact-channels";
 
 export interface OrgFormState {
   error?: string;
@@ -156,6 +158,24 @@ export async function savePaymentInstructions(
     return toFormError(error);
   }
   revalidatePath("/settings");
+  return { success: true };
+}
+
+export async function saveContactChannelsAction(channels: ContactChannel[]): Promise<OrgFormState> {
+  const membership = await requireMembership();
+  assertCan(membership, "organization.update");
+  try {
+    await updateOrganizationContactChannels({
+      organizationId: membership.organizationId,
+      actorUserId: membership.userId,
+      channels,
+    });
+  } catch (error) {
+    return toFormError(error);
+  }
+  revalidatePath("/settings/contact-channels");
+  revalidatePath("/h/[host]", "page");
+  revalidatePath("/h/[host]/[unit]", "page");
   return { success: true };
 }
 

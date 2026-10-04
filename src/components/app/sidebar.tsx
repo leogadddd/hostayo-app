@@ -24,6 +24,7 @@ import { APP_VERSION } from "@/lib/app-version";
 import { can, type Permission, type RoleKey } from "@/lib/permissions";
 import { Logo } from "@/components/logo";
 import { AccountMenu } from "@/components/app/account-menu";
+import { SharePublicLink } from "@/components/app/share-public-link";
 import { LiveClock } from "@/components/app/live-clock";
 import {
   OrganizationSelector,
@@ -116,6 +117,7 @@ type SidebarProps = {
   organizationId?: string;
   organizationImage?: string | null;
   organizations?: OrganizationOption[];
+  organizationSlug?: string;
 };
 
 function Navigation({
@@ -311,6 +313,7 @@ export function AppHeader({
         />
       </div>
       <div className="flex shrink-0 items-center gap-5">
+        {props.organizationSlug ? <SharePublicLink href={`/h/${encodeURIComponent(props.organizationSlug)}`} title={`${props.organizationName} public page`} label="Share" size="sm" className="lg:h-[3.25rem] lg:px-4" /> : null}
         <LiveClock initialNow={initialNow} />
         <AccountMenu
           userName={props.userName}

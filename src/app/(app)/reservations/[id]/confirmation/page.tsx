@@ -108,7 +108,7 @@ export default async function ReservationConfirmationPage({ params }: { params: 
           <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)] sm:p-6">
             <h2 className="font-display text-xl text-pine">What’s next</h2>
             <ul className="mt-4 grid gap-3 md:grid-cols-2">
-              <NextStep href={reservationHref} title="Send the guest link" description="Share check-in details and let the guest upload payment proof." />
+              <NextStep href={reservationHref} title="Send the welcome link" description="Share check-in details and let the guest upload payment proof." />
               <NextStep href={`/calendar?${new URLSearchParams({ unit: unit.id, month: reservation.checkInDate.slice(0, 7) })}`} title="See it on the calendar" description="Check the turnover and neighbouring stays." />
               <NextStep href="/calendar/availability" title="Check availability" description="Search open dates for another guest." />
               <NextStep href="/reservations/new" title="New reservation" description="Start another booking from scratch." icon={Plus} />

@@ -574,7 +574,7 @@ export async function insertTransition(
     fromStatus: ReservationStatus | null;
     toStatus: ReservationStatus;
     note?: string;
-    actorUserId: string;
+    actorUserId: string | null;
   },
 ) {
   await tx.insert(reservationTransitions).values({

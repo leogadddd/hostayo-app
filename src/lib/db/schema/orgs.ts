@@ -1,6 +1,7 @@
 import {
   boolean,
   index,
+  jsonb,
   pgEnum,
   pgTable,
   text,
@@ -9,6 +10,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
+import type { ContactChannel } from "@/lib/contact-channels";
 
 export const membershipRole = pgEnum("membership_role", ["owner", "staff"]);
 export const invitationStatus = pgEnum("organization_invitation_status", ["pending", "accepted", "revoked", "expired"]);
@@ -52,6 +54,12 @@ export const organizations = pgTable("organizations", {
   displayName: text("display_name"),
   logoUrl: text("logo_url"),
   slug: text("slug").notNull().unique(),
+  // Public-host profile fields. A host can keep their operational account
+  // while opting out of the indexable public listing.
+  tagline: text("tagline"),
+  publicListingEnabled: boolean("public_listing_enabled").notNull().default(true),
+  // Ordered guest-facing contact methods for the public host and unit pages.
+  contactChannels: jsonb("contact_channels").$type<ContactChannel[]>().notNull().default([]),
   // Used for organization-wide timestamps and as the initial timezone for new
   // properties. Each property's timezone remains the operational source of truth.
   defaultTimezone: text("default_timezone").notNull().default("Asia/Manila"),

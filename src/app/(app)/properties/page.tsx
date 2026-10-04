@@ -108,6 +108,7 @@ export default async function PropertiesPage() {
                         deleteDescription="The property and its units will disappear from active inventory, but reservation, payment, expense, and audit history will be preserved. Properties with an active hold or stay cannot be deleted."
                         onDelete={deletePropertyAction.bind(null, property.id)}
                         links={[{ href: `${href}/units/new`, label: "Add unit", icon: <Plus className="h-4 w-4" aria-hidden /> }]}
+                        shareHref={`/h/${membership.organizationSlug}`}
                       />
                     </div>
                   </div>

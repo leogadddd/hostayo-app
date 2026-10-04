@@ -85,8 +85,12 @@ const property = {
 };
 const unit = {
   id: "unit-a", organizationId: owner.organizationId, propertyId: property.id, name: "Test unit",
+  publicSlug: "test-unit",
   status: "active" as const, capacity: 2, bedrooms: 1, bathrooms: 1, defaultNightlyRateCents: 125_050, dayRates: {},
   imageUrl: null,
+  description: null, imageGallery: [], guestHouseRules: [], wifiName: null, wifiPassword: null,
+  arrivalNotes: [], areaTips: [], checkoutSteps: [],
+  contactChannelIds: null,
   cleaningFeeCents: 30_000, securityDepositCents: null, reservationFeeType: null, reservationFeeAmount: null, checkInTime: "15:00", checkOutTime: "11:00", extensionsEnabled: false, maxExtensionHours: 4, extensionHourlyRateCents: null, checklistTemplate: [{ label: "Clean room", required: true }],
   createdAt: new Date("2026-09-01T00:00:00Z"), updatedAt: new Date("2026-09-01T00:00:00Z"),
   deletedAt: null,
@@ -125,7 +129,7 @@ beforeEach(() => {
   vi.mocked(React.useActionState).mockReturnValue([{}, vi.fn(), false]);
   vi.mocked(requirePermission).mockResolvedValue(owner);
   vi.mocked(db.query.organizations.findFirst).mockResolvedValue({
-    id: owner.organizationId, name: owner.organizationName, displayName: null, slug: owner.organizationSlug, defaultTimezone: "Asia/Manila",
+    id: owner.organizationId, name: owner.organizationName, displayName: null, slug: owner.organizationSlug, tagline: null, publicListingEnabled: true, contactChannels: [], defaultTimezone: "Asia/Manila",
     contactEmail: null, contactPhone: null, logoUrl: null, addressLine1: null, addressLine2: null,
     city: null, municipality: null, province: null, region: null, country: "Philippines", businessAddress: null, legalName: null, taxId: null,
     paymentInstructions: "Contact the owner for payment details", createdAt: new Date("2026-09-01T00:00:00Z"),

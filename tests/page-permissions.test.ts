@@ -175,7 +175,7 @@ describe("independent owner page boundaries", () => {
   it.each(ownerPages)("allows owners through the $name boundary", async ({ render, firstRead }) => {
     vi.mocked(requirePermission).mockResolvedValue(owner);
     vi.mocked(db.query.organizations.findFirst).mockResolvedValue({
-      id: owner.organizationId, name: owner.organizationName, displayName: null,
+      id: owner.organizationId, name: owner.organizationName, displayName: null, tagline: null, publicListingEnabled: true, contactChannels: [],
       slug: owner.organizationSlug, defaultTimezone: "Asia/Manila", contactEmail: null,
       contactPhone: null, logoUrl: null, addressLine1: null, addressLine2: null,
       city: null, municipality: null, province: null, region: null, country: "Philippines", businessAddress: null, legalName: null, taxId: null,
@@ -198,7 +198,11 @@ describe("independent owner page boundaries", () => {
     vi.mocked(inventory.getUnitOrThrow).mockResolvedValue({
       id: "unit-a", organizationId: owner.organizationId, propertyId: "property-a",
       name: "Test unit", status: "active", capacity: 2, bedrooms: 1, bathrooms: 1,
+      publicSlug: "test-unit",
       imageUrl: null,
+      description: null, imageGallery: [], guestHouseRules: [], wifiName: null, wifiPassword: null,
+      arrivalNotes: [], areaTips: [], checkoutSteps: [],
+      contactChannelIds: null,
       defaultNightlyRateCents: 100_000, dayRates: {}, cleaningFeeCents: null,
       securityDepositCents: null, reservationFeeType: null, reservationFeeAmount: null, checkInTime: "15:00", checkOutTime: "11:00", extensionsEnabled: false, maxExtensionHours: 4, extensionHourlyRateCents: null, checklistTemplate: [],
       createdAt: new Date("2026-09-01T00:00:00Z"),

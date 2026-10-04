@@ -39,6 +39,7 @@ export default async function AppLayout({
   ] ?? null;
   const identity = {
     organizationId: membership.organizationId,
+    organizationSlug: membership.organizationSlug,
     organizationName: membership.organizationName,
     organizationImage: organizationLogoUrl?.startsWith("data:")
       ? organizationLogoUrl

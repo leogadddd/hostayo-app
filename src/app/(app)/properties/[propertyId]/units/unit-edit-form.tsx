@@ -3,6 +3,7 @@
 import { updateUnitAction } from "../../actions";
 import { UnitForm, type UnitFormValues } from "../../unit-form-fields";
 import type { AmenityOption } from "../../amenity-picker";
+import type { ContactChannel } from "@/lib/contact-channels";
 
 export type { UnitFormValues };
 
@@ -13,6 +14,7 @@ export function UnitEditForm({
   values,
   amenityOptions,
   selectedAmenityIds,
+  contactChannels,
 }: {
   propertyId: string;
   unitId: string;
@@ -20,6 +22,7 @@ export function UnitEditForm({
   values: UnitFormValues;
   amenityOptions?: AmenityOption[];
   selectedAmenityIds?: string[];
+  contactChannels?: ContactChannel[];
 }) {
   const unitHref = `/properties/${propertyId}/units/${unitId}`;
   return (
@@ -33,6 +36,7 @@ export function UnitEditForm({
       values={values}
       amenityOptions={amenityOptions}
       selectedAmenityIds={selectedAmenityIds}
+      contactChannels={contactChannels}
     />
   );
 }

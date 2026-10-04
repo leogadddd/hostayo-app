@@ -43,7 +43,7 @@ async function recordAudit(
   tx: Tx,
   input: {
     organizationId: string;
-    actorUserId: string;
+    actorUserId: string | null;
     entity: string;
     entityId: string;
     action: string;
@@ -148,7 +148,8 @@ export async function checkIn(input: {
 
 export async function checkOut(input: {
   organizationId: string;
-  actorUserId: string;
+  /** Null records a guest-link initiated check-out. */
+  actorUserId: string | null;
   reservationId: string;
   data: unknown;
 }) {
@@ -711,7 +712,8 @@ export async function updateChecklistTemplate(input: {
 
 export async function createDamageReport(input: {
   organizationId: string;
-  actorUserId: string;
+  /** Null records a guest-link initiated report. */
+  actorUserId: string | null;
   unitId: string;
   reservationId?: string;
   data: unknown;

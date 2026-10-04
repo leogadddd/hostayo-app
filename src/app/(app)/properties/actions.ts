@@ -261,6 +261,7 @@ function unitDataFromForm(formData: FormData) {
       | "active"
       | "maintenance"
       | "inactive",
+    contactChannelIds: formData.getAll("contactChannelId").map((value) => String(value)),
   };
 }
 
@@ -284,6 +285,7 @@ export async function createUnitAction(
   }
   revalidatePath(`/properties/${propertyId}`);
   revalidatePath("/calendar");
+  revalidatePath("/h/[host]/[unit]", "page");
   return { success: true };
 }
 
@@ -309,6 +311,7 @@ export async function updateUnitAction(
   revalidatePath(`/properties/${propertyId}`);
   revalidatePath(`/properties/${propertyId}/units/${unitId}`);
   revalidatePath("/calendar");
+  revalidatePath("/h/[host]/[unit]", "page");
   return { success: true };
 }
 

@@ -26,6 +26,7 @@ import { getPropertyOrThrow, listPropertyUnits } from "@/server/inventory/servic
 import { InventoryError } from "@/server/inventory/validation";
 import { listPropertyAmenities } from "@/server/inventory/amenities";
 import { buttonClassName } from "@/components/ui/button";
+import { SharePublicLink } from "@/components/app/share-public-link";
 import { TableActionsMenu } from "@/components/ui/table-actions-menu";
 import { deleteUnitAction } from "../actions";
 import { AmenityList } from "../amenity-icons";
@@ -115,6 +116,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                   <Plus className="h-4 w-4" aria-hidden />
                   Add unit
                 </Link>
+                <SharePublicLink href={`/h/${membership.organizationSlug}`} title={`${property.name} public page`} />
                 <Link href={`${propertyHref}/edit`} className={buttonClassName("outline", "md")}>
                   <Pencil className="h-4 w-4" aria-hidden />
                   Edit
@@ -205,6 +207,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                           deleteLabel={`Delete ${unit.name}?`}
                           deleteDescription="The unit will disappear from active inventory, but its reservation, payment, task, expense, and audit history will be preserved. Units with an active hold or stay cannot be deleted."
                           onDelete={deleteUnitAction.bind(null, property.id, unit.id)}
+                          shareHref={`/h/${membership.organizationSlug}/${unit.publicSlug}`}
                         />
                       </div>
                     </li>

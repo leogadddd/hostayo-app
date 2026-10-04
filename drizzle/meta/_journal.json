@@ -190,6 +190,34 @@
       "when": 1791072000000,
       "tag": "20261004000000_add_demo_account_flag",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1791158400000,
+      "tag": "20261005000000_add_public_stay_content",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1791244800000,
+      "tag": "20261006000000_add_organization_contact_channels",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1791331200000,
+      "tag": "20261007000000_add_unit_contact_channel_ids",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1791417600000,
+      "tag": "20261008000000_add_unit_public_slugs",
+      "breakpoints": true
     }
   ]
 }

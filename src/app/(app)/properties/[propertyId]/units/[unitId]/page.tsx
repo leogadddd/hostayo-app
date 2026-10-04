@@ -32,6 +32,7 @@ import { getPropertyOrThrow, getUnitOrThrow, listUnitBlocks } from "@/server/inv
 import { InventoryError } from "@/server/inventory/validation";
 import { listUnitAmenities } from "@/server/inventory/amenities";
 import { buttonClassName } from "@/components/ui/button";
+import { SharePublicLink } from "@/components/app/share-public-link";
 import { RemoveBlockButton } from "../block-forms";
 import { AmenitySummary } from "../../../amenity-summary";
 import { formatPercent, reservationFeeRule } from "@/lib/reservation-fee";
@@ -132,6 +133,7 @@ export default async function UnitDetailPage({ params }: { params: Promise<{ pro
                     New reservation
                   </Link>
                 ) : null}
+                <SharePublicLink href={`/h/${membership.organizationSlug}/${unit.publicSlug}`} title={`${unit.name} public page`} />
                 <Link href={`${unitHref}/edit`} className={buttonClassName("outline", "md")}>
                   <Pencil className="h-4 w-4" aria-hidden />
                   Edit

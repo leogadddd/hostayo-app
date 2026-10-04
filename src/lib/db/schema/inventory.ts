@@ -105,6 +105,9 @@ export const units = pgTable(
       .references(() => organizations.id, { onDelete: "cascade" }),
     propertyId: uuid("property_id").notNull(),
     name: text("name").notNull(),
+    // Stable guest-facing identifier. It is assigned on creation and does not
+    // change when the team renames the unit, so shared links keep working.
+    publicSlug: text("public_slug").notNull(),
     capacity: integer("capacity").notNull().default(2),
     bedrooms: integer("bedrooms").notNull().default(0),
     bathrooms: numeric("bathrooms", { precision: 3, scale: 1, mode: "number" })
@@ -133,6 +136,18 @@ export const units = pgTable(
     status: unitStatus("status").notNull().default("renovating"),
     // A small, self-contained cover photo uploaded by the owner.
     imageUrl: text("image_url"),
+    // Guest-facing listing and stay-guide content. These intentionally live on
+    // the unit: sibling units at one property can have different guidance.
+    description: text("description"),
+    imageGallery: jsonb("image_gallery").$type<string[]>().notNull().default([]),
+    guestHouseRules: jsonb("guest_house_rules").$type<string[]>().notNull().default([]),
+    wifiName: text("wifi_name"),
+    wifiPassword: text("wifi_password"),
+    arrivalNotes: jsonb("arrival_notes").$type<string[]>().notNull().default([]),
+    areaTips: jsonb("area_tips").$type<{ title: string; detail: string }[]>().notNull().default([]),
+    checkoutSteps: jsonb("checkout_steps").$type<string[]>().notNull().default([]),
+    // Null uses all enabled organization channels; [] deliberately shows none.
+    contactChannelIds: jsonb("contact_channel_ids").$type<string[] | null>(),
     // Turnover template snapshot source; checkout copies it onto the task.
     checklistTemplate: jsonb("checklist_template")
       .$type<ChecklistTemplateItem[]>()
@@ -153,6 +168,7 @@ export const units = pgTable(
     ),
     index("units_org_active_idx").on(table.organizationId, table.deletedAt),
     index("units_property_active_idx").on(table.propertyId, table.deletedAt),
+    uniqueIndex("units_org_public_slug_unique").on(table.organizationId, table.publicSlug),
     foreignKey({
       columns: [table.organizationId, table.propertyId],
       foreignColumns: [properties.organizationId, properties.id],

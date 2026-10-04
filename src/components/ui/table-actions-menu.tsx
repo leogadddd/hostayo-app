@@ -4,10 +4,13 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "re
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Eye, Link2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 type DeleteResult = { error?: string; success?: boolean };
+
+const MENU_ITEM = "flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-pine hover:bg-pine-mist/70 focus-visible:bg-pine-mist/70 focus-visible:outline-none";
 
 export function TableActionsMenu({
   label,
@@ -20,6 +23,7 @@ export function TableActionsMenu({
   onDelete,
   links = [],
   actions = [],
+  shareHref,
 }: {
   label: string;
   /** Omit for rows without a detail page, e.g. team members. */
@@ -38,6 +42,8 @@ export function TableActionsMenu({
    * that opens its own dialog should keep that dialog outside the menu.
    */
   actions?: { label: string; icon?: ReactNode; onSelect: () => void }[];
+  /** Public URL copied from the row's action menu. */
+  shareHref?: string;
 }) {
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -99,12 +105,12 @@ export function TableActionsMenu({
       className="invisible fixed left-0 top-0 z-50 w-44 overflow-hidden rounded-lg border border-pine/15 bg-linen p-1.5 text-left shadow-xl"
     >
       {viewHref ? (
-        <Link href={viewHref} role="menuitem" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-pine hover:bg-pine-mist/70" onClick={() => setOpen(false)}>
+        <Link href={viewHref} role="menuitem" className={MENU_ITEM} onClick={() => setOpen(false)}>
           <Eye className="h-4 w-4" aria-hidden />View
         </Link>
       ) : null}
       {links.map((link) => (
-        <Link key={link.href} href={link.href} role="menuitem" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-pine hover:bg-pine-mist/70" onClick={() => setOpen(false)}>
+        <Link key={link.href} href={link.href} role="menuitem" className={MENU_ITEM} onClick={() => setOpen(false)}>
           {link.icon}
           {link.label}
         </Link>
@@ -114,7 +120,7 @@ export function TableActionsMenu({
           key={action.label}
           type="button"
           role="menuitem"
-          className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-pine hover:bg-pine-mist/70"
+          className={MENU_ITEM}
           onClick={() => {
             setOpen(false);
             action.onSelect();
@@ -124,7 +130,14 @@ export function TableActionsMenu({
           {action.label}
         </button>
       ))}
-      {editHref ? <Link href={editHref} role="menuitem" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-pine hover:bg-pine-mist/70" onClick={() => setOpen(false)}><Pencil className="h-4 w-4" aria-hidden />Edit</Link> : null}
+      {editHref ? <Link href={editHref} role="menuitem" className={MENU_ITEM} onClick={() => setOpen(false)}><Pencil className="h-4 w-4" aria-hidden />Edit</Link> : null}
+      {shareHref ? <button type="button" role="menuitem" className={MENU_ITEM} onClick={async () => {
+        setOpen(false);
+        try {
+          await navigator.clipboard.writeText(new URL(shareHref, window.location.origin).toString());
+          toast.success("Link copied");
+        } catch { toast.error("Couldn’t copy the link"); }
+      }}><Link2 className="h-4 w-4" aria-hidden />Copy public link</button> : null}
       {onDelete && deleteLabel && deleteDescription ? (
         <ConfirmationDialog
           title={deleteLabel}
