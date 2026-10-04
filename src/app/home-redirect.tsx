@@ -21,7 +21,7 @@ export function HomeRedirect({
   }, [href, router]);
   return (
     <main className="grid min-h-screen place-items-center px-6" role="status" aria-live="polite">
-      <div className="flex flex-col items-center text-center">
+      <div className="animate-fade-in flex flex-col items-center text-center">
         {/* Same loader as sign-in: green on light, white on dark. */}
         <Image src={greenLoader} alt="" width={112} height={112} unoptimized priority className="dark:hidden" />
         <Image src={whiteLoader} alt="" width={112} height={112} unoptimized className="hidden dark:block" />

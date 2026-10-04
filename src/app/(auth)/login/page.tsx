@@ -68,6 +68,21 @@ const DEMO_ACCOUNT = {
   password: "hostayo-demo-1234",
 };
 
+/** Let supporting browsers remember a successful client-side sign-in. */
+function saveBrowserCredential(email: string, password: string) {
+  const PasswordCredential = (
+    window as Window & {
+      PasswordCredential?: new (data: { id: string; name: string; password: string }) => Credential;
+    }
+  ).PasswordCredential;
+  if (!PasswordCredential || !navigator.credentials?.store) return;
+  void navigator.credentials.store(
+    new PasswordCredential({ id: email, name: email, password }),
+  ).catch(() => {
+    // A browser may decline credential storage; sign-in has still succeeded.
+  });
+}
+
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -105,6 +120,11 @@ function LoginContent() {
       toast.error("Couldn’t sign in", { description: message });
       return false;
     }
+    // Better Auth signs in over JavaScript rather than an HTML form post, so
+    // explicitly hand the successful credentials to Chrome's password manager.
+    if (emailAddress !== DEMO_ACCOUNT.email) {
+      saveBrowserCredential(emailAddress, passwordValue);
+    }
     if (twoFactorRequired.current) return true;
     toast.success("Welcome back.");
     router.push(afterAuthPath(invite, "/"));
@@ -131,7 +151,13 @@ function LoginContent() {
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    await signIn(email, password);
+    // Read the native fields so browser/password-manager autofill works even
+    // when it fills after React has mounted and does not fire an input event.
+    const form = new FormData(event.currentTarget);
+    await signIn(
+      String(form.get("username") ?? ""),
+      String(form.get("password") ?? ""),
+    );
   }
 
   function continueWithDemo() {
@@ -184,7 +210,7 @@ function LoginContent() {
                 spellCheck={false}
                 autoFocus
                 placeholder="xxxxx-xxxxx"
-                className="h-12 px-4 font-mono text-base tracking-widest"
+                className="h-12 bg-white px-4 font-mono text-base tracking-widest text-[#22312d] placeholder:text-[#22312d]/35"
                 required
               />
             </div>
@@ -247,18 +273,20 @@ function LoginContent() {
         onSubmit={onSubmit}
         className="mt-10 space-y-6 sm:mt-8 sm:space-y-5"
         noValidate={false}
+        autoComplete="on"
+        method="post"
       >
         {error ? <AuthErrorBanner message={error} /> : null}
         <div>
-          <Label htmlFor="email">Email address</Label>
+          <Label htmlFor="username">Email address</Label>
           <Input
-            id="email"
-            name="email"
+            id="username"
+            name="username"
             type="email"
-            autoComplete="email"
+            autoComplete="username"
             required
             placeholder="you@yourproperty.ph"
-            className="h-12 px-4 text-base sm:h-10 sm:px-3 sm:text-sm"
+            className="h-12 bg-white px-4 text-base text-[#22312d] placeholder:text-[#22312d]/35 sm:h-10 sm:px-3 sm:text-sm"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
           />
@@ -273,7 +301,7 @@ function LoginContent() {
             autoComplete="current-password"
             required
             placeholder="••••••••"
-            className="h-12 px-4 text-base sm:h-10 sm:px-3 sm:text-sm"
+            className="h-12 bg-white px-4 text-base text-[#22312d] placeholder:text-[#22312d]/35 sm:h-10 sm:px-3 sm:text-sm"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
           />

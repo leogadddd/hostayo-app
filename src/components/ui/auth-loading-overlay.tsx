@@ -24,7 +24,7 @@ export function AuthLoadingOverlay({
   const dark = tone === "dark";
   return (
     <div
-      className={`fixed inset-0 z-[100] flex items-center justify-center px-6 ${dark ? "theme-keep-light bg-pine-deep/95 text-paper" : "bg-paper/95 text-pine"}`}
+      className={`animate-fade-in fixed inset-0 z-[100] flex items-center justify-center px-6 ${dark ? "theme-keep-light bg-pine-deep/95 text-paper" : "bg-paper/95 text-pine"}`}
       role="status"
       aria-live="polite"
       aria-label={label}

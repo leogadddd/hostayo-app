@@ -101,7 +101,7 @@ function RegisterContent() {
             autoComplete="name"
             required
             placeholder="Juan Dela Cruz"
-            className="h-12 px-4 text-base sm:h-10 sm:px-3 sm:text-sm"
+            className="h-12 bg-white px-4 text-base text-[#22312d] placeholder:text-[#22312d]/35 sm:h-10 sm:px-3 sm:text-sm"
           />
         </div>
         <div>
@@ -113,7 +113,7 @@ function RegisterContent() {
             autoComplete="email"
             required
             placeholder="you@yourproperty.ph"
-            className="h-12 px-4 text-base sm:h-10 sm:px-3 sm:text-sm"
+            className="h-12 bg-white px-4 text-base text-[#22312d] placeholder:text-[#22312d]/35 sm:h-10 sm:px-3 sm:text-sm"
           />
         </div>
         <div>
@@ -125,7 +125,7 @@ function RegisterContent() {
             required
             minLength={8}
             placeholder="At least 8 characters"
-            className="h-12 px-4 text-base sm:h-10 sm:px-3 sm:text-sm"
+            className="h-12 bg-white px-4 text-base text-[#22312d] placeholder:text-[#22312d]/35 sm:h-10 sm:px-3 sm:text-sm"
           />
         </div>
         <div>
@@ -136,7 +136,7 @@ function RegisterContent() {
             autoComplete="new-password"
             required
             placeholder="Repeat your password"
-            className="h-12 px-4 text-base sm:h-10 sm:px-3 sm:text-sm"
+            className="h-12 bg-white px-4 text-base text-[#22312d] placeholder:text-[#22312d]/35 sm:h-10 sm:px-3 sm:text-sm"
           />
         </div>
 
