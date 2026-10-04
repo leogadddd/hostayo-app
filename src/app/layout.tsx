@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import { Inter, Montserrat } from "next/font/google";
 import { cookies } from "next/headers";
 import { HostayoToaster } from "@/components/ui/sonner";
 import { parseThemePreference, THEME_COOKIE } from "@/lib/theme";
@@ -11,9 +11,10 @@ const inter = Inter({
   display: "swap",
 });
 
-const fraunces = Fraunces({
+const montserrat = Montserrat({
   subsets: ["latin"],
-  variable: "--font-fraunces",
+  weight: ["700", "800"],
+  variable: "--font-montserrat",
   display: "swap",
 });
 
@@ -31,7 +32,7 @@ export default async function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const theme = parseThemePreference((await cookies()).get(THEME_COOKIE)?.value);
   return (
-    <html lang="en" data-theme={theme} className={`${inter.variable} ${fraunces.variable}`}>
+    <html lang="en" data-theme={theme} className={`${inter.variable} ${montserrat.variable}`}>
       <body>
         {children}
         <HostayoToaster />
