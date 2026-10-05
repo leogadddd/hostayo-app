@@ -2,8 +2,22 @@ import "server-only";
 
 import { and, eq, gt, inArray, lt, or, sum } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { bookingPlatforms, guests, properties, reservationExtensions, reservations, turnoverBlocks, unitBlocks, units } from "@/lib/db/schema";
-import { addDaysLocal, listNights, localDateTimeToUtc, utcToLocalDateTimeParts } from "@/lib/dates";
+import {
+  bookingPlatforms,
+  guests,
+  properties,
+  reservationExtensions,
+  reservations,
+  turnoverBlocks,
+  unitBlocks,
+  units,
+} from "@/lib/db/schema";
+import {
+  addDaysLocal,
+  listNights,
+  localDateTimeToUtc,
+  utcToLocalDateTimeParts,
+} from "@/lib/dates";
 import { lateCheckoutBlocksArrival } from "@/lib/extensions";
 import { expireStaleHolds } from "@/server/reservations/holds";
 
@@ -43,7 +57,11 @@ export type OccupancySegment =
       guestCount?: number;
       actualCheckoutAt?: Date | null;
       /** Where the booking came from; null before platforms were recorded. */
-      platform?: { name: string; logoUrl: string | null; color: string | null } | null;
+      platform?: {
+        name: string;
+        logoUrl: string | null;
+        color: string | null;
+      } | null;
       platformReference?: string | null;
       guestId?: string;
       guestEmail?: string | null;
@@ -73,7 +91,9 @@ export type IntervalCheck =
       conflict: { startDate: string; endDate: string; reason: string };
     };
 
-function reservationReason(segment: Extract<OccupancySegment, { kind: "reservation" }>): string {
+function reservationReason(
+  segment: Extract<OccupancySegment, { kind: "reservation" }>,
+): string {
   return segment.status === "hold"
     ? `Hold for ${segment.guestName}`
     : `Booking for ${segment.guestName}`;
@@ -184,16 +204,36 @@ export async function getOccupancySegments(
       timezone: properties.timezone,
     })
     .from(turnoverBlocks)
-    .innerJoin(units, and(eq(turnoverBlocks.unitId, units.id), eq(turnoverBlocks.organizationId, units.organizationId)))
-    .innerJoin(properties, and(eq(units.propertyId, properties.id), eq(units.organizationId, properties.organizationId)))
-    .where(and(
-      eq(turnoverBlocks.organizationId, organizationId),
-      inArray(turnoverBlocks.unitId, unitIds),
-      // A coarse UTC date window is expanded either side to preserve every
-      // possible property-local timestamp in the requested dates.
-      lt(turnoverBlocks.startsAt, new Date(`${addDaysLocal(rangeEnd, 1)}T12:00:00Z`)),
-      gt(turnoverBlocks.endsAt, new Date(`${addDaysLocal(rangeStart, -1)}T12:00:00Z`)),
-    ));
+    .innerJoin(
+      units,
+      and(
+        eq(turnoverBlocks.unitId, units.id),
+        eq(turnoverBlocks.organizationId, units.organizationId),
+      ),
+    )
+    .innerJoin(
+      properties,
+      and(
+        eq(units.propertyId, properties.id),
+        eq(units.organizationId, properties.organizationId),
+      ),
+    )
+    .where(
+      and(
+        eq(turnoverBlocks.organizationId, organizationId),
+        inArray(turnoverBlocks.unitId, unitIds),
+        // A coarse UTC date window is expanded either side to preserve every
+        // possible property-local timestamp in the requested dates.
+        lt(
+          turnoverBlocks.startsAt,
+          new Date(`${addDaysLocal(rangeEnd, 1)}T12:00:00Z`),
+        ),
+        gt(
+          turnoverBlocks.endsAt,
+          new Date(`${addDaysLocal(rangeStart, -1)}T12:00:00Z`),
+        ),
+      ),
+    );
 
   for (const row of blockRows) {
     segments.get(row.unitId)?.push({
@@ -207,10 +247,7 @@ export async function getOccupancySegments(
   for (const row of reservationRows) {
     // The WHERE clause above restricts status to the four active values.
     const status = row.status as
-      | "hold"
-      | "confirmed"
-      | "checked_in"
-      | "checked_out";
+      "hold" | "confirmed" | "checked_in" | "checked_out";
     segments.get(row.unitId)?.push({
       kind: "reservation",
       id: row.id,
@@ -221,7 +258,13 @@ export async function getOccupancySegments(
       expiresAt: row.expiresAt,
       guestCount: row.guestCount,
       actualCheckoutAt: row.actualCheckoutAt,
-      platform: row.platformName ? { name: row.platformName, logoUrl: row.platformLogoUrl, color: row.platformColor } : null,
+      platform: row.platformName
+        ? {
+            name: row.platformName,
+            logoUrl: row.platformLogoUrl,
+            color: row.platformColor,
+          }
+        : null,
       platformReference: row.platformReference,
       guestId: row.guestId,
       guestEmail: row.guestEmail,
@@ -274,20 +317,39 @@ export async function listCalendarActivity(
         eq(reservations.organizationId, guests.organizationId),
       ),
     )
-    .where(and(
-      eq(reservations.organizationId, organizationId),
-      inArray(reservations.unitId, unitDays.map(({ unitId }) => unitId)),
-      or(
-        and(eq(reservations.status, "hold"), gt(reservations.expiresAt, new Date())),
-        and(
-          inArray(reservations.status, ["confirmed", "checked_in", "checked_out"]),
-          or(...unitDays.map(({ unitId, today }) => and(
-            eq(reservations.unitId, unitId),
-            or(eq(reservations.checkInDate, today), eq(reservations.checkOutDate, today)),
-          ))),
+    .where(
+      and(
+        eq(reservations.organizationId, organizationId),
+        inArray(
+          reservations.unitId,
+          unitDays.map(({ unitId }) => unitId),
+        ),
+        or(
+          and(
+            eq(reservations.status, "hold"),
+            gt(reservations.expiresAt, new Date()),
+          ),
+          and(
+            inArray(reservations.status, [
+              "confirmed",
+              "checked_in",
+              "checked_out",
+            ]),
+            or(
+              ...unitDays.map(({ unitId, today }) =>
+                and(
+                  eq(reservations.unitId, unitId),
+                  or(
+                    eq(reservations.checkInDate, today),
+                    eq(reservations.checkOutDate, today),
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
-    ))
+    )
     .orderBy(reservations.checkInDate, reservations.id);
 }
 
@@ -352,7 +414,10 @@ export function checkIntervalAvailability(
 ): IntervalCheck {
   const conflict = segments
     .filter(
-      (segment) => segment.kind !== "turnover" && segment.startDate < checkOut && checkIn < segment.endDate,
+      (segment) =>
+        segment.kind !== "turnover" &&
+        segment.startDate < checkOut &&
+        checkIn < segment.endDate,
     )
     .sort((a, b) => (a.startDate < b.startDate ? -1 : 1))[0];
 
@@ -367,7 +432,7 @@ export function checkIntervalAvailability(
             ? conflict.reason
             : conflict.kind === "turnover"
               ? "Turnover"
-            : reservationReason(conflict),
+              : reservationReason(conflict),
       },
     };
   }
@@ -381,7 +446,9 @@ export function findTurnoverArrivalConflict(
 ) {
   return segments.find(
     (segment): segment is Extract<OccupancySegment, { kind: "turnover" }> =>
-      segment.kind === "turnover" && segment.startsAt <= arrivalAt && arrivalAt < segment.endsAt,
+      segment.kind === "turnover" &&
+      segment.startsAt <= arrivalAt &&
+      arrivalAt < segment.endsAt,
   );
 }
 
@@ -416,21 +483,57 @@ export async function getLateCheckouts(
       turnoverMinutes: properties.turnoverDurationMinutes,
     })
     .from(reservationExtensions)
-    .innerJoin(reservations, and(eq(reservationExtensions.reservationId, reservations.id), eq(reservationExtensions.organizationId, reservations.organizationId)))
-    .innerJoin(guests, and(eq(reservations.guestId, guests.id), eq(reservations.organizationId, guests.organizationId)))
-    .innerJoin(units, and(eq(reservations.unitId, units.id), eq(reservations.organizationId, units.organizationId)))
-    .innerJoin(properties, and(eq(units.propertyId, properties.id), eq(units.organizationId, properties.organizationId)))
-    .where(and(
-      eq(reservationExtensions.organizationId, organizationId),
-      // Requests hold nothing until they're approved.
-      eq(reservationExtensions.status, "approved"),
-      inArray(reservations.unitId, unitIds),
-      eq(reservations.checkOutDate, date),
-      inArray(reservations.status, ["confirmed", "checked_in"]),
-    ))
-    .groupBy(reservations.id, reservations.unitId, guests.name, units.checkOutTime, properties.timezone, properties.turnoverDurationMinutes);
+    .innerJoin(
+      reservations,
+      and(
+        eq(reservationExtensions.reservationId, reservations.id),
+        eq(reservationExtensions.organizationId, reservations.organizationId),
+      ),
+    )
+    .innerJoin(
+      guests,
+      and(
+        eq(reservations.guestId, guests.id),
+        eq(reservations.organizationId, guests.organizationId),
+      ),
+    )
+    .innerJoin(
+      units,
+      and(
+        eq(reservations.unitId, units.id),
+        eq(reservations.organizationId, units.organizationId),
+      ),
+    )
+    .innerJoin(
+      properties,
+      and(
+        eq(units.propertyId, properties.id),
+        eq(units.organizationId, properties.organizationId),
+      ),
+    )
+    .where(
+      and(
+        eq(reservationExtensions.organizationId, organizationId),
+        // Requests hold nothing until they're approved.
+        eq(reservationExtensions.status, "approved"),
+        inArray(reservations.unitId, unitIds),
+        eq(reservations.checkOutDate, date),
+        inArray(reservations.status, ["confirmed", "checked_in"]),
+      ),
+    )
+    .groupBy(
+      reservations.id,
+      reservations.unitId,
+      guests.name,
+      units.checkOutTime,
+      properties.timezone,
+      properties.turnoverDurationMinutes,
+    );
   for (const row of rows) {
-    const checkoutAt = localDateTimeToUtc(`${date}T${row.checkOutTime}`, row.timezone);
+    const checkoutAt = localDateTimeToUtc(
+      `${date}T${row.checkOutTime}`,
+      row.timezone,
+    );
     if (!checkoutAt || !row.hours) continue;
     late.set(row.unitId, {
       reservationId: row.reservationId,
@@ -443,7 +546,18 @@ export async function getLateCheckouts(
 }
 
 /** Whether a late check-out (plus turnover) is still running at `arrivalAt`. */
-export function lateCheckoutConflict(late: LateCheckout | undefined, arrivalAt: Date | null, excludeReservationId?: string): LateCheckout | null {
-  if (!late || !arrivalAt || late.reservationId === excludeReservationId) return null;
-  return lateCheckoutBlocksArrival(late.departureAt, late.turnoverMinutes, arrivalAt) ? late : null;
+export function lateCheckoutConflict(
+  late: LateCheckout | undefined,
+  arrivalAt: Date | null,
+  excludeReservationId?: string,
+): LateCheckout | null {
+  if (!late || !arrivalAt || late.reservationId === excludeReservationId)
+    return null;
+  return lateCheckoutBlocksArrival(
+    late.departureAt,
+    late.turnoverMinutes,
+    arrivalAt,
+  )
+    ? late
+    : null;
 }

@@ -16,17 +16,26 @@ const STAY_LENGTHS = [12, 18, 20, 22, 23, 24];
  * or the length fills in check-out; editing check-out updates the length.
  * Stays are overnight, so check-out lands on the next day.
  */
-export function StayTimesFields({ defaultCheckIn, defaultCheckOut }: { defaultCheckIn: string; defaultCheckOut: string }) {
+export function StayTimesFields({
+  defaultCheckIn,
+  defaultCheckOut,
+}: {
+  defaultCheckIn: string;
+  defaultCheckOut: string;
+}) {
   const [checkIn, setCheckIn] = useState(defaultCheckIn);
   const [checkOut, setCheckOut] = useState(defaultCheckOut);
-  const [hoursInput, setHoursInput] = useState(String(stayLengthHours(defaultCheckIn, defaultCheckOut) ?? ""));
+  const [hoursInput, setHoursInput] = useState(
+    String(stayLengthHours(defaultCheckIn, defaultCheckOut) ?? ""),
+  );
   const hours = stayLengthHours(checkIn, checkOut);
 
   const applyLength = (value: string, from = checkIn) => {
     setHoursInput(value);
     const length = Number(value);
     const start = toMinutes(from);
-    if (start !== null && length > 0 && length <= 24) setCheckOut(fromMinutes(start + length * 60));
+    if (start !== null && length > 0 && length <= 24)
+      setCheckOut(fromMinutes(start + length * 60));
   };
 
   return (
@@ -58,7 +67,9 @@ export function StayTimesFields({ defaultCheckIn, defaultCheckOut }: { defaultCh
               onChange={(event) => applyLength(event.target.value)}
               className="pr-14"
             />
-            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink/45">hours</span>
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink/45">
+              hours
+            </span>
           </div>
         </div>
         <div>
@@ -77,7 +88,11 @@ export function StayTimesFields({ defaultCheckIn, defaultCheckOut }: { defaultCh
           <p className="mt-1.5 text-xs text-ink/50">The next day</p>
         </div>
       </div>
-      <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Common stay lengths">
+      <div
+        className="flex flex-wrap items-center gap-2"
+        role="group"
+        aria-label="Common stay lengths"
+      >
         <span className="text-xs text-ink/50">Quick pick:</span>
         {STAY_LENGTHS.map((length) => (
           <button
@@ -86,7 +101,9 @@ export function StayTimesFields({ defaultCheckIn, defaultCheckOut }: { defaultCh
             onClick={() => applyLength(String(length))}
             className={cn(
               "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-              hours === length ? "border-primary bg-primary text-white" : "border-pine/15 text-pine hover:border-pine/35",
+              hours === length
+                ? "border-primary bg-primary text-white"
+                : "border-pine/15 text-pine hover:border-pine/35",
             )}
           >
             {length}h
@@ -111,15 +128,20 @@ export function DayRatesFields({
   regularRate: string;
 }) {
   const [open, setOpen] = useState(Object.values(defaults).some(Boolean));
-  const [rates, setRates] = useState<Partial<Record<Weekday, string>>>(defaults);
+  const [rates, setRates] =
+    useState<Partial<Record<Weekday, string>>>(defaults);
   const [weekendInput, setWeekendInput] = useState("");
 
   return (
     <div className="rounded-xl border border-pine/10 bg-linen/50 p-4">
       <label className="flex cursor-pointer items-center justify-between gap-3">
         <span>
-          <span className="block text-sm font-medium text-pine">Different rates on some days</span>
-          <span className="block text-xs text-ink/55">Like a higher rate for Friday and Saturday nights.</span>
+          <span className="block text-sm font-medium text-pine">
+            Different rates on some days
+          </span>
+          <span className="block text-xs text-ink/55">
+            Like a higher rate for Friday and Saturday nights.
+          </span>
         </span>
         <input
           type="checkbox"
@@ -128,55 +150,79 @@ export function DayRatesFields({
           className="h-5 w-5 shrink-0 accent-pine"
         />
       </label>
-      {open ? (
-        <div className="mt-4 space-y-3">
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-7">
-            {WEEKDAYS.map((day) => (
-              <div key={day.key}>
-                <Label htmlFor={`day-rate-${day.key}`} className={cn("text-xs", (day.key === "5" || day.key === "6") && "text-clay-deep")}>
-                  {day.short}
-                </Label>
+      {
+        open ? (
+          <div className="mt-4 space-y-3">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-7">
+              {WEEKDAYS.map((day) => (
+                <div key={day.key}>
+                  <Label
+                    htmlFor={`day-rate-${day.key}`}
+                    className={cn(
+                      "text-xs",
+                      (day.key === "5" || day.key === "6") && "text-clay-deep",
+                    )}
+                  >
+                    {day.short}
+                  </Label>
+                  <PesoInput
+                    id={`day-rate-${day.key}`}
+                    name={`dayRate-${day.key}`}
+                    aria-label={`${day.long} night rate`}
+                    value={rates[day.key] ?? ""}
+                    onChange={(event) =>
+                      setRates((current) => ({
+                        ...current,
+                        [day.key]: event.target.value,
+                      }))
+                    }
+                    placeholder={regularRate || "—"}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs text-ink/55">
+                Weekend (Fri &amp; Sat nights):
+              </span>
+              <div className="w-32">
                 <PesoInput
-                  id={`day-rate-${day.key}`}
-                  name={`dayRate-${day.key}`}
-                  aria-label={`${day.long} night rate`}
-                  value={rates[day.key] ?? ""}
-                  onChange={(event) => setRates((current) => ({ ...current, [day.key]: event.target.value }))}
-                  placeholder={regularRate || "—"}
+                  aria-label="Weekend rate"
+                  value={weekendInput}
+                  onChange={(event) => setWeekendInput(event.target.value)}
+                  placeholder="7,000"
+                  className="h-8"
                 />
               </div>
-            ))}
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-ink/55">Weekend (Fri &amp; Sat nights):</span>
-            <div className="w-32">
-              <PesoInput
-                aria-label="Weekend rate"
-                value={weekendInput}
-                onChange={(event) => setWeekendInput(event.target.value)}
-                placeholder="7,000"
-                className="h-8"
-              />
+              <button
+                type="button"
+                onClick={() =>
+                  setRates((current) => ({
+                    ...current,
+                    "5": weekendInput,
+                    "6": weekendInput,
+                  }))
+                }
+                disabled={!weekendInput.trim()}
+                className="rounded-full border border-pine/15 px-3 py-1 text-xs font-medium text-pine hover:border-pine/35 disabled:opacity-40"
+              >
+                Set Fri &amp; Sat
+              </button>
+              <button
+                type="button"
+                onClick={() => setRates({})}
+                className="text-xs text-ink/50 underline-offset-4 hover:text-clay-deep hover:underline"
+              >
+                Clear all
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => setRates((current) => ({ ...current, "5": weekendInput, "6": weekendInput }))}
-              disabled={!weekendInput.trim()}
-              className="rounded-full border border-pine/15 px-3 py-1 text-xs font-medium text-pine hover:border-pine/35 disabled:opacity-40"
-            >
-              Set Fri &amp; Sat
-            </button>
-            <button
-              type="button"
-              onClick={() => setRates({})}
-              className="text-xs text-ink/50 underline-offset-4 hover:text-clay-deep hover:underline"
-            >
-              Clear all
-            </button>
+            <p className="text-xs text-ink/50">
+              Blank days use the regular nightly rate. A night is priced by the
+              day it starts.
+            </p>
           </div>
-          <p className="text-xs text-ink/50">Blank days use the regular nightly rate. A night is priced by the day it starts.</p>
-        </div>
-      ) : null /* Off means no day inputs submit, so saving clears any day rates. */}
+        ) : null /* Off means no day inputs submit, so saving clears any day rates. */
+      }
     </div>
   );
 }
@@ -185,8 +231,16 @@ export type ReservationFeeChoice = "" | "fixed" | "percent";
 
 const RESERVATION_FEE_OPTIONS = [
   { value: "", label: "None", description: "Confirm without a down payment." },
-  { value: "fixed", label: "Fixed amount", description: "The same amount for every booking." },
-  { value: "percent", label: "Percentage", description: "A share of the booking total." },
+  {
+    value: "fixed",
+    label: "Fixed amount",
+    description: "The same amount for every booking.",
+  },
+  {
+    value: "percent",
+    label: "Percentage",
+    description: "A share of the booking total.",
+  },
 ] as const;
 
 /**
@@ -195,15 +249,25 @@ const RESERVATION_FEE_OPTIONS = [
  * that collect payment themselves, like Airbnb or Agoda. Submits as
  * `reservationFeeType` and `reservationFeeAmount` (pesos, or a percent).
  */
-export function ReservationFeeFields({ defaultType, defaultAmount }: { defaultType: ReservationFeeChoice; defaultAmount: string }) {
+export function ReservationFeeFields({
+  defaultType,
+  defaultAmount,
+}: {
+  defaultType: ReservationFeeChoice;
+  defaultAmount: string;
+}) {
   const [type, setType] = useState<ReservationFeeChoice>(defaultType);
   const [amount, setAmount] = useState(defaultAmount);
 
   return (
     <div className="rounded-xl border border-pine/10 bg-linen/50 p-4">
-      <p id="reservation-fee-label" className="text-sm font-medium text-pine">Reservation fee</p>
+      <p id="reservation-fee-label" className="text-sm font-medium text-pine">
+        Reservation fee
+      </p>
       <p className="mb-3 text-xs text-ink/55">
-        The down payment needed to confirm a booking made directly, on Facebook or Messenger. Not charged on Airbnb, Agoda and other platforms that collect payment.
+        The down payment needed to confirm a booking made directly, on Facebook
+        or Messenger. Not charged on Airbnb, Agoda and other platforms that
+        collect payment.
       </p>
       <input type="hidden" name="reservationFeeType" value={type} />
       <ChoiceCards
@@ -218,7 +282,9 @@ export function ReservationFeeFields({ defaultType, defaultAmount }: { defaultTy
       />
       {type ? (
         <div className="mt-3 max-w-48">
-          <Label htmlFor="reservation-fee-amount">{type === "fixed" ? "Amount" : "Percent of the booking total"}</Label>
+          <Label htmlFor="reservation-fee-amount">
+            {type === "fixed" ? "Amount" : "Percent of the booking total"}
+          </Label>
           {type === "fixed" ? (
             <PesoInput
               id="reservation-fee-amount"
@@ -244,7 +310,9 @@ export function ReservationFeeFields({ defaultType, defaultAmount }: { defaultTy
                 className="pr-8 tabular-nums"
                 required
               />
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-ink/45">%</span>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-ink/45">
+                %
+              </span>
             </div>
           )}
         </div>
@@ -258,36 +326,78 @@ export function ReservationFeeFields({ defaultType, defaultAmount }: { defaultTy
  * `maxExtensionHours` and `extensionHourlyRate` (pesos; empty means the
  * stay's accommodation total divided by its length).
  */
-export function LateCheckoutFields({ defaultEnabled, defaultMaxHours, defaultRate }: { defaultEnabled: boolean; defaultMaxHours: string; defaultRate: string }) {
+export function LateCheckoutFields({
+  defaultEnabled,
+  defaultMaxHours,
+  defaultRate,
+}: {
+  defaultEnabled: boolean;
+  defaultMaxHours: string;
+  defaultRate: string;
+}) {
   const [enabled, setEnabled] = useState(defaultEnabled);
   return (
     <div className="rounded-xl border border-pine/10 bg-linen/50 p-4">
       <label className="flex cursor-pointer items-start gap-3">
-        <input type="checkbox" name="extensionsEnabled" checked={enabled} onChange={(event) => setEnabled(event.target.checked)} className="mt-1 h-4 w-4 accent-[var(--color-pine)]" />
+        <input
+          type="checkbox"
+          name="extensionsEnabled"
+          checked={enabled}
+          onChange={(event) => setEnabled(event.target.checked)}
+          className="mt-1 h-4 w-4 accent-[var(--color-pine)]"
+        />
         <span>
-          <span className="block text-sm font-medium text-pine">Allow late check-out</span>
+          <span className="block text-sm font-medium text-pine">
+            Allow late check-out
+          </span>
           <span className="block text-xs text-ink/55">
-            Guests can stay extra hours on their check-out day, but only when the extra time plus turnover ends before the next arrival.
+            Guests can stay extra hours on their check-out day, but only when
+            the extra time plus turnover ends before the next arrival.
           </span>
         </span>
       </label>
       {enabled ? (
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
-            <Label htmlFor="unit-max-extension">Most extra hours per stay</Label>
-            <Input id="unit-max-extension" name="maxExtensionHours" type="number" min={1} max={12} step={1} defaultValue={defaultMaxHours} className="tabular-nums" required />
+            <Label htmlFor="unit-max-extension">
+              Most extra hours per stay
+            </Label>
+            <Input
+              id="unit-max-extension"
+              name="maxExtensionHours"
+              type="number"
+              min={1}
+              max={12}
+              step={1}
+              defaultValue={defaultMaxHours}
+              className="tabular-nums"
+              required
+            />
           </div>
           <div>
             <Label htmlFor="unit-extension-rate">
-              Hourly rate <span className="font-normal text-ink/45">(optional)</span>
+              Hourly rate{" "}
+              <span className="font-normal text-ink/45">(optional)</span>
             </Label>
-            <PesoInput id="unit-extension-rate" name="extensionHourlyRate" defaultValue={defaultRate} placeholder="Auto" />
-            <p className="mt-1 text-xs text-ink/55">Leave empty to charge the stay’s accommodation total ÷ its length in hours.</p>
+            <PesoInput
+              id="unit-extension-rate"
+              name="extensionHourlyRate"
+              defaultValue={defaultRate}
+              placeholder="Auto"
+            />
+            <p className="mt-1 text-xs text-ink/55">
+              Leave empty to charge the stay’s accommodation total ÷ its length
+              in hours.
+            </p>
           </div>
         </div>
       ) : (
         <>
-          <input type="hidden" name="maxExtensionHours" value={defaultMaxHours} />
+          <input
+            type="hidden"
+            name="maxExtensionHours"
+            value={defaultMaxHours}
+          />
           <input type="hidden" name="extensionHourlyRate" value={defaultRate} />
         </>
       )}

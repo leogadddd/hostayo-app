@@ -7,13 +7,22 @@ import { useActionFeedback } from "@/hooks/use-action-feedback";
 import { useSaveAndReturn } from "@/hooks/use-save-and-return";
 import { updateHouseRulesAction, type InventoryFormState } from "../actions";
 
-export function HouseRulesForm({ propertyId, defaultValue }: { propertyId: string; defaultValue: string }) {
+export function HouseRulesForm({
+  propertyId,
+  defaultValue,
+}: {
+  propertyId: string;
+  defaultValue: string;
+}) {
   const save = useSaveAndReturn(
     updateHouseRulesAction.bind(null, propertyId),
     `/properties/${propertyId}`,
     "House rules updated.",
   );
-  const [state, formAction, pending] = useActionState<InventoryFormState, FormData>(save, {});
+  const [state, formAction, pending] = useActionState<
+    InventoryFormState,
+    FormData
+  >(save, {});
   useActionFeedback(state);
 
   return (
@@ -29,7 +38,13 @@ export function HouseRulesForm({ propertyId, defaultValue }: { propertyId: strin
         autoFocus
       />
       <FieldError message={state.error} />
-      <Button type="submit" variant="clay" size="lg" className="w-full" disabled={pending}>
+      <Button
+        type="submit"
+        variant="clay"
+        size="lg"
+        className="w-full"
+        disabled={pending}
+      >
         {pending ? "Saving…" : "Save house rules"}
       </Button>
     </form>

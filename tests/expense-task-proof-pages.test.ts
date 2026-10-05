@@ -1,11 +1,31 @@
 import * as React from "react";
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { requireMembership, requirePermission, type MembershipContext } from "@/lib/auth/session";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+import {
+  requireMembership,
+  requirePermission,
+  type MembershipContext,
+} from "@/lib/auth/session";
 import { permissionGuardFor } from "./helpers/session-mock";
 import { listProperties, listOrgUnits } from "@/server/inventory/service";
 import { listExpenses } from "@/server/expenses/service";
-import { getTaskDetail, markTaskReady, resolveDamageReport, updateTaskNotes } from "@/server/operations/service";
-import { getGuestViewByToken, type GuestView } from "@/server/reservations/guest-link";
+import {
+  getTaskDetail,
+  markTaskReady,
+  resolveDamageReport,
+  updateTaskNotes,
+} from "@/server/operations/service";
+import {
+  getGuestViewByToken,
+  type GuestView,
+} from "@/server/reservations/guest-link";
 import { getGuestStay } from "@/lib/public-demo";
 import { submitGuestPaymentProof } from "@/server/payments/service";
 import { PermissionDenied } from "@/components/app/permission-denied";
@@ -23,7 +43,11 @@ import { TaskNotesForm } from "@/app/(app)/tasks/[id]/task-notes-form";
 import { MarkReadyForm } from "@/app/(app)/tasks/[id]/mark-ready-form";
 import { ResolveDamageForm } from "@/app/(app)/tasks/[id]/resolve-damage-form";
 import { DamageReportForm } from "@/app/(app)/tasks/damage-report-form";
-import { markTaskReadyAction, resolveDamageReportAction, updateTaskNotesAction } from "@/app/(app)/tasks/actions";
+import {
+  markTaskReadyAction,
+  resolveDamageReportAction,
+  updateTaskNotesAction,
+} from "@/app/(app)/tasks/actions";
 import GuestStatusPage from "@/app/g/[token]/page";
 import NewGuestPaymentProofPage from "@/app/g/[token]/payment-proof/new/page";
 import { SubmitProofForm } from "@/app/g/[token]/submit-proof-form";
@@ -35,74 +59,169 @@ vi.mock("@/lib/auth/session", async () => {
     requireMembership: vi.fn(),
     requirePermission: vi.fn(),
     PermissionError: class extends Error {},
-    assertCan: (membership: MembershipContext, permission: Parameters<typeof can>[1]) => {
+    assertCan: (
+      membership: MembershipContext,
+      permission: Parameters<typeof can>[1],
+    ) => {
       if (!can(membership, permission)) throw new Error("Owner only");
     },
   };
 });
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/navigation", () => ({
-  redirect: (url: string) => { throw new Error(`Redirect: ${url}`); },
-  notFound: () => { throw new Error("Not found"); },
+  redirect: (url: string) => {
+    throw new Error(`Redirect: ${url}`);
+  },
+  notFound: () => {
+    throw new Error("Not found");
+  },
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
 }));
-vi.mock("@/server/inventory/service", () => ({ listProperties: vi.fn(), listOrgUnits: vi.fn() }));
-vi.mock("@/server/expenses/service", () => ({ listExpenses: vi.fn(), createExpense: vi.fn(), ExpenseError: class extends Error {} }));
-vi.mock("@/server/operations/service", () => ({
-  getTaskDetail: vi.fn(), listTasks: vi.fn(), createDamageReport: vi.fn(),
-  markTaskReady: vi.fn(), resolveDamageReport: vi.fn(), updateTaskNotes: vi.fn(),
-  setTaskItemCompleted: vi.fn(), OperationsError: class extends Error {},
+vi.mock("@/server/inventory/service", () => ({
+  listProperties: vi.fn(),
+  listOrgUnits: vi.fn(),
 }));
-vi.mock("@/server/reservations/guest-link", () => ({ getGuestViewByToken: vi.fn() }));
+vi.mock("@/server/expenses/service", () => ({
+  listExpenses: vi.fn(),
+  createExpense: vi.fn(),
+  ExpenseError: class extends Error {},
+}));
+vi.mock("@/server/operations/service", () => ({
+  getTaskDetail: vi.fn(),
+  listTasks: vi.fn(),
+  createDamageReport: vi.fn(),
+  markTaskReady: vi.fn(),
+  resolveDamageReport: vi.fn(),
+  updateTaskNotes: vi.fn(),
+  setTaskItemCompleted: vi.fn(),
+  OperationsError: class extends Error {},
+}));
+vi.mock("@/server/reservations/guest-link", () => ({
+  getGuestViewByToken: vi.fn(),
+}));
 vi.mock("@/lib/public-demo", () => ({ getGuestStay: vi.fn() }));
-vi.mock("@/server/payments/service", () => ({ submitGuestPaymentProof: vi.fn() }));
+vi.mock("@/server/payments/service", () => ({
+  submitGuestPaymentProof: vi.fn(),
+}));
 
 const owner: MembershipContext = {
-  organizationId: "org-a", organizationName: "Test stays", organizationSlug: "test-stays",
-  userId: "owner-a", role: "owner",
+  organizationId: "org-a",
+  organizationName: "Test stays",
+  organizationSlug: "test-stays",
+  userId: "owner-a",
+  role: "owner",
 };
 const staff: MembershipContext = { ...owner, userId: "staff-a", role: "staff" };
 const params = Promise.resolve({ id: "task-a" });
-const resolveParams = Promise.resolve({ id: "task-a", damageReportId: "damage-a" });
+const resolveParams = Promise.resolve({
+  id: "task-a",
+  damageReportId: "damage-a",
+});
 const tokenParams = Promise.resolve({ token: "opaque-token" });
 
 function taskFixture({ ready = false, completed = true, damage = true } = {}) {
   return {
-    task: { id: "task-a", unitId: "unit-a", organizationId: "org-a", status: ready ? "ready" : "open", notes: "Spare key with guard", markedReadyAt: null, readyOverrideReason: null, reservationId: null },
-    unitName: "Unit A", propertyName: "Property A", nextCheckIn: null,
-    items: [{ id: "item-a", label: "Clean linens", required: true, completedAt: completed ? new Date() : null }],
-    openDamage: damage ? [{ id: "damage-a", unitId: "unit-a", organizationId: "org-a", description: "Broken shelf", estimatedAmountCents: 15000, createdAt: new Date() }] : [],
-    assessment: { canMarkReady: completed && !damage, openDamageCount: damage ? 1 : 0, missingRequired: completed ? [] : ["Clean linens"] },
+    task: {
+      id: "task-a",
+      unitId: "unit-a",
+      organizationId: "org-a",
+      status: ready ? "ready" : "open",
+      notes: "Spare key with guard",
+      markedReadyAt: null,
+      readyOverrideReason: null,
+      reservationId: null,
+    },
+    unitName: "Unit A",
+    propertyName: "Property A",
+    nextCheckIn: null,
+    items: [
+      {
+        id: "item-a",
+        label: "Clean linens",
+        required: true,
+        completedAt: completed ? new Date() : null,
+      },
+    ],
+    openDamage: damage
+      ? [
+          {
+            id: "damage-a",
+            unitId: "unit-a",
+            organizationId: "org-a",
+            description: "Broken shelf",
+            estimatedAmountCents: 15000,
+            createdAt: new Date(),
+          },
+        ]
+      : [],
+    assessment: {
+      canMarkReady: completed && !damage,
+      openDamageCount: damage ? 1 : 0,
+      missingRequired: completed ? [] : ["Clean linens"],
+    },
   } as Awaited<ReturnType<typeof getTaskDetail>>;
 }
 function guestFixture(status = "confirmed"): GuestView {
   return {
-    guestName: "Guest Example", propertyName: "Property A", unitName: "Unit A", status,
-    checkInDate: "2026-09-20", checkOutDate: "2026-09-23", bookingTotalCents: 300000,
-    depositTotalCents: 100000, paidBookingCents: 0, refundedBookingCents: 0,
-    bookingBalanceCents: 300000, depositPaidCents: 0, depositHeldCents: 0,
-    pendingProofs: 0, paymentInstructions: null, houseRules: null,
+    guestName: "Guest Example",
+    propertyName: "Property A",
+    unitName: "Unit A",
+    status,
+    checkInDate: "2026-09-20",
+    checkOutDate: "2026-09-23",
+    bookingTotalCents: 300000,
+    depositTotalCents: 100000,
+    paidBookingCents: 0,
+    refundedBookingCents: 0,
+    bookingBalanceCents: 300000,
+    depositPaidCents: 0,
+    depositHeldCents: 0,
+    pendingProofs: 0,
+    paymentInstructions: null,
+    houseRules: null,
   };
 }
 function guestStayFixture() {
   return {
-    guestName: "Guest Example", checkInDate: "2026-09-20", checkOutDate: "2026-09-23", status: "confirmed",
-    address: "Property A, Philippines", mapUrl: null,
+    guestName: "Guest Example",
+    checkInDate: "2026-09-20",
+    checkOutDate: "2026-09-23",
+    status: "confirmed",
+    address: "Property A, Philippines",
+    mapUrl: null,
     host: { displayName: "Test host", channels: [] },
     unit: {
-      id: "unit-a", name: "Unit A", propertyName: "Property A", capacity: 2, bedrooms: 1, bathrooms: 1,
-      checkInTime: "15:00", checkOutTime: "11:00", description: "", wifiName: null, wifiPassword: null,
-      unitAmenities: [], propertyAmenities: [], guestHouseRules: [], arrivalNotes: [], areaTips: [], checkoutSteps: [],
+      id: "unit-a",
+      name: "Unit A",
+      propertyName: "Property A",
+      capacity: 2,
+      bedrooms: 1,
+      bathrooms: 1,
+      checkInTime: "15:00",
+      checkOutTime: "11:00",
+      description: "",
+      wifiName: null,
+      wifiPassword: null,
+      unitAmenities: [],
+      propertyAmenities: [],
+      guestHouseRules: [],
+      arrivalNotes: [],
+      areaTips: [],
+      checkoutSteps: [],
     },
   } as unknown as Awaited<ReturnType<typeof getGuestStay>>;
 }
-function elements(node: React.ReactNode): React.ReactElement<Record<string, unknown>>[] {
+function elements(
+  node: React.ReactNode,
+): React.ReactElement<Record<string, unknown>>[] {
   if (Array.isArray(node)) return node.flatMap(elements);
   if (!React.isValidElement<Record<string, unknown>>(node)) return [];
   return [node, ...elements(node.props.children as React.ReactNode)];
 }
 function links(tree: React.ReactNode) {
-  return elements(tree).map((element) => element.props.href).filter(Boolean);
+  return elements(tree)
+    .map((element) => element.props.href)
+    .filter(Boolean);
 }
 function hasForm(tree: React.ReactNode, form: unknown) {
   return elements(tree).some((element) => element.type === form);
@@ -114,7 +233,9 @@ beforeEach(() => {
   vi.resetAllMocks();
   vi.mocked(requireMembership).mockResolvedValue(staff);
   // Follows requireMembership, like the real guard, unless a test overrides it.
-  vi.mocked(requirePermission).mockImplementation(permissionGuardFor(() => requireMembership()));
+  vi.mocked(requirePermission).mockImplementation(
+    permissionGuardFor(() => requireMembership()),
+  );
   vi.mocked(getTaskDetail).mockResolvedValue(taskFixture());
   vi.mocked(listProperties).mockResolvedValue([]);
   vi.mocked(listOrgUnits).mockResolvedValue([]);
@@ -130,7 +251,9 @@ describe("dedicated expense page", () => {
   });
   it("loads owner-scoped options only on the create page", async () => {
     vi.mocked(requirePermission).mockResolvedValue(owner);
-    vi.mocked(listProperties).mockResolvedValue([{ id: "property-a", name: "Property A" }] as Awaited<ReturnType<typeof listProperties>>);
+    vi.mocked(listProperties).mockResolvedValue([
+      { id: "property-a", name: "Property A" },
+    ] as Awaited<ReturnType<typeof listProperties>>);
     const tree = await NewExpensePage();
     expect(hasForm(tree, ExpenseForm)).toBe(true);
     expect(listProperties).toHaveBeenCalledWith("org-a");
@@ -138,7 +261,18 @@ describe("dedicated expense page", () => {
   });
   it("keeps list creation as a link and uses the shared table", async () => {
     vi.mocked(requirePermission).mockResolvedValue(owner);
-    vi.mocked(listExpenses).mockResolvedValue([{ id: "expense-a", paidDate: "2026-09-01", category: "cleaning", classification: "operating", amountCents: 10000, description: "Cleaning", propertyName: "Property A", unitName: null }] as Awaited<ReturnType<typeof listExpenses>>);
+    vi.mocked(listExpenses).mockResolvedValue([
+      {
+        id: "expense-a",
+        paidDate: "2026-09-01",
+        category: "cleaning",
+        classification: "operating",
+        amountCents: 10000,
+        description: "Cleaning",
+        propertyName: "Property A",
+        unitName: null,
+      },
+    ] as Awaited<ReturnType<typeof listExpenses>>);
     const tree = await ExpensesPage({ searchParams: Promise.resolve({}) });
     expect(hasForm(tree, ExpenseForm)).toBe(false);
     expect(links(tree)).toContain("/expenses/new");
@@ -151,10 +285,25 @@ describe("turnover detail and dedicated editors", () => {
   it("hands the staff run view checklist toggles but no damage resolution", async () => {
     const tree = await TaskDetailPage({ params });
     expect(tree.type).toBe(TurnoverRun);
-    for (const form of [TaskNotesForm, MarkReadyForm, ResolveDamageForm, DamageReportForm]) expect(hasForm(tree, form)).toBe(false);
-    expect(tree.props.permissions).toEqual({ work: true, reportDamage: true, resolveDamage: false, viewReservation: true });
+    for (const form of [
+      TaskNotesForm,
+      MarkReadyForm,
+      ResolveDamageForm,
+      DamageReportForm,
+    ])
+      expect(hasForm(tree, form)).toBe(false);
+    expect(tree.props.permissions).toEqual({
+      work: true,
+      reportDamage: true,
+      resolveDamage: false,
+      viewReservation: true,
+    });
     expect(tree.props.canMarkReady).toBe(false);
-    expect(tree.props.items[0]).toMatchObject({ id: "item-a", required: true, completedAt: expect.any(String) });
+    expect(tree.props.items[0]).toMatchObject({
+      id: "item-a",
+      required: true,
+      completedAt: expect.any(String),
+    });
     expect(getTaskDetail).toHaveBeenCalledWith("org-a", "task-a");
   });
   it("lets owners resolve damage and only marks ready once nothing blocks it", async () => {
@@ -163,62 +312,117 @@ describe("turnover detail and dedicated editors", () => {
     expect(tree.props.permissions.resolveDamage).toBe(true);
     vi.mocked(getTaskDetail).mockResolvedValue(taskFixture({ damage: false }));
     expect((await TaskDetailPage({ params })).props.canMarkReady).toBe(true);
-    vi.mocked(getTaskDetail).mockResolvedValue(taskFixture({ completed: false, damage: false }));
+    vi.mocked(getTaskDetail).mockResolvedValue(
+      taskFixture({ completed: false, damage: false }),
+    );
     expect((await TaskDetailPage({ params })).props.canMarkReady).toBe(false);
   });
   it("does not offer edits or new damage on a final ready task", async () => {
     vi.mocked(getTaskDetail).mockResolvedValue(taskFixture({ ready: true }));
     const tree = await TaskDetailPage({ params });
-    expect(tree.props.permissions).toMatchObject({ work: false, reportDamage: false });
-    await expect(EditTaskPage({ params })).rejects.toThrow("Redirect: /tasks/task-a");
-    await expect(NewTaskDamagePage({ params })).rejects.toThrow("Redirect: /tasks/task-a");
-    await expect(TaskReadyPage({ params })).rejects.toThrow("Redirect: /tasks/task-a");
+    expect(tree.props.permissions).toMatchObject({
+      work: false,
+      reportDamage: false,
+    });
+    await expect(EditTaskPage({ params })).rejects.toThrow(
+      "Redirect: /tasks/task-a",
+    );
+    await expect(NewTaskDamagePage({ params })).rejects.toThrow(
+      "Redirect: /tasks/task-a",
+    );
+    await expect(TaskReadyPage({ params })).rejects.toThrow(
+      "Redirect: /tasks/task-a",
+    );
   });
   it("derives the new damage unit and return destination from the scoped task", async () => {
-    const form = elements(await NewTaskDamagePage({ params })).find((element) => element.type === DamageReportForm);
-    expect(form?.props).toMatchObject({ unitId: "unit-a", returnHref: "/tasks/task-a" });
+    const form = elements(await NewTaskDamagePage({ params })).find(
+      (element) => element.type === DamageReportForm,
+    );
+    expect(form?.props).toMatchObject({
+      unitId: "unit-a",
+      returnHref: "/tasks/task-a",
+    });
   });
   it("guards the owner resolution page before reading any task data", async () => {
-    expect((await ResolveTaskDamagePage({ params: resolveParams })).type).toBe(PermissionDenied);
+    expect((await ResolveTaskDamagePage({ params: resolveParams })).type).toBe(
+      PermissionDenied,
+    );
     expect(getTaskDetail).not.toHaveBeenCalled();
   });
   it("rejects damage from another unit or already resolved reports", async () => {
     vi.mocked(requirePermission).mockResolvedValue(owner);
-    await expect(ResolveTaskDamagePage({ params: Promise.resolve({ id: "task-a", damageReportId: "other-report" }) })).rejects.toThrow("Not found");
-    const form = elements(await ResolveTaskDamagePage({ params: resolveParams })).find((element) => element.type === ResolveDamageForm);
-    expect(form?.props).toEqual({ from: { taskId: "task-a" }, damageReportId: "damage-a" });
+    await expect(
+      ResolveTaskDamagePage({
+        params: Promise.resolve({
+          id: "task-a",
+          damageReportId: "other-report",
+        }),
+      }),
+    ).rejects.toThrow("Not found");
+    const form = elements(
+      await ResolveTaskDamagePage({ params: resolveParams }),
+    ).find((element) => element.type === ResolveDamageForm);
+    expect(form?.props).toEqual({
+      from: { taskId: "task-a" },
+      damageReportId: "damage-a",
+    });
   });
   it("never exposes an override form to staff or while required items are missing", async () => {
     expect(hasForm(await TaskReadyPage({ params }), MarkReadyForm)).toBe(false);
     vi.mocked(requireMembership).mockResolvedValue(owner);
-    const form = elements(await TaskReadyPage({ params })).find((element) => element.type === MarkReadyForm);
+    const form = elements(await TaskReadyPage({ params })).find(
+      (element) => element.type === MarkReadyForm,
+    );
     expect(form?.props.canOverrideDamage).toBe(true);
-    vi.mocked(getTaskDetail).mockResolvedValue(taskFixture({ completed: false }));
+    vi.mocked(getTaskDetail).mockResolvedValue(
+      taskFixture({ completed: false }),
+    );
     expect(hasForm(await TaskReadyPage({ params }), MarkReadyForm)).toBe(false);
   });
 });
 
 describe("mutation boundaries", () => {
   it("blocks direct staff damage resolution before reads or writes", async () => {
-    await expect(resolveDamageReportAction("task-a", "damage-a", {}, new FormData())).rejects.toThrow("Owner only");
+    await expect(
+      resolveDamageReportAction("task-a", "damage-a", {}, new FormData()),
+    ).rejects.toThrow("Owner only");
     expect(getTaskDetail).not.toHaveBeenCalled();
     expect(resolveDamageReport).not.toHaveBeenCalled();
   });
   it("rechecks the task/damage relationship before resolving", async () => {
     vi.mocked(requireMembership).mockResolvedValue(owner);
-    const result = await resolveDamageReportAction("task-a", "other-report", {}, new FormData());
+    const result = await resolveDamageReportAction(
+      "task-a",
+      "other-report",
+      {},
+      new FormData(),
+    );
     expect(result.error).toContain("not found for this task");
     expect(resolveDamageReport).not.toHaveBeenCalled();
     await resolveDamageReportAction("task-a", "damage-a", {}, new FormData());
-    expect(resolveDamageReport).toHaveBeenCalledWith(expect.objectContaining({ organizationId: "org-a", actorUserId: "owner-a", damageReportId: "damage-a" }));
+    expect(resolveDamageReport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        organizationId: "org-a",
+        actorUserId: "owner-a",
+        damageReportId: "damage-a",
+      }),
+    );
   });
   it("only lets members who can resolve damage override it when marking ready", async () => {
     await markTaskReadyAction("task-a", {}, new FormData());
-    expect(markTaskReady).toHaveBeenCalledWith(expect.objectContaining({ organizationId: "org-a", canOverrideDamage: false, taskId: "task-a" }));
+    expect(markTaskReady).toHaveBeenCalledWith(
+      expect.objectContaining({
+        organizationId: "org-a",
+        canOverrideDamage: false,
+        taskId: "task-a",
+      }),
+    );
   });
   it("rejects stale notes edits on ready tasks", async () => {
     vi.mocked(getTaskDetail).mockResolvedValue(taskFixture({ ready: true }));
-    expect((await updateTaskNotesAction("task-a", {}, new FormData())).error).toContain("already marked ready");
+    expect(
+      (await updateTaskNotesAction("task-a", {}, new FormData())).error,
+    ).toContain("already marked ready");
     expect(updateTaskNotes).not.toHaveBeenCalled();
   });
 });
@@ -233,25 +437,45 @@ describe("public payment reference extraction", () => {
     expect(requireMembership).not.toHaveBeenCalled();
     expect(requirePermission).not.toHaveBeenCalled();
   });
-  it.each(["hold", "confirmed", "checked_in"])("allows %s token holders to use only the dedicated form", async (status) => {
-    vi.mocked(getGuestViewByToken).mockResolvedValue(guestFixture(status));
-    const detail = await GuestStatusPage({ params: tokenParams });
-    expect(hasForm(detail, SubmitProofForm)).toBe(false);
-    expect(links(detail)).toContain("/g/opaque-token/payment-proof/new");
-    const form = elements(await NewGuestPaymentProofPage({ params: tokenParams })).find((element) => element.type === SubmitProofForm);
-    expect(form?.props).toEqual({ token: "opaque-token" });
-    expect(requireMembership).not.toHaveBeenCalled();
-  });
-  it.each(["cancelled", "expired", "checked_out"])("does not offer submission for %s bookings", async (status) => {
-    vi.mocked(getGuestViewByToken).mockResolvedValue(guestFixture(status));
-    expect(hasForm(await NewGuestPaymentProofPage({ params: tokenParams }), SubmitProofForm)).toBe(false);
-    expect(links(await GuestStatusPage({ params: tokenParams }))).not.toContain("/g/opaque-token/payment-proof/new");
-  });
+  it.each(["hold", "confirmed", "checked_in"])(
+    "allows %s token holders to use only the dedicated form",
+    async (status) => {
+      vi.mocked(getGuestViewByToken).mockResolvedValue(guestFixture(status));
+      const detail = await GuestStatusPage({ params: tokenParams });
+      expect(hasForm(detail, SubmitProofForm)).toBe(false);
+      expect(links(detail)).toContain("/g/opaque-token/payment-proof/new");
+      const form = elements(
+        await NewGuestPaymentProofPage({ params: tokenParams }),
+      ).find((element) => element.type === SubmitProofForm);
+      expect(form?.props).toEqual({ token: "opaque-token" });
+      expect(requireMembership).not.toHaveBeenCalled();
+    },
+  );
+  it.each(["cancelled", "expired", "checked_out"])(
+    "does not offer submission for %s bookings",
+    async (status) => {
+      vi.mocked(getGuestViewByToken).mockResolvedValue(guestFixture(status));
+      expect(
+        hasForm(
+          await NewGuestPaymentProofPage({ params: tokenParams }),
+          SubmitProofForm,
+        ),
+      ).toBe(false);
+      expect(
+        links(await GuestStatusPage({ params: tokenParams })),
+      ).not.toContain("/g/opaque-token/payment-proof/new");
+    },
+  );
   it("keeps submission authorized by token with no membership dependency", async () => {
     const data = new FormData();
     data.set("reference", " ref-123 ");
-    expect(await submitPaymentProofAction("opaque-token", {}, data)).toEqual({ success: true });
-    expect(submitGuestPaymentProof).toHaveBeenCalledWith({ token: "opaque-token", data: { reference: "ref-123", note: undefined } });
+    expect(await submitPaymentProofAction("opaque-token", {}, data)).toEqual({
+      success: true,
+    });
+    expect(submitGuestPaymentProof).toHaveBeenCalledWith({
+      token: "opaque-token",
+      data: { reference: "ref-123", note: undefined },
+    });
     expect(requireMembership).not.toHaveBeenCalled();
   });
 });

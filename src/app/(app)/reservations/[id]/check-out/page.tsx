@@ -6,10 +6,18 @@ import { checkOutPanel } from "../stay-actions";
 
 export const metadata: Metadata = { title: "Check out guest" };
 
-export default async function CheckOutPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function CheckOutPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const membership = await requirePermission("stays.update");
   if (!membership) return <PermissionDenied />;
   const { id } = await params;
   const { form, ...panel } = await checkOutPanel(membership.organizationId, id);
-  return <ReservationActionPage {...panel} reservationId={id}>{form}</ReservationActionPage>;
+  return (
+    <ReservationActionPage {...panel} reservationId={id}>
+      {form}
+    </ReservationActionPage>
+  );
 }

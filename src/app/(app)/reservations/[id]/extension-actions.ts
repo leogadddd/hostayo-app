@@ -2,7 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { ZodError } from "zod";
-import { requireMembership, assertCan, PermissionError } from "@/lib/auth/session";
+import {
+  requireMembership,
+  assertCan,
+  PermissionError,
+} from "@/lib/auth/session";
 import { can } from "@/lib/permissions";
 import { unexpectedErrorMessage } from "@/lib/errors";
 import {
@@ -20,8 +24,12 @@ export interface ExtensionFormState {
 }
 
 function toFormError(error: unknown): ExtensionFormState {
-  if (error instanceof ReservationError || error instanceof PermissionError) return { error: error.message };
-  if (error instanceof ZodError) return { error: error.issues[0]?.message ?? "Check the form and try again." };
+  if (error instanceof ReservationError || error instanceof PermissionError)
+    return { error: error.message };
+  if (error instanceof ZodError)
+    return {
+      error: error.issues[0]?.message ?? "Check the form and try again.",
+    };
   return { error: unexpectedErrorMessage(error, "reservations") };
 }
 
@@ -48,7 +56,10 @@ export async function requestExtensionAction(
       organizationId: membership.organizationId,
       actorUserId: membership.userId,
       reservationId,
-      data: { hours: Number(formData.get("hours")), note: readString(formData, "note") || undefined },
+      data: {
+        hours: Number(formData.get("hours")),
+        note: readString(formData, "note") || undefined,
+      },
     });
   } catch (error) {
     return toFormError(error);
@@ -73,7 +84,10 @@ export async function approveExtensionAction(
       extensionId,
       // Changing the price is setting a charge, so it needs payments.create too.
       canSetRate: can(membership, "payments.create"),
-      data: { hourlyRatePesos: readString(formData, "hourlyRatePesos") || undefined, note: readString(formData, "note") || undefined },
+      data: {
+        hourlyRatePesos: readString(formData, "hourlyRatePesos") || undefined,
+        note: readString(formData, "note") || undefined,
+      },
     });
   } catch (error) {
     return toFormError(error);
@@ -106,11 +120,19 @@ export async function declineExtensionAction(
 }
 
 /** Returns the error rather than throwing: thrown messages are hidden in production. */
-export async function cancelExtensionRequestAction(reservationId: string, extensionId: string): Promise<ExtensionFormState> {
+export async function cancelExtensionRequestAction(
+  reservationId: string,
+  extensionId: string,
+): Promise<ExtensionFormState> {
   const membership = await requireMembership();
   try {
     assertCan(membership, "extensions.create");
-    await cancelExtensionRequest({ organizationId: membership.organizationId, actorUserId: membership.userId, reservationId, extensionId });
+    await cancelExtensionRequest({
+      organizationId: membership.organizationId,
+      actorUserId: membership.userId,
+      reservationId,
+      extensionId,
+    });
   } catch (error) {
     return toFormError(error);
   }
@@ -119,11 +141,19 @@ export async function cancelExtensionRequestAction(reservationId: string, extens
 }
 
 /** Returns the error rather than throwing: thrown messages are hidden in production. */
-export async function removeExtensionAction(reservationId: string, extensionId: string): Promise<ExtensionFormState> {
+export async function removeExtensionAction(
+  reservationId: string,
+  extensionId: string,
+): Promise<ExtensionFormState> {
   const membership = await requireMembership();
   try {
     assertCan(membership, "extensions.delete");
-    await removeExtension({ organizationId: membership.organizationId, actorUserId: membership.userId, reservationId, extensionId });
+    await removeExtension({
+      organizationId: membership.organizationId,
+      actorUserId: membership.userId,
+      reservationId,
+      extensionId,
+    });
   } catch (error) {
     return toFormError(error);
   }

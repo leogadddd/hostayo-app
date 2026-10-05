@@ -9,7 +9,13 @@ import { AuthLoadingOverlay } from "@/components/ui/auth-loading-overlay";
 import { signOutAndRedirect } from "@/lib/auth/sign-out";
 import { acceptInvitationAction } from "./invitation-actions";
 
-export function AcceptInvitationButton({ code, organizationName }: { code: string; organizationName: string }) {
+export function AcceptInvitationButton({
+  code,
+  organizationName,
+}: {
+  code: string;
+  organizationName: string;
+}) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,8 +29,13 @@ export function AcceptInvitationButton({ code, organizationName }: { code: strin
     }));
     if (!result.success) {
       setPending(false);
-      setError(result.error ?? "We could not process that invitation. Please try again.");
-      toast.error("Couldn’t accept the invitation", { description: result.error });
+      setError(
+        result.error ??
+          "We could not process that invitation. Please try again.",
+      );
+      toast.error("Couldn’t accept the invitation", {
+        description: result.error,
+      });
       return;
     }
     toast.success(`You’ve joined ${organizationName}.`);
@@ -35,16 +46,27 @@ export function AcceptInvitationButton({ code, organizationName }: { code: strin
   return (
     <div className="flex flex-col items-end gap-2">
       {error ? (
-        <p role="alert" className="flex items-start gap-2 text-sm text-clay-deep">
+        <p
+          role="alert"
+          className="flex items-start gap-2 text-sm text-clay-deep"
+        >
           <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
           {error}
         </p>
       ) : null}
-      <Button type="button" variant="clay" size="lg" onClick={accept} disabled={pending}>
+      <Button
+        type="button"
+        variant="clay"
+        size="lg"
+        onClick={accept}
+        disabled={pending}
+      >
         {pending ? "Joining…" : `Join ${organizationName}`}
         {pending ? null : <ArrowRight className="h-4 w-4" aria-hidden />}
       </Button>
-      {pending ? <AuthLoadingOverlay label={`Opening ${organizationName}…`} /> : null}
+      {pending ? (
+        <AuthLoadingOverlay label={`Opening ${organizationName}…`} />
+      ) : null}
     </div>
   );
 }
@@ -55,14 +77,24 @@ export function SwitchAccountButton({ code }: { code: string }) {
   async function switchAccount() {
     setPending(true);
     try {
-      await signOutAndRedirect(() => window.location.replace(`/login?invite=${encodeURIComponent(code)}`));
+      await signOutAndRedirect(() =>
+        window.location.replace(`/login?invite=${encodeURIComponent(code)}`),
+      );
     } catch (error) {
       setPending(false);
-      toast.error("Couldn’t sign out", { description: error instanceof Error ? error.message : undefined });
+      toast.error("Couldn’t sign out", {
+        description: error instanceof Error ? error.message : undefined,
+      });
     }
   }
   return (
-    <Button type="button" variant="ghost" size="lg" onClick={switchAccount} disabled={pending}>
+    <Button
+      type="button"
+      variant="ghost"
+      size="lg"
+      onClick={switchAccount}
+      disabled={pending}
+    >
       {pending ? "Signing out…" : "Use a different account"}
     </Button>
   );

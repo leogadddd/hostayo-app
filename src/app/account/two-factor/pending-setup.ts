@@ -38,8 +38,13 @@ export function usePendingSetup() {
 }
 
 /** Checks the password and creates a fresh, not-yet-verified authenticator secret. Returns an error message. */
-export async function startTwoFactorSetup(password: string): Promise<string | void> {
-  const { data, error } = await authClient.twoFactor.enable({ password, method: "totp" });
+export async function startTwoFactorSetup(
+  password: string,
+): Promise<string | void> {
+  const { data, error } = await authClient.twoFactor.enable({
+    password,
+    method: "totp",
+  });
   if (error || !data || data.method !== "totp") {
     return error?.status === 400 || error?.status === 401
       ? "That password isn’t right."

@@ -63,8 +63,7 @@ const sections = [
   },
   {
     title: "11. Contact",
-    content:
-      `For questions about these terms or your Hostayo account, please contact the Hostayo team at ${SUPPORT_EMAIL}, or message us on Facebook or Instagram (@hostayoph). Signed-in users can also reach us from Settings → Support.`,
+    content: `For questions about these terms or your Hostayo account, please contact the Hostayo team at ${SUPPORT_EMAIL}, or message us on Facebook or Instagram (@hostayoph). Signed-in users can also reach us from Settings → Support.`,
   },
 ];
 

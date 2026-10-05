@@ -9,17 +9,33 @@ import { TaskNotesForm } from "../task-notes-form";
 
 export const metadata: Metadata = { title: "Edit turnover notes" };
 
-export default async function EditTaskPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function EditTaskPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const membership = await requirePermission("tasks.update");
   if (!membership) return <PermissionDenied />;
   const { id } = await params;
-  const { task, unitName, propertyName } = await getTaskDetail(membership.organizationId, id);
+  const { task, unitName, propertyName } = await getTaskDetail(
+    membership.organizationId,
+    id,
+  );
   if (task.status !== "open") redirect(`/tasks/${task.id}`);
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeading title="Edit turnover notes" description={`${propertyName} · ${unitName}`} backHref={`/tasks/${task.id}`} backLabel="Back to task" />
-      <Card><CardBody><TaskNotesForm taskId={task.id} notes={task.notes ?? ""} editable /></CardBody></Card>
+      <PageHeading
+        title="Edit turnover notes"
+        description={`${propertyName} · ${unitName}`}
+        backHref={`/tasks/${task.id}`}
+        backLabel="Back to task"
+      />
+      <Card>
+        <CardBody>
+          <TaskNotesForm taskId={task.id} notes={task.notes ?? ""} editable />
+        </CardBody>
+      </Card>
     </div>
   );
 }

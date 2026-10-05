@@ -16,7 +16,9 @@ const db = drizzle(client);
 
 async function appliedCount(): Promise<number> {
   try {
-    const [row] = await client<{ count: string }[]>`SELECT count(*) FROM drizzle.__drizzle_migrations`;
+    const [row] = await client<
+      { count: string }[]
+    >`SELECT count(*) FROM drizzle.__drizzle_migrations`;
     return Number(row?.count ?? 0);
   } catch {
     return 0; // First run: the migrations table doesn't exist yet.
@@ -35,11 +37,21 @@ async function main() {
     const before = await appliedCount();
     await migrate(db, { migrationsFolder: "drizzle" });
     const applied = (await appliedCount()) - before;
-    console.log(applied ? `Applied ${applied} migration${applied === 1 ? "" : "s"}.` : "Already up to date.");
+    console.log(
+      applied
+        ? `Applied ${applied} migration${applied === 1 ? "" : "s"}.`
+        : "Already up to date.",
+    );
   } catch (error) {
     // Drizzle wraps the Postgres error; its cause has the useful message.
-    const cause = error instanceof Error && error.cause instanceof Error ? error.cause : error;
-    console.error("Migration failed:", cause instanceof Error ? cause.message : cause);
+    const cause =
+      error instanceof Error && error.cause instanceof Error
+        ? error.cause
+        : error;
+    console.error(
+      "Migration failed:",
+      cause instanceof Error ? cause.message : cause,
+    );
     process.exitCode = 1;
   } finally {
     clearTimeout(timeout);

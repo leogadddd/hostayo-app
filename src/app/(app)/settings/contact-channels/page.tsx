@@ -9,6 +9,13 @@ export const metadata: Metadata = { title: "Contact channels" };
 export default async function ContactChannelsPage() {
   const membership = await requirePermission("organization.update");
   if (!membership) return <PermissionDenied />;
-  const channels = await getOrganizationContactChannels(membership.organizationId);
-  return <ContactChannelsEditor organizationName={membership.organizationName} initialChannels={channels} />;
+  const channels = await getOrganizationContactChannels(
+    membership.organizationId,
+  );
+  return (
+    <ContactChannelsEditor
+      organizationName={membership.organizationName}
+      initialChannels={channels}
+    />
+  );
 }

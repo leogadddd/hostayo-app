@@ -33,7 +33,11 @@ export interface ExpenseListItem {
 
 export async function listExpenses(
   organizationId: string,
-  filters: { propertyId?: string; classification?: string; month?: string } = {},
+  filters: {
+    propertyId?: string;
+    classification?: string;
+    month?: string;
+  } = {},
 ): Promise<ExpenseListItem[]> {
   const conditions = [eq(expenses.organizationId, organizationId)];
   if (filters.propertyId) {

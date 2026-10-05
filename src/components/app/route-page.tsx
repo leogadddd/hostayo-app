@@ -23,10 +23,21 @@ export function RoutePage({
 }) {
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeading title={title} description={description} backHref={backHref} backLabel={backLabel} />
+      <PageHeading
+        title={title}
+        description={description}
+        backHref={backHref}
+        backLabel={backLabel}
+      />
       <Card className="bg-surface">
         <CardBody>
-          {unavailable ? <p className="text-sm text-ink/65" role="status">{unavailable}</p> : children}
+          {unavailable ? (
+            <p className="text-sm text-ink/65" role="status">
+              {unavailable}
+            </p>
+          ) : (
+            children
+          )}
         </CardBody>
       </Card>
     </div>

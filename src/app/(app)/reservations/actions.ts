@@ -2,7 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { ZodError } from "zod";
-import { requireMembership, assertCan, PermissionError } from "@/lib/auth/session";
+import {
+  requireMembership,
+  assertCan,
+  PermissionError,
+} from "@/lib/auth/session";
 import { can } from "@/lib/permissions";
 import {
   cancelReservation,
@@ -20,7 +24,10 @@ import {
   checkOut,
   OperationsError,
 } from "@/server/operations/service";
-import { ReservationError, reservationDetailsSchema } from "@/server/reservations/validation";
+import {
+  ReservationError,
+  reservationDetailsSchema,
+} from "@/server/reservations/validation";
 import { getUnitOrThrow } from "@/server/inventory/service";
 import { InventoryError } from "@/server/inventory/validation";
 import { buildDefaultCharges } from "@/lib/charges";
@@ -40,7 +47,11 @@ function readString(formData: FormData, key: string): string {
 }
 
 function toFormError(error: unknown): ReservationFormState {
-  if (error instanceof ReservationError || error instanceof InventoryError || error instanceof MoneyParseError) {
+  if (
+    error instanceof ReservationError ||
+    error instanceof InventoryError ||
+    error instanceof MoneyParseError
+  ) {
     return { error: error.message };
   }
   if (error instanceof OperationsError) {
@@ -54,7 +65,9 @@ function toFormError(error: unknown): ReservationFormState {
     return { error: first ? first.message : "Check the form and try again." };
   }
   if (error instanceof SyntaxError) {
-    return { error: "The charge breakdown could not be read. Refresh and try again." };
+    return {
+      error: "The charge breakdown could not be read. Refresh and try again.",
+    };
   }
   return { error: unexpectedErrorMessage(error, "reservations") };
 }
@@ -74,7 +87,8 @@ export async function createReservationAction(
   formData: FormData,
 ): Promise<ReservationFormState> {
   const membership = await requireMembership();
-  const mode = readString(formData, "mode") === "confirmed" ? "confirmed" : "hold";
+  const mode =
+    readString(formData, "mode") === "confirmed" ? "confirmed" : "hold";
   assertCan(membership, "reservations.create");
   // Booking straight to confirmed skips the hold review and records payment.
   if (mode === "confirmed") {
@@ -82,7 +96,8 @@ export async function createReservationAction(
     assertCan(membership, "payments.create");
   }
 
-  const guestMode = readString(formData, "guestMode") === "new" ? "new" : "existing";
+  const guestMode =
+    readString(formData, "guestMode") === "new" ? "new" : "existing";
   const guest =
     guestMode === "new"
       ? {
@@ -105,7 +120,10 @@ export async function createReservationAction(
       platformReference: readString(formData, "platformReference") || undefined,
     });
     if (details.checkOut <= details.checkIn) {
-      throw new ReservationError("Check-out must be after check-in.", "checkOut");
+      throw new ReservationError(
+        "Check-out must be after check-in.",
+        "checkOut",
+      );
     }
     let charges: ChargeLineInput[];
     // Only people who may set prices send their own charge lines; everyone
@@ -113,7 +131,10 @@ export async function createReservationAction(
     if (can(membership, "payments.create")) {
       charges = readChargeLines(formData);
     } else {
-      const unit = await getUnitOrThrow(membership.organizationId, details.unitId);
+      const unit = await getUnitOrThrow(
+        membership.organizationId,
+        details.unitId,
+      );
       charges = buildDefaultCharges({
         nightlyRateCents: unit.defaultNightlyRateCents,
         dayRates: unit.dayRates,
@@ -151,15 +172,18 @@ export async function createReservationAction(
             data: {
               ...base,
               occupantNames,
-              acknowledgeUnpaid:
-                formData.get("acknowledgeUnpaid") === "on",
+              acknowledgeUnpaid: formData.get("acknowledgeUnpaid") === "on",
               initialPayment: readString(formData, "paymentAmountPesos")
                 ? {
                     amountPesos: readString(formData, "paymentAmountPesos"),
-                    allocation: readString(formData, "paymentAllocation") as "booking" | "security_deposit",
-                    method: readString(formData, "paymentMethod") as "gcash" | "maya" | "bank_transfer" | "cash",
-                    reference: readString(formData, "paymentReference") || undefined,
-                    receivedAt: readString(formData, "paymentReceivedAt") || undefined,
+                    allocation: readString(formData, "paymentAllocation") as
+                      "booking" | "security_deposit",
+                    method: readString(formData, "paymentMethod") as
+                      "gcash" | "maya" | "bank_transfer" | "cash",
+                    reference:
+                      readString(formData, "paymentReference") || undefined,
+                    receivedAt:
+                      readString(formData, "paymentReceivedAt") || undefined,
                   }
                 : undefined,
             },
@@ -218,33 +242,83 @@ export async function cancelReservationAction(
   return { success: true };
 }
 
-export async function quickCancelReservationAction(reservationId: string): Promise<ReservationFormState> {
+export async function quickCancelReservationAction(
+  reservationId: string,
+): Promise<ReservationFormState> {
   const membership = await requireMembership();
   assertCan(membership, "reservations.delete");
   try {
-    await cancelReservation({ organizationId: membership.organizationId, actorUserId: membership.userId, reservationId, reason: "Cancelled from the reservation list." });
-  } catch (error) { return toFormError(error); }
-  revalidatePath("/reservations"); revalidatePath(`/reservations/${reservationId}`); revalidatePath("/calendar");
+    await cancelReservation({
+      organizationId: membership.organizationId,
+      actorUserId: membership.userId,
+      reservationId,
+      reason: "Cancelled from the reservation list.",
+    });
+  } catch (error) {
+    return toFormError(error);
+  }
+  revalidatePath("/reservations");
+  revalidatePath(`/reservations/${reservationId}`);
+  revalidatePath("/calendar");
   return { success: true };
 }
 
-export async function updateReservationAction(reservationId: string, _prev: ReservationFormState, formData: FormData): Promise<ReservationFormState> {
+export async function updateReservationAction(
+  reservationId: string,
+  _prev: ReservationFormState,
+  formData: FormData,
+): Promise<ReservationFormState> {
   const membership = await requireMembership();
   assertCan(membership, "reservations.update");
   // Edits re-price the stay.
   assertCan(membership, "payments.create");
   try {
-    await updateReservation({ organizationId: membership.organizationId, actorUserId: membership.userId, reservationId, data: {
-      checkIn: readString(formData, "checkIn"), checkOut: readString(formData, "checkOut"), guestCount: Number(readString(formData, "guestCount")),
-      platformId: readString(formData, "platformId") || undefined, platformReference: readString(formData, "platformReference"),
-      // "new" creates a guest profile from the contact fields below.
-      guestId: readString(formData, "guestId") === "new" ? undefined : readString(formData, "guestId") || undefined,
-      primaryGuest: readString(formData, "guestName") ? { name: readString(formData, "guestName"), email: readString(formData, "guestEmail") || undefined, phone: readString(formData, "guestPhone") || undefined } : undefined,
-      unitId: readString(formData, "unitId"), occupantNames: formData.getAll("occupantName").map((value) => String(value).trim()),
-      charges: formData.getAll("chargeType").map((type, index) => ({ type: String(type) as ChargeLineInput["type"], description: String(formData.getAll("chargeDescription")[index] ?? "").trim(), quantity: Number(formData.getAll("chargeQuantity")[index] ?? 0), unitAmountCents: pesosToCentavos(String(formData.getAll("chargeAmountPesos")[index] ?? "")) })),
-    } });
-  } catch (error) { return toFormError(error); }
-  revalidatePath("/reservations"); revalidatePath(`/reservations/${reservationId}`); revalidatePath("/calendar");
+    await updateReservation({
+      organizationId: membership.organizationId,
+      actorUserId: membership.userId,
+      reservationId,
+      data: {
+        checkIn: readString(formData, "checkIn"),
+        checkOut: readString(formData, "checkOut"),
+        guestCount: Number(readString(formData, "guestCount")),
+        platformId: readString(formData, "platformId") || undefined,
+        platformReference: readString(formData, "platformReference"),
+        // "new" creates a guest profile from the contact fields below.
+        guestId:
+          readString(formData, "guestId") === "new"
+            ? undefined
+            : readString(formData, "guestId") || undefined,
+        primaryGuest: readString(formData, "guestName")
+          ? {
+              name: readString(formData, "guestName"),
+              email: readString(formData, "guestEmail") || undefined,
+              phone: readString(formData, "guestPhone") || undefined,
+            }
+          : undefined,
+        unitId: readString(formData, "unitId"),
+        occupantNames: formData
+          .getAll("occupantName")
+          .map((value) => String(value).trim()),
+        charges: formData
+          .getAll("chargeType")
+          .map((type, index) => ({
+            type: String(type) as ChargeLineInput["type"],
+            description: String(
+              formData.getAll("chargeDescription")[index] ?? "",
+            ).trim(),
+            quantity: Number(formData.getAll("chargeQuantity")[index] ?? 0),
+            unitAmountCents: pesosToCentavos(
+              String(formData.getAll("chargeAmountPesos")[index] ?? ""),
+            ),
+          })),
+      },
+    });
+  } catch (error) {
+    return toFormError(error);
+  }
+  revalidatePath("/reservations");
+  revalidatePath(`/reservations/${reservationId}`);
+  revalidatePath("/calendar");
   return { success: true, reservationId };
 }
 
@@ -283,7 +357,10 @@ export async function checkOutAction(
       actorUserId: membership.userId,
       reservationId,
       // Blank means "now"; the turnover starts at this actual departure time.
-      data: { note: readString(formData, "note"), actualCheckoutAt: readString(formData, "actualCheckoutAt") || undefined },
+      data: {
+        note: readString(formData, "note"),
+        actualCheckoutAt: readString(formData, "actualCheckoutAt") || undefined,
+      },
     });
   } catch (error) {
     return toFormError(error);

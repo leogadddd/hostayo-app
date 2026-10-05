@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
-import { CircleCheck, CircleX, Info, LoaderCircle, TriangleAlert } from "lucide-react";
+import {
+  CircleCheck,
+  CircleX,
+  Info,
+  LoaderCircle,
+  TriangleAlert,
+} from "lucide-react";
 import { Toaster as Sonner, toast } from "sonner";
 
 const FLASH_KEY = "hostayo-toast";
@@ -21,7 +27,10 @@ export function HostayoToaster() {
       if (!value) return;
       sessionStorage.removeItem(FLASH_KEY);
       try {
-        const flash = JSON.parse(value) as { kind?: ToastKind; message?: string };
+        const flash = JSON.parse(value) as {
+          kind?: ToastKind;
+          message?: string;
+        };
         if (flash.kind && flash.message) toast[flash.kind](flash.message);
       } catch {
         // Ignore invalid or stale browser data.

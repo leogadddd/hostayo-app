@@ -33,7 +33,9 @@ export function showActionFeedback<State extends ActionFeedbackState>(
 
   if (state.success && options.success) {
     toast.success(
-      typeof options.success === "function" ? options.success(state) : options.success,
+      typeof options.success === "function"
+        ? options.success(state)
+        : options.success,
     );
     return;
   }

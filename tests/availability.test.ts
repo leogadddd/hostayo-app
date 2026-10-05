@@ -9,7 +9,13 @@ const block = (
   startDate: string,
   endDate: string,
   reason = "maintenance",
-): OccupancySegment => ({ kind: "block", id: `${startDate}-${endDate}`, startDate, endDate, reason });
+): OccupancySegment => ({
+  kind: "block",
+  id: `${startDate}-${endDate}`,
+  startDate,
+  endDate,
+  reason,
+});
 
 describe("buildNightStatusMap", () => {
   it("marks every night available with no segments", () => {
@@ -56,7 +62,11 @@ describe("checkIntervalAvailability", () => {
   const segments = [block("2026-09-05", "2026-09-07", "AC repair")];
 
   it("reports available with the night list when clear", () => {
-    const check = checkIntervalAvailability(segments, "2026-09-07", "2026-09-10");
+    const check = checkIntervalAvailability(
+      segments,
+      "2026-09-07",
+      "2026-09-10",
+    );
     expect(check.available).toBe(true);
     if (check.available) {
       expect(check.nights).toEqual(["2026-09-07", "2026-09-08", "2026-09-09"]);
@@ -64,7 +74,11 @@ describe("checkIntervalAvailability", () => {
   });
 
   it("conflicts when the range intersects a block", () => {
-    const check = checkIntervalAvailability(segments, "2026-09-04", "2026-09-06");
+    const check = checkIntervalAvailability(
+      segments,
+      "2026-09-04",
+      "2026-09-06",
+    );
     expect(check.available).toBe(false);
     if (!check.available) {
       expect(check.conflict.reason).toBe("AC repair");
@@ -73,12 +87,20 @@ describe("checkIntervalAvailability", () => {
 
   it("treats a stay starting on the block's end date as available", () => {
     // Checkout-exclusive semantics: block covers nights of the 5th and 6th.
-    const check = checkIntervalAvailability(segments, "2026-09-07", "2026-09-08");
+    const check = checkIntervalAvailability(
+      segments,
+      "2026-09-07",
+      "2026-09-08",
+    );
     expect(check.available).toBe(true);
   });
 
   it("treats a stay ending on the block's start date as available", () => {
-    const check = checkIntervalAvailability(segments, "2026-09-03", "2026-09-05");
+    const check = checkIntervalAvailability(
+      segments,
+      "2026-09-03",
+      "2026-09-05",
+    );
     expect(check.available).toBe(true);
   });
 });

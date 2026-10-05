@@ -21,7 +21,11 @@ import {
   updateUnit,
 } from "@/server/inventory/service";
 import { InventoryError } from "@/server/inventory/validation";
-import { createOrganization, OrgError, updateOrganizationName } from "@/server/orgs/service";
+import {
+  createOrganization,
+  OrgError,
+  updateOrganizationName,
+} from "@/server/orgs/service";
 import { getOnboardingState } from "./state";
 
 export interface OnboardingFormState {
@@ -44,7 +48,9 @@ function toFormError(error: unknown): OnboardingFormState {
     return { error: error.message };
   }
   if (error instanceof ZodError) {
-    return { error: error.issues[0]?.message ?? "Check the form and try again." };
+    return {
+      error: error.issues[0]?.message ?? "Check the form and try again.",
+    };
   }
   return { error: unexpectedErrorMessage(error, "onboarding") };
 }
@@ -57,11 +63,16 @@ export async function saveOrganizationAction(
   const user = await requireUser();
   const name = readString(formData, "name");
   try {
-    assertNotDemoAccount({ isDemoAccount: await getDemoAccountStatus(user.id) });
+    assertNotDemoAccount({
+      isDemoAccount: await getDemoAccountStatus(user.id),
+    });
     const { membership } = await getOnboardingState(user.id);
     if (!membership) {
       await createOrganization({ name, ownerUserId: user.id });
-    } else if (membership.role === "owner" && membership.organizationName !== name) {
+    } else if (
+      membership.role === "owner" &&
+      membership.organizationName !== name
+    ) {
       await updateOrganizationName({
         organizationId: membership.organizationId,
         actorUserId: user.id,

@@ -1,7 +1,11 @@
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { normalizeChecklistTemplate } from "@/lib/turnover";
-import { getPropertyOrThrow, getUnitBlockOrThrow, getUnitOrThrow } from "@/server/inventory/service";
+import {
+  getPropertyOrThrow,
+  getUnitBlockOrThrow,
+  getUnitOrThrow,
+} from "@/server/inventory/service";
 import { InventoryError } from "@/server/inventory/validation";
 import { BlockForms } from "../block-forms";
 import { ChecklistTemplateEditor } from "../checklist-template-editor";
@@ -20,31 +24,64 @@ export interface UnitActionPanel {
   form: ReactNode;
 }
 
-async function loadUnit(organizationId: string, propertyId: string, unitId: string) {
+async function loadUnit(
+  organizationId: string,
+  propertyId: string,
+  unitId: string,
+) {
   try {
     // The property first, so a foreign property never leads to a unit read.
     const property = await getPropertyOrThrow(organizationId, propertyId);
     const unit = await getUnitOrThrow(organizationId, unitId);
     if (unit.propertyId !== property.id) notFound();
-    return { property, unit, back: { backHref: `/properties/${property.id}/units/${unit.id}`, backLabel: unit.name } };
+    return {
+      property,
+      unit,
+      back: {
+        backHref: `/properties/${property.id}/units/${unit.id}`,
+        backLabel: unit.name,
+      },
+    };
   } catch (error) {
     if (error instanceof InventoryError) notFound();
     throw error;
   }
 }
 
-export async function statusPanel(organizationId: string, propertyId: string, unitId: string): Promise<UnitActionPanel> {
-  const { property, unit, back } = await loadUnit(organizationId, propertyId, unitId);
+export async function statusPanel(
+  organizationId: string,
+  propertyId: string,
+  unitId: string,
+): Promise<UnitActionPanel> {
+  const { property, unit, back } = await loadUnit(
+    organizationId,
+    propertyId,
+    unitId,
+  );
   return {
     ...back,
     title: "Change status",
     description: `${unit.name} · Only active units take new bookings. Existing stays are kept.`,
-    form: <UnitStatusForm propertyId={property.id} unitId={unit.id} current={unit.status} />,
+    form: (
+      <UnitStatusForm
+        propertyId={property.id}
+        unitId={unit.id}
+        current={unit.status}
+      />
+    ),
   };
 }
 
-export async function blockPanel(organizationId: string, propertyId: string, unitId: string): Promise<UnitActionPanel> {
-  const { property, unit, back } = await loadUnit(organizationId, propertyId, unitId);
+export async function blockPanel(
+  organizationId: string,
+  propertyId: string,
+  unitId: string,
+): Promise<UnitActionPanel> {
+  const { property, unit, back } = await loadUnit(
+    organizationId,
+    propertyId,
+    unitId,
+  );
   return {
     ...back,
     title: "Block dates",
@@ -53,8 +90,16 @@ export async function blockPanel(organizationId: string, propertyId: string, uni
   };
 }
 
-export async function checklistPanel(organizationId: string, propertyId: string, unitId: string): Promise<UnitActionPanel> {
-  const { property, unit, back } = await loadUnit(organizationId, propertyId, unitId);
+export async function checklistPanel(
+  organizationId: string,
+  propertyId: string,
+  unitId: string,
+): Promise<UnitActionPanel> {
+  const { property, unit, back } = await loadUnit(
+    organizationId,
+    propertyId,
+    unitId,
+  );
   return {
     ...back,
     title: "Turnover checklist",
@@ -75,7 +120,11 @@ export async function editBlockPanel(
   unitId: string,
   blockId: string,
 ): Promise<UnitActionPanel> {
-  const { property, unit, back } = await loadUnit(organizationId, propertyId, unitId);
+  const { property, unit, back } = await loadUnit(
+    organizationId,
+    propertyId,
+    unitId,
+  );
   let block;
   try {
     block = await getUnitBlockOrThrow(organizationId, unit.id, blockId);
@@ -91,7 +140,12 @@ export async function editBlockPanel(
       <BlockForms
         propertyId={property.id}
         unitId={unit.id}
-        block={{ id: block.id, startDate: block.startDate, endDate: block.endDate, reason: block.reason }}
+        block={{
+          id: block.id,
+          startDate: block.startDate,
+          endDate: block.endDate,
+          reason: block.reason,
+        }}
       />
     ),
   };

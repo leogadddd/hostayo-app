@@ -43,12 +43,15 @@ export function summarizeUnitActivity(
   const blockedNow =
     segments.find(
       (segment): segment is BlockSegment =>
-        segment.kind === "block" && segment.startDate <= today && today < segment.endDate,
+        segment.kind === "block" &&
+        segment.startDate <= today &&
+        today < segment.endDate,
     ) ?? null;
   const bookedNights = segments
     .filter((segment): segment is StaySegment => segment.kind === "reservation")
     .reduce(
-      (sum, stay) => sum + overlapNights(stay.startDate, stay.endDate, today, windowEnd),
+      (sum, stay) =>
+        sum + overlapNights(stay.startDate, stay.endDate, today, windowEnd),
       0,
     );
   return {

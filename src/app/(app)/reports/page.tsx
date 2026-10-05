@@ -1,12 +1,22 @@
 import { DateInput } from "@/components/ui/date-input";
-import { UnderConstruction, UNDER_CONSTRUCTION } from "@/components/app/under-construction";
+import {
+  UnderConstruction,
+  UNDER_CONSTRUCTION,
+} from "@/components/app/under-construction";
 import type { Metadata } from "next";
 import { PermissionDenied } from "@/components/app/permission-denied";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Label, Select } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { requirePermission } from "@/lib/auth/session";
 import { addDaysLocal, monthNightRange, todayInTimeZone } from "@/lib/dates";
 import { formatPHP } from "@/lib/money";
@@ -70,12 +80,26 @@ function HorizontalBars({
   const max = Math.max(1, ...items.map((item) => Math.abs(item.value)));
   return (
     <Card>
-      <CardHeader><h3 className="font-display text-lg text-pine">{title}</h3></CardHeader>
+      <CardHeader>
+        <h3 className="font-display text-lg text-pine">{title}</h3>
+      </CardHeader>
       <CardBody className="space-y-4">
         {items.map((item) => (
           <div key={item.label}>
-            <div className="mb-1 flex justify-between gap-3 text-sm"><span className="text-ink/70">{item.label}</span><span className="shrink-0 font-medium tabular-nums text-pine">{formatValue(item.value)}</span></div>
-            <div className="h-3 overflow-hidden rounded-full bg-pine-mist/60"><div className={`h-full rounded-full ${item.tone}`} style={{ width: `${Math.max(0, Math.min(100, (Math.abs(item.value) / max) * 100))}%` }} /></div>
+            <div className="mb-1 flex justify-between gap-3 text-sm">
+              <span className="text-ink/70">{item.label}</span>
+              <span className="shrink-0 font-medium tabular-nums text-pine">
+                {formatValue(item.value)}
+              </span>
+            </div>
+            <div className="h-3 overflow-hidden rounded-full bg-pine-mist/60">
+              <div
+                className={`h-full rounded-full ${item.tone}`}
+                style={{
+                  width: `${Math.max(0, Math.min(100, (Math.abs(item.value) / max) * 100))}%`,
+                }}
+              />
+            </div>
           </div>
         ))}
       </CardBody>
@@ -88,7 +112,13 @@ export default async function ReportsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  if (UNDER_CONSTRUCTION.reports) return <UnderConstruction title="Reports" description="We’re reworking reports. Occupancy, revenue and balance summaries will be back here soon." />;
+  if (UNDER_CONSTRUCTION.reports)
+    return (
+      <UnderConstruction
+        title="Reports"
+        description="We’re reworking reports. Occupancy, revenue and balance summaries will be back here soon."
+      />
+    );
   const membership = await requirePermission("reports.view");
   if (!membership) {
     return (
@@ -103,9 +133,7 @@ export default async function ReportsPage({
   };
 
   const timezone = "Asia/Manila";
-  const defaultRange = monthNightRange(
-    todayInTimeZone(timezone).slice(0, 7),
-  );
+  const defaultRange = monthNightRange(todayInTimeZone(timezone).slice(0, 7));
   const from = readParam("from") || defaultRange.start;
   const to = readParam("to") || defaultRange.end;
   const propertyFilter = readParam("property");
@@ -127,7 +155,9 @@ export default async function ReportsPage({
         : "The report could not be generated.";
   }
 
-  const hasFilters = Boolean(readParam("from") || readParam("to") || propertyFilter);
+  const hasFilters = Boolean(
+    readParam("from") || readParam("to") || propertyFilter,
+  );
   const periodLabel = (() => {
     if (!result) return "";
     const lastNight = addDaysLocal(result.summary.to, -1);
@@ -145,7 +175,8 @@ export default async function ReportsPage({
         </div>
         {result ? (
           <p className="text-sm text-ink/60">
-            {periodLabel} · {result.timezone} cash basis · {result.summary.activeUnitCount}{" "}
+            {periodLabel} · {result.timezone} cash basis ·{" "}
+            {result.summary.activeUnitCount}{" "}
             {result.summary.activeUnitCount === 1 ? "unit" : "units"} active
           </p>
         ) : null}
@@ -169,11 +200,21 @@ export default async function ReportsPage({
         </div>
         <div>
           <Label htmlFor="filter-from">From</Label>
-          <DateInput id="filter-from" name="from" defaultValue={from} className="w-56" />
+          <DateInput
+            id="filter-from"
+            name="from"
+            defaultValue={from}
+            className="w-56"
+          />
         </div>
         <div>
           <Label htmlFor="filter-to">To (exclusive)</Label>
-          <DateInput id="filter-to" name="to" defaultValue={to} className="w-56" />
+          <DateInput
+            id="filter-to"
+            name="to"
+            defaultValue={to}
+            className="w-56"
+          />
         </div>
         <button
           type="submit"
@@ -196,7 +237,10 @@ export default async function ReportsPage({
           <EmptyState title="Report unavailable" description={error} />
         </div>
       ) : result ? (
-        <ReportBody summary={result.summary} propertyNames={result.propertyNames} />
+        <ReportBody
+          summary={result.summary}
+          propertyNames={result.propertyNames}
+        />
       ) : null}
     </div>
   );
@@ -276,10 +320,29 @@ function ReportBody({
           title="Cash movement"
           formatValue={formatPHP}
           items={[
-            { label: "Booking payments", value: summary.bookingCollectedCents, tone: "bg-primary" },
-            { label: "Operating expenses", value: summary.operatingExpensesCents, tone: "bg-clay" },
-            { label: "Booking refunds", value: summary.bookingRefundedCents, tone: "bg-refund" },
-            { label: "Net operating cash", value: summary.netOperatingCashCents, tone: summary.netOperatingCashCents < 0 ? "bg-clay-strong" : "bg-sage-deep" },
+            {
+              label: "Booking payments",
+              value: summary.bookingCollectedCents,
+              tone: "bg-primary",
+            },
+            {
+              label: "Operating expenses",
+              value: summary.operatingExpensesCents,
+              tone: "bg-clay",
+            },
+            {
+              label: "Booking refunds",
+              value: summary.bookingRefundedCents,
+              tone: "bg-refund",
+            },
+            {
+              label: "Net operating cash",
+              value: summary.netOperatingCashCents,
+              tone:
+                summary.netOperatingCashCents < 0
+                  ? "bg-clay-strong"
+                  : "bg-sage-deep",
+            },
           ]}
         />
         <HorizontalBars
@@ -345,12 +408,13 @@ function ReportBody({
               />
             </div>
             <p className="mt-4 text-xs text-ink/55">
-              Occupancy = occupied nights ÷ bookable nights for the period.
-              Both counts use units currently marked Active and exclude blocked
+              Occupancy = occupied nights ÷ bookable nights for the period. Both
+              counts use units currently marked Active and exclude blocked
               nights. Historical unit status changes are not reconstructed.
-              Holds, cancelled and expired stays never count as occupied.
-              Booked value and average accommodation rate include all booked stay
-              nights, even for units now inactive, but never refundable deposits.
+              Holds, cancelled and expired stays never count as occupied. Booked
+              value and average accommodation rate include all booked stay
+              nights, even for units now inactive, but never refundable
+              deposits.
             </p>
           </CardBody>
         </Card>
@@ -359,7 +423,10 @@ function ReportBody({
       <section aria-labelledby="expenses-heading">
         <Card>
           <CardHeader className="flex flex-wrap items-center justify-between gap-2">
-            <h2 id="expenses-heading" className="font-display text-lg text-pine">
+            <h2
+              id="expenses-heading"
+              className="font-display text-lg text-pine"
+            >
               Spending
             </h2>
             <Badge tone="neutral">expenses paid in period</Badge>
@@ -384,7 +451,10 @@ function ReportBody({
       <section aria-labelledby="breakdown-heading">
         <Card>
           <CardHeader>
-            <h2 id="breakdown-heading" className="font-display text-lg text-pine">
+            <h2
+              id="breakdown-heading"
+              className="font-display text-lg text-pine"
+            >
               Occupancy by property
             </h2>
           </CardHeader>
@@ -398,17 +468,26 @@ function ReportBody({
                 <TableHeader>
                   <TableRow>
                     <TableHead scope="col">Property</TableHead>
-                    <TableHead scope="col" className="text-right">Occupied nights</TableHead>
-                    <TableHead scope="col" className="text-right">Bookable nights</TableHead>
-                    <TableHead scope="col" className="text-right">Occupancy</TableHead>
-                    <TableHead scope="col" className="text-right">Avg rate / night</TableHead>
+                    <TableHead scope="col" className="text-right">
+                      Occupied nights
+                    </TableHead>
+                    <TableHead scope="col" className="text-right">
+                      Bookable nights
+                    </TableHead>
+                    <TableHead scope="col" className="text-right">
+                      Occupancy
+                    </TableHead>
+                    <TableHead scope="col" className="text-right">
+                      Avg rate / night
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {summary.propertyBreakdown.map((row) => (
                     <TableRow key={row.propertyId}>
                       <TableCell className="text-pine">
-                        {propertyNames.get(row.propertyId) ?? "Unknown property"}
+                        {propertyNames.get(row.propertyId) ??
+                          "Unknown property"}
                       </TableCell>
                       <TableCell className="text-right tabular-nums text-ink/70">
                         {row.occupiedNights}

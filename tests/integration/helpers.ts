@@ -77,7 +77,8 @@ export async function createActiveUnit(
       defaultNightlyRateCents: 250_000,
       cleaningFeeCents: null,
       securityDepositCents: null,
-      checkInTime: "15:00", checkOutTime: "11:00",
+      checkInTime: "15:00",
+      checkOutTime: "11:00",
       status: "active",
     },
   });

@@ -26,7 +26,11 @@ export function PasswordInput({
         aria-pressed={isVisible}
         disabled={props.disabled}
       >
-        {isVisible ? <EyeOff size={18} aria-hidden /> : <Eye size={18} aria-hidden />}
+        {isVisible ? (
+          <EyeOff size={18} aria-hidden />
+        ) : (
+          <Eye size={18} aria-hidden />
+        )}
       </button>
     </div>
   );

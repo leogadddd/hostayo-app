@@ -8,7 +8,15 @@ import { useEffect, useLayoutEffect, type RefObject } from "react";
  * above it when there's no room below). Pointer-downs outside `wrapperRef`
  * call `onClose`.
  */
-export function useAnchoredPopover({ open, onClose, wrapperRef, triggerRef, popoverRef, matchWidth = false, align = "start" }: {
+export function useAnchoredPopover({
+  open,
+  onClose,
+  wrapperRef,
+  triggerRef,
+  popoverRef,
+  matchWidth = false,
+  align = "start",
+}: {
   open: boolean;
   onClose: () => void;
   wrapperRef: RefObject<HTMLElement | null>;
@@ -32,7 +40,10 @@ export function useAnchoredPopover({ open, onClose, wrapperRef, triggerRef, popo
       const anchor = align === "end" ? rect.right - width : rect.left;
       const left = Math.min(Math.max(8, anchor), window.innerWidth - width - 8);
       const fitsBelow = window.innerHeight - rect.bottom >= height + 12;
-      const top = fitsBelow || rect.top < height + 12 ? rect.bottom + 6 : rect.top - height - 6;
+      const top =
+        fitsBelow || rect.top < height + 12
+          ? rect.bottom + 6
+          : rect.top - height - 6;
       popover.style.left = `${left}px`;
       popover.style.top = `${Math.max(8, top)}px`;
     };

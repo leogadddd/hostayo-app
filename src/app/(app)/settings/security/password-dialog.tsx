@@ -1,6 +1,12 @@
 "use client";
 
-import { useId, useRef, useState, type ComponentType, type ReactNode } from "react";
+import {
+  useId,
+  useRef,
+  useState,
+  type ComponentType,
+  type ReactNode,
+} from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/input";
@@ -103,15 +109,26 @@ export function PasswordDialog({
       >
         <form onSubmit={submit}>
           <div className="flex items-start gap-4 p-6">
-            <span className={cn(
-              "flex h-11 w-11 shrink-0 items-center justify-center rounded-full",
-              tone === "clay" ? "bg-clay-mist text-clay-deep" : "bg-sage/70 text-pine",
-            )}>
+            <span
+              className={cn(
+                "flex h-11 w-11 shrink-0 items-center justify-center rounded-full",
+                tone === "clay"
+                  ? "bg-clay-mist text-clay-deep"
+                  : "bg-sage/70 text-pine",
+              )}
+            >
               <Icon className="h-5 w-5" aria-hidden />
             </span>
             <div className="min-w-0 flex-1">
-              <h2 id={titleId} className="font-display text-xl text-pine">{title}</h2>
-              <p id={descriptionId} className="mt-2 text-sm leading-relaxed text-ink/65">{description}</p>
+              <h2 id={titleId} className="font-display text-xl text-pine">
+                {title}
+              </h2>
+              <p
+                id={descriptionId}
+                className="mt-2 text-sm leading-relaxed text-ink/65"
+              >
+                {description}
+              </p>
               <div className="mt-4 space-y-4">
                 <div>
                   <Label htmlFor={passwordId}>Current password</Label>
@@ -127,15 +144,39 @@ export function PasswordDialog({
                 </div>
                 {children}
               </div>
-              {error ? <p className="mt-3 rounded-lg bg-clay-mist px-3 py-2 text-sm text-clay-deep" role="alert">{error}</p> : null}
+              {error ? (
+                <p
+                  className="mt-3 rounded-lg bg-clay-mist px-3 py-2 text-sm text-clay-deep"
+                  role="alert"
+                >
+                  {error}
+                </p>
+              ) : null}
             </div>
-            <button type="button" onClick={close} disabled={pending} aria-label="Close" className="rounded-md p-1.5 text-ink/45 hover:bg-pine-mist hover:text-pine disabled:opacity-50">
+            <button
+              type="button"
+              onClick={close}
+              disabled={pending}
+              aria-label="Close"
+              className="rounded-md p-1.5 text-ink/45 hover:bg-pine-mist hover:text-pine disabled:opacity-50"
+            >
               <X className="h-4 w-4" aria-hidden />
             </button>
           </div>
           <div className="flex flex-col-reverse gap-2 border-t border-pine/10 bg-paper/70 px-6 py-4 sm:flex-row sm:justify-end">
-            <Button type="button" variant="ghost" onClick={close} disabled={pending}>Cancel</Button>
-            <Button type="submit" variant={tone === "clay" ? "clay" : "primary"} disabled={pending || !password || !ready}>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={close}
+              disabled={pending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant={tone === "clay" ? "clay" : "primary"}
+              disabled={pending || !password || !ready}
+            >
               {pending ? pendingLabel : confirmLabel}
             </Button>
           </div>

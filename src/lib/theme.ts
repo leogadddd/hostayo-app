@@ -10,7 +10,9 @@ export type ThemePreference = (typeof THEME_PREFERENCES)[number];
  */
 export const THEME_COOKIE = "hostayo-theme";
 
-export function parseThemePreference(value: string | undefined): ThemePreference {
+export function parseThemePreference(
+  value: string | undefined,
+): ThemePreference {
   return value === "system" || value === "dark" ? value : "light";
 }
 

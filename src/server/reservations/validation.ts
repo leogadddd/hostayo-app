@@ -50,7 +50,11 @@ export const guestInputSchema = z
 export type GuestInput = z.infer<typeof guestInputSchema>;
 
 const optionalText = (label: string, max: number) =>
-  z.string().trim().max(max, `${label} must be ${max} characters or fewer.`).optional();
+  z
+    .string()
+    .trim()
+    .max(max, `${label} must be ${max} characters or fewer.`)
+    .optional();
 
 /**
  * A full guest profile, as the Guests pages edit it: the booking contact
@@ -64,13 +68,20 @@ export const guestProfileSchema = z
       .trim()
       .min(2, "Guest name needs at least 2 characters.")
       .max(120, "Guest name must be 120 characters or fewer."),
-    email: z.string().trim().email("Use a valid email address.").max(200, "Email must be 200 characters or fewer.").optional(),
+    email: z
+      .string()
+      .trim()
+      .email("Use a valid email address.")
+      .max(200, "Email must be 200 characters or fewer.")
+      .optional(),
     phone: optionalText("Phone number", 40),
     notes: optionalText("Notes", 2000),
     preferredName: optionalText("Preferred name", 60),
     birthDate: localDateField.optional(),
     nationality: optionalText("Nationality", 60),
-    idType: z.enum(GUEST_ID_TYPES, { message: "Choose an ID type from the list." }).optional(),
+    idType: z
+      .enum(GUEST_ID_TYPES, { message: "Choose an ID type from the list." })
+      .optional(),
     idNumber: optionalText("ID number", 60),
     address: optionalText("Address", 300),
     company: optionalText("Company", 120),
@@ -78,7 +89,13 @@ export const guestProfileSchema = z
     emergencyContactName: optionalText("Emergency contact name", 120),
     emergencyContactPhone: optionalText("Emergency contact phone", 40),
     tags: z
-      .array(z.string().trim().min(1).max(30, "Tags must be 30 characters or fewer."))
+      .array(
+        z
+          .string()
+          .trim()
+          .min(1)
+          .max(30, "Tags must be 30 characters or fewer."),
+      )
       .max(GUEST_TAG_LIMIT, `Use at most ${GUEST_TAG_LIMIT} tags.`)
       .default([]),
     flagged: z.boolean().default(false),
@@ -89,10 +106,15 @@ export const guestProfileSchema = z
     message: "Add at least one contact method — email or phone.",
     path: ["email"],
   })
-  .refine((value) => !value.birthDate || value.birthDate <= new Date().toISOString().slice(0, 10), {
-    message: "Birth date can't be in the future.",
-    path: ["birthDate"],
-  })
+  .refine(
+    (value) =>
+      !value.birthDate ||
+      value.birthDate <= new Date().toISOString().slice(0, 10),
+    {
+      message: "Birth date can't be in the future.",
+      path: ["birthDate"],
+    },
+  )
   .refine((value) => !value.idNumber || value.idType, {
     message: "Choose the ID type for this ID number.",
     path: ["idType"],
@@ -112,7 +134,12 @@ const centavosInt = z
 export const chargeLineSchema = z
   .object({
     // Late check-out charges come only from extending the stay.
-    type: z.enum(CHARGE_TYPES).refine((type): boolean => type !== "extension", "Add late check-out by extending the stay."),
+    type: z
+      .enum(CHARGE_TYPES)
+      .refine(
+        (type): boolean => type !== "extension",
+        "Add late check-out by extending the stay.",
+      ),
     description: z
       .string()
       .trim()
@@ -125,8 +152,14 @@ export const chargeLineSchema = z
     unitAmountCents: centavosInt,
   })
   .refine(
-    (line) => (line.type === "discount" ? line.unitAmountCents < 0 : line.unitAmountCents >= 0),
-    { message: "Discounts must be negative amounts.", path: ["unitAmountCents"] },
+    (line) =>
+      line.type === "discount"
+        ? line.unitAmountCents < 0
+        : line.unitAmountCents >= 0,
+    {
+      message: "Discounts must be negative amounts.",
+      path: ["unitAmountCents"],
+    },
   );
 
 export type ChargeLineInput = z.infer<typeof chargeLineSchema>;
@@ -158,17 +191,27 @@ const reservationBaseSchema = reservationDetailsSchema.extend({
     .min(1, "Add at least one charge.")
     .max(50, "At most 50 charge lines."),
   occupantNames: z
-    .array(z.string().trim().min(2, "Enter each additional guest's full name.").max(120, "Guest names must be 120 characters or fewer."))
+    .array(
+      z
+        .string()
+        .trim()
+        .min(2, "Enter each additional guest's full name.")
+        .max(120, "Guest names must be 120 characters or fewer."),
+    )
     .max(49, "A reservation can list at most 49 additional guests.")
     .default([]),
 });
 
 const rangeRefine = (value: { checkIn: string; checkOut: string }) =>
   value.checkOut > value.checkIn;
-const occupantCountRefine = (value: { guestCount: number; occupantNames: string[] }) =>
+const occupantCountRefine = (value: {
+  guestCount: number;
+  occupantNames: string[];
+}) =>
   // Existing API/import callers may not have names yet; when names are
   // supplied, however, require a complete list matching the guest count.
-  value.occupantNames.length === 0 || value.occupantNames.length === value.guestCount - 1;
+  value.occupantNames.length === 0 ||
+  value.occupantNames.length === value.guestCount - 1;
 
 export const createHoldSchema = reservationBaseSchema
   .extend({
@@ -192,7 +235,9 @@ export const createConfirmedSchema = reservationBaseSchema
   .extend({
     acknowledgeUnpaid: z.boolean().default(false),
     // Recorded in the same transaction as the confirmed reservation.
-    initialPayment: recordPaymentSchema.omit({ idempotencyKey: true }).optional(),
+    initialPayment: recordPaymentSchema
+      .omit({ idempotencyKey: true })
+      .optional(),
   })
   .refine(rangeRefine, {
     message: "Check-out must be after check-in.",
@@ -207,16 +252,39 @@ export const createConfirmedSchema = reservationBaseSchema
 export type CreateHoldInput = z.input<typeof createHoldSchema>;
 export type CreateConfirmedInput = z.input<typeof createConfirmedSchema>;
 
-export const updateReservationSchema = reservationDetailsSchema.extend({
-  // An existing guest, optionally with edited contact details, or no guestId
-  // and a primaryGuest to create a new guest profile.
-  guestId: z.string().uuid("Choose a primary guest.").optional(),
-  primaryGuest: guestInputSchema.optional(),
-  charges: z.array(chargeLineSchema).min(1, "Keep at least one charge.").max(50, "At most 50 charge lines."),
-  occupantNames: z.array(z.string().trim().min(2, "Enter each additional guest's full name.").max(120, "Guest names must be 120 characters or fewer.")).max(49).default([]),
-}).refine(rangeRefine, { message: "Check-out must be after check-in.", path: ["checkOut"] })
-  .refine(occupantCountRefine, { message: "List every additional guest, or adjust the guest count.", path: ["occupantNames"] })
-  .refine((value) => value.guestId || value.primaryGuest, { message: "Choose a primary guest.", path: ["guestId"] });
+export const updateReservationSchema = reservationDetailsSchema
+  .extend({
+    // An existing guest, optionally with edited contact details, or no guestId
+    // and a primaryGuest to create a new guest profile.
+    guestId: z.string().uuid("Choose a primary guest.").optional(),
+    primaryGuest: guestInputSchema.optional(),
+    charges: z
+      .array(chargeLineSchema)
+      .min(1, "Keep at least one charge.")
+      .max(50, "At most 50 charge lines."),
+    occupantNames: z
+      .array(
+        z
+          .string()
+          .trim()
+          .min(2, "Enter each additional guest's full name.")
+          .max(120, "Guest names must be 120 characters or fewer."),
+      )
+      .max(49)
+      .default([]),
+  })
+  .refine(rangeRefine, {
+    message: "Check-out must be after check-in.",
+    path: ["checkOut"],
+  })
+  .refine(occupantCountRefine, {
+    message: "List every additional guest, or adjust the guest count.",
+    path: ["occupantNames"],
+  })
+  .refine((value) => value.guestId || value.primaryGuest, {
+    message: "Choose a primary guest.",
+    path: ["guestId"],
+  });
 export type UpdateReservationInput = z.input<typeof updateReservationSchema>;
 
 // The reason is only required while the reservation fee is unpaid; the

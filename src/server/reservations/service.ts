@@ -1,6 +1,18 @@
 import "server-only";
 
-import { and, asc, desc, eq, gte, ilike, isNull, lte, ne, or, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gte,
+  ilike,
+  isNull,
+  lte,
+  ne,
+  or,
+  sql,
+} from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   accessTokens,
@@ -19,9 +31,18 @@ import {
   type ReservationStatus,
   type Unit,
 } from "@/lib/db/schema";
-import { assertIntegerCentavos, formatPHP, MoneyParseError, pesosToCentavos } from "@/lib/money";
+import {
+  assertIntegerCentavos,
+  formatPHP,
+  MoneyParseError,
+  pesosToCentavos,
+} from "@/lib/money";
 import { computeTotals } from "@/lib/charges";
-import { applicableReservationFee, reservationFeeCents, reservationFeeRule } from "@/lib/reservation-fee";
+import {
+  applicableReservationFee,
+  reservationFeeCents,
+  reservationFeeRule,
+} from "@/lib/reservation-fee";
 import { getUnitOrThrow } from "@/server/inventory/service";
 import {
   checkIntervalAvailability,
@@ -134,7 +155,9 @@ export async function getGuestOrThrow(organizationId: string, guestId: string) {
   const [guest] = await db
     .select()
     .from(guests)
-    .where(and(eq(guests.id, guestId), eq(guests.organizationId, organizationId)))
+    .where(
+      and(eq(guests.id, guestId), eq(guests.organizationId, organizationId)),
+    )
     .limit(1);
   if (!guest) {
     throw new ReservationError("Guest not found.", "guestId");
@@ -142,12 +165,22 @@ export async function getGuestOrThrow(organizationId: string, guestId: string) {
   return guest;
 }
 
-export const GUEST_ACTIVITIES = ["in_house", "upcoming", "past", "no_stays"] as const;
+export const GUEST_ACTIVITIES = [
+  "in_house",
+  "upcoming",
+  "past",
+  "no_stays",
+] as const;
 export type GuestActivity = (typeof GUEST_ACTIVITIES)[number];
 export const GUEST_SORTS = ["name", "recent", "stays", "added"] as const;
 export type GuestSort = (typeof GUEST_SORTS)[number];
 
-export const GUEST_DIRECTORY_SHOWS = ["missing_email", "missing_phone", "flagged", "marketing"] as const;
+export const GUEST_DIRECTORY_SHOWS = [
+  "missing_email",
+  "missing_phone",
+  "flagged",
+  "marketing",
+] as const;
 export type GuestDirectoryShow = (typeof GUEST_DIRECTORY_SHOWS)[number];
 
 export interface GuestDirectoryFilters {
@@ -164,28 +197,57 @@ export interface GuestDirectoryFilters {
  * reservations count towards `reservationCount` only, never towards stays,
  * nights or spend. `activity` is the guest's most current state.
  */
-export async function listGuestDirectory(organizationId: string, filters: GuestDirectoryFilters = {}) {
+export async function listGuestDirectory(
+  organizationId: string,
+  filters: GuestDirectoryFilters = {},
+) {
   const conditions = [eq(guests.organizationId, organizationId)];
   const q = filters.query?.trim();
   if (q) {
-    conditions.push(or(ilike(guests.name, `%${q}%`), ilike(guests.email, `%${q}%`), ilike(guests.phone, `%${q}%`))!);
+    conditions.push(
+      or(
+        ilike(guests.name, `%${q}%`),
+        ilike(guests.email, `%${q}%`),
+        ilike(guests.phone, `%${q}%`),
+      )!,
+    );
   }
   if (filters.show === "missing_email") conditions.push(isNull(guests.email));
   if (filters.show === "missing_phone") conditions.push(isNull(guests.phone));
   if (filters.show === "flagged") conditions.push(eq(guests.flagged, true));
-  if (filters.show === "marketing") conditions.push(eq(guests.marketingOptIn, true));
+  if (filters.show === "marketing")
+    conditions.push(eq(guests.marketingOptIn, true));
 
   const kept = sql`${reservations.status} in ('confirmed', 'checked_in', 'checked_out')`;
   const stats = db
     .select({
       guestId: reservations.guestId,
-      reservationCount: sql<number>`count(*)`.mapWith(Number).as("reservation_count"),
-      stayCount: sql<number>`count(*) filter (where ${kept})`.mapWith(Number).as("stay_count"),
-      nights: sql<number>`coalesce(sum(${reservations.checkOutDate} - ${reservations.checkInDate}) filter (where ${kept}), 0)`.mapWith(Number).as("nights"),
-      inHouse: sql<boolean>`bool_or(${reservations.status} = 'checked_in')`.as("in_house"),
-      nextCheckIn: sql<string | null>`min(${reservations.checkInDate}) filter (where ${reservations.status} in ('hold', 'confirmed'))`.as("next_check_in"),
-      lastCheckOut: sql<string | null>`max(${reservations.checkOutDate}) filter (where ${reservations.status} = 'checked_out')`.as("last_check_out"),
-      lastBookedAt: sql<Date | null>`max(${reservations.createdAt})`.as("last_booked_at"),
+      reservationCount: sql<number>`count(*)`
+        .mapWith(Number)
+        .as("reservation_count"),
+      stayCount: sql<number>`count(*) filter (where ${kept})`
+        .mapWith(Number)
+        .as("stay_count"),
+      nights:
+        sql<number>`coalesce(sum(${reservations.checkOutDate} - ${reservations.checkInDate}) filter (where ${kept}), 0)`
+          .mapWith(Number)
+          .as("nights"),
+      inHouse: sql<boolean>`bool_or(${reservations.status} = 'checked_in')`.as(
+        "in_house",
+      ),
+      nextCheckIn: sql<
+        string | null
+      >`min(${reservations.checkInDate}) filter (where ${reservations.status} in ('hold', 'confirmed'))`.as(
+        "next_check_in",
+      ),
+      lastCheckOut: sql<
+        string | null
+      >`max(${reservations.checkOutDate}) filter (where ${reservations.status} = 'checked_out')`.as(
+        "last_check_out",
+      ),
+      lastBookedAt: sql<Date | null>`max(${reservations.createdAt})`.as(
+        "last_booked_at",
+      ),
     })
     .from(reservations)
     .where(eq(reservations.organizationId, organizationId))
@@ -220,7 +282,8 @@ export async function listGuestDirectory(organizationId: string, filters: GuestD
       flagged: guests.flagged,
       flagReason: guests.flagReason,
       createdAt: guests.createdAt,
-      reservationCount: sql<number>`coalesce(${stats.reservationCount}, 0)`.mapWith(Number),
+      reservationCount:
+        sql<number>`coalesce(${stats.reservationCount}, 0)`.mapWith(Number),
       stayCount: sql<number>`coalesce(${stats.stayCount}, 0)`.mapWith(Number),
       nights: sql<number>`coalesce(${stats.nights}, 0)`.mapWith(Number),
       inHouse: sql<boolean>`coalesce(${stats.inHouse}, false)`.mapWith(Boolean),
@@ -236,7 +299,11 @@ export async function listGuestDirectory(organizationId: string, filters: GuestD
   return rows.map((row) => ({ ...row, activity: guestActivity(row) }));
 }
 
-function guestActivity(row: { inHouse: boolean; nextCheckIn: string | null; lastCheckOut: string | null }): GuestActivity {
+function guestActivity(row: {
+  inHouse: boolean;
+  nextCheckIn: string | null;
+  lastCheckOut: string | null;
+}): GuestActivity {
   if (row.inHouse) return "in_house";
   if (row.nextCheckIn) return "upcoming";
   if (row.lastCheckOut) return "past";
@@ -254,11 +321,18 @@ export async function updateGuest(input: {
     const [existing] = await tx
       .select()
       .from(guests)
-      .where(and(eq(guests.id, input.guestId), eq(guests.organizationId, input.organizationId)))
+      .where(
+        and(
+          eq(guests.id, input.guestId),
+          eq(guests.organizationId, input.organizationId),
+        ),
+      )
       .limit(1);
     if (!existing) throw new ReservationError("Guest not found.", "guestId");
     // Field names only: ID numbers and similar never go into the audit log.
-    const changed = (Object.keys(next) as (keyof typeof next)[]).filter((key) => JSON.stringify(next[key]) !== JSON.stringify(existing[key]));
+    const changed = (Object.keys(next) as (keyof typeof next)[]).filter(
+      (key) => JSON.stringify(next[key]) !== JSON.stringify(existing[key]),
+    );
     if (!changed.length) return existing;
     const [updated] = await tx
       .update(guests)
@@ -281,22 +355,38 @@ export async function updateGuest(input: {
  * Delete a guest profile. Deleting would cascade to the guest's reservations
  * and their payment history, so only guests who never booked can go.
  */
-export async function deleteGuest(input: { organizationId: string; actorUserId: string; guestId: string }) {
+export async function deleteGuest(input: {
+  organizationId: string;
+  actorUserId: string;
+  guestId: string;
+}) {
   return db.transaction(async (tx) => {
     const [guest] = await tx
       .select({ id: guests.id, name: guests.name })
       .from(guests)
-      .where(and(eq(guests.id, input.guestId), eq(guests.organizationId, input.organizationId)))
+      .where(
+        and(
+          eq(guests.id, input.guestId),
+          eq(guests.organizationId, input.organizationId),
+        ),
+      )
       .for("update")
       .limit(1);
     if (!guest) throw new ReservationError("Guest not found.", "guestId");
     const [booking] = await tx
       .select({ id: reservations.id })
       .from(reservations)
-      .where(and(eq(reservations.guestId, guest.id), eq(reservations.organizationId, input.organizationId)))
+      .where(
+        and(
+          eq(reservations.guestId, guest.id),
+          eq(reservations.organizationId, input.organizationId),
+        ),
+      )
       .limit(1);
     if (booking) {
-      throw new ReservationError("This guest has reservations, so their profile is kept for the booking history.");
+      throw new ReservationError(
+        "This guest has reservations, so their profile is kept for the booking history.",
+      );
     }
     await tx.delete(guests).where(eq(guests.id, guest.id));
     await recordAudit(tx, {
@@ -448,7 +538,15 @@ export async function getReservationDetail(
     throw new ReservationError("Reservation not found.", "reservationId");
   }
 
-  const [guest, reservationUnits, charges, transitions, tokens, occupants, platforms] = await Promise.all([
+  const [
+    guest,
+    reservationUnits,
+    charges,
+    transitions,
+    tokens,
+    occupants,
+    platforms,
+  ] = await Promise.all([
     getGuestOrThrow(organizationId, reservation.guestId),
     db
       .select()
@@ -493,16 +591,23 @@ export async function getReservationDetail(
     db
       .select()
       .from(reservationOccupants)
-      .where(and(
-        eq(reservationOccupants.reservationId, reservationId),
-        eq(reservationOccupants.organizationId, organizationId),
-      ))
+      .where(
+        and(
+          eq(reservationOccupants.reservationId, reservationId),
+          eq(reservationOccupants.organizationId, organizationId),
+        ),
+      )
       .orderBy(asc(reservationOccupants.position)),
     reservation.platformId
       ? db
           .select()
           .from(bookingPlatforms)
-          .where(and(eq(bookingPlatforms.id, reservation.platformId), eq(bookingPlatforms.organizationId, organizationId)))
+          .where(
+            and(
+              eq(bookingPlatforms.id, reservation.platformId),
+              eq(bookingPlatforms.organizationId, organizationId),
+            ),
+          )
           .limit(1)
       : Promise.resolve([]),
   ]);
@@ -528,9 +633,8 @@ export async function getReservationDetail(
 
   const now = new Date();
   const activeToken =
-    tokens.find(
-      (token) => token.revokedAt === null && token.expiresAt > now,
-    ) ?? null;
+    tokens.find((token) => token.revokedAt === null && token.expiresAt > now) ??
+    null;
 
   return {
     reservation,
@@ -588,7 +692,8 @@ export async function insertTransition(
 }
 
 function isUniqueViolation(error: unknown): boolean {
-  if (error instanceof Error && error.cause) return isUniqueViolation(error.cause);
+  if (error instanceof Error && error.cause)
+    return isUniqueViolation(error.cause);
   return (
     typeof error === "object" &&
     error !== null &&
@@ -597,7 +702,8 @@ function isUniqueViolation(error: unknown): boolean {
 }
 
 function isExclusionViolation(error: unknown): boolean {
-  if (error instanceof Error && error.cause) return isExclusionViolation(error.cause);
+  if (error instanceof Error && error.cause)
+    return isExclusionViolation(error.cause);
   return (
     typeof error === "object" &&
     error !== null &&
@@ -658,30 +764,47 @@ async function createReservation(
     );
   }
 
-  let initialPayment: {
-    amountCents: number;
-    allocation: "booking" | "security_deposit";
-    method: "gcash" | "maya" | "bank_transfer" | "cash";
-    reference: string | null;
-    receivedAt: Date;
-  } | undefined;
+  let initialPayment:
+    | {
+        amountCents: number;
+        allocation: "booking" | "security_deposit";
+        method: "gcash" | "maya" | "bank_transfer" | "cash";
+        reference: string | null;
+        receivedAt: Date;
+      }
+    | undefined;
   if (values.initialPayment) {
     let amountCents: number;
     try {
-      amountCents = pesosToCentavos(values.initialPayment.amountPesos, { allowZero: false });
+      amountCents = pesosToCentavos(values.initialPayment.amountPesos, {
+        allowZero: false,
+      });
     } catch (error) {
-      if (error instanceof MoneyParseError) throw new ReservationError(error.message, "paymentAmountPesos");
+      if (error instanceof MoneyParseError)
+        throw new ReservationError(error.message, "paymentAmountPesos");
       throw error;
     }
     const [paymentProperty] = await db
       .select({ timezone: properties.timezone })
       .from(properties)
-      .where(and(eq(properties.id, unit.propertyId), eq(properties.organizationId, organizationId)))
+      .where(
+        and(
+          eq(properties.id, unit.propertyId),
+          eq(properties.organizationId, organizationId),
+        ),
+      )
       .limit(1);
     const receivedAt = values.initialPayment.receivedAt
-      ? localDateTimeToUtc(values.initialPayment.receivedAt, paymentProperty?.timezone ?? "Asia/Manila")
+      ? localDateTimeToUtc(
+          values.initialPayment.receivedAt,
+          paymentProperty?.timezone ?? "Asia/Manila",
+        )
       : new Date();
-    if (!receivedAt) throw new ReservationError("Use a valid payment date and time.", "paymentReceivedAt");
+    if (!receivedAt)
+      throw new ReservationError(
+        "Use a valid payment date and time.",
+        "paymentReceivedAt",
+      );
     initialPayment = {
       amountCents,
       allocation: values.initialPayment.allocation,
@@ -692,9 +815,15 @@ async function createReservation(
   }
 
   // Expire stale holds (auto-commit) so the advisory check sees fresh state.
-  const segments = (
-    await getOccupancySegments(organizationId, [unit.id], values.checkIn, values.checkOut)
-  ).get(unit.id) ?? [];
+  const segments =
+    (
+      await getOccupancySegments(
+        organizationId,
+        [unit.id],
+        values.checkIn,
+        values.checkOut,
+      )
+    ).get(unit.id) ?? [];
   if (args.idempotencyKey) {
     const [existing] = await db
       .select()
@@ -709,7 +838,11 @@ async function createReservation(
     if (existing) return existing;
   }
 
-  const check = checkIntervalAvailability(segments, values.checkIn, values.checkOut);
+  const check = checkIntervalAvailability(
+    segments,
+    values.checkIn,
+    values.checkOut,
+  );
   if (!check.available) {
     throw new ReservationError(
       `Those dates conflict with ${check.conflict.reason} (${check.conflict.startDate} → ${check.conflict.endDate}).`,
@@ -719,19 +852,34 @@ async function createReservation(
   const [property] = await db
     .select({ timezone: properties.timezone })
     .from(properties)
-    .where(and(eq(properties.id, unit.propertyId), eq(properties.organizationId, organizationId)))
+    .where(
+      and(
+        eq(properties.id, unit.propertyId),
+        eq(properties.organizationId, organizationId),
+      ),
+    )
     .limit(1);
   const arrivalAt = property
-    ? localDateTimeToUtc(`${values.checkIn}T${unit.checkInTime}`, property.timezone)
+    ? localDateTimeToUtc(
+        `${values.checkIn}T${unit.checkInTime}`,
+        property.timezone,
+      )
     : null;
-  const turnoverConflict = arrivalAt ? findTurnoverArrivalConflict(segments, arrivalAt) : undefined;
+  const turnoverConflict = arrivalAt
+    ? findTurnoverArrivalConflict(segments, arrivalAt)
+    : undefined;
   if (turnoverConflict) {
     throw new ReservationError(
       `The incoming arrival overlaps turnover until ${turnoverConflict.endTime}. Choose another arrival date.`,
       "checkIn",
     );
   }
-  await assertNoLateCheckoutConflict(organizationId, unit.id, values.checkIn, arrivalAt);
+  await assertNoLateCheckoutConflict(
+    organizationId,
+    unit.id,
+    values.checkIn,
+    arrivalAt,
+  );
 
   try {
     return await db.transaction(async (tx) => {
@@ -744,22 +892,37 @@ async function createReservation(
       const [lockedUnit] = await tx
         .select()
         .from(units)
-        .where(and(
-          eq(units.id, unit.id),
-          eq(units.organizationId, organizationId),
-          isNull(units.deletedAt),
-        ))
+        .where(
+          and(
+            eq(units.id, unit.id),
+            eq(units.organizationId, organizationId),
+            isNull(units.deletedAt),
+          ),
+        )
         .limit(1)
         .for("update");
       if (!lockedUnit) {
-        throw new ReservationError("This unit is no longer available.", "unitId");
+        throw new ReservationError(
+          "This unit is no longer available.",
+          "unitId",
+        );
       }
       assertBookableUnit(lockedUnit);
-      const platform = await assertPlatform(tx, organizationId, values.platformId);
+      const platform = await assertPlatform(
+        tx,
+        organizationId,
+        values.platformId,
+      );
       const fee = applicableReservationFee(lockedUnit, platform);
       if (fee && args.status === "confirmed" && !values.acknowledgeUnpaid) {
-        const requiredCents = reservationFeeCents(fee, computeTotals(values.charges).bookingTotalCents);
-        const paidCents = initialPayment?.allocation === "booking" ? initialPayment.amountCents : 0;
+        const requiredCents = reservationFeeCents(
+          fee,
+          computeTotals(values.charges).bookingTotalCents,
+        );
+        const paidCents =
+          initialPayment?.allocation === "booking"
+            ? initialPayment.amountCents
+            : 0;
         if (paidCents < requiredCents) {
           throw new ReservationError(
             `This unit needs a reservation fee of ${formatPHP(requiredCents)} before a booking is confirmed. Record it as the payment, or tick the acknowledgement to confirm anyway.`,
@@ -774,7 +937,10 @@ async function createReservation(
           .select({ id: guests.id })
           .from(guests)
           .where(
-            and(eq(guests.id, args.guest.guestId), eq(guests.organizationId, organizationId)),
+            and(
+              eq(guests.id, args.guest.guestId),
+              eq(guests.organizationId, organizationId),
+            ),
           )
           .limit(1);
         if (!guest[0]) {
@@ -806,7 +972,10 @@ async function createReservation(
           metadata: { name: data.name },
         });
       } else {
-        throw new ReservationError("Choose a guest or enter a new one.", "guestId");
+        throw new ReservationError(
+          "Choose a guest or enter a new one.",
+          "guestId",
+        );
       }
 
       const [reservation] = await tx
@@ -859,18 +1028,24 @@ async function createReservation(
       }
 
       if (initialPayment) {
-        const [payment] = await tx.insert(paymentEntries).values({
-          organizationId,
-          reservationId: reservation.id,
-          allocation: initialPayment.allocation,
-          amountCents: initialPayment.amountCents,
-          method: initialPayment.method,
-          reference: initialPayment.reference,
-          receivedAt: initialPayment.receivedAt,
-          recordedBy: actorUserId,
-          idempotencyKey: args.idempotencyKey ? `reservation:${args.idempotencyKey}:payment` : null,
-        }).returning({ id: paymentEntries.id });
-        if (!payment) throw new ReservationError("Failed to record the initial payment.");
+        const [payment] = await tx
+          .insert(paymentEntries)
+          .values({
+            organizationId,
+            reservationId: reservation.id,
+            allocation: initialPayment.allocation,
+            amountCents: initialPayment.amountCents,
+            method: initialPayment.method,
+            reference: initialPayment.reference,
+            receivedAt: initialPayment.receivedAt,
+            recordedBy: actorUserId,
+            idempotencyKey: args.idempotencyKey
+              ? `reservation:${args.idempotencyKey}:payment`
+              : null,
+          })
+          .returning({ id: paymentEntries.id });
+        if (!payment)
+          throw new ReservationError("Failed to record the initial payment.");
         await recordAudit(tx, {
           organizationId,
           actorUserId,
@@ -916,7 +1091,10 @@ async function createReservation(
       return reservation;
     });
   } catch (error) {
-    if ((isUniqueViolation(error) || isExclusionViolation(error)) && args.idempotencyKey) {
+    if (
+      (isUniqueViolation(error) || isExclusionViolation(error)) &&
+      args.idempotencyKey
+    ) {
       const [existing] = await db
         .select()
         .from(reservations)
@@ -968,7 +1146,11 @@ export async function createConfirmed(
 ) {
   const data = createConfirmedSchema.parse(args.data);
   const { bookingTotalCents } = computeTotals(data.charges);
-  if (bookingTotalCents > 0 && !data.initialPayment && !data.acknowledgeUnpaid) {
+  if (
+    bookingTotalCents > 0 &&
+    !data.initialPayment &&
+    !data.acknowledgeUnpaid
+  ) {
     throw new ReservationError(
       "This reservation has an unpaid balance. Tick the acknowledgement to confirm it anyway.",
       "acknowledgeUnpaid",
@@ -1005,30 +1187,65 @@ async function reservationFeeOutstanding(
 ): Promise<{ requiredCents: number; outstandingCents: number } | null> {
   const rule = reservationFeeRule(reservation);
   if (!rule) return null;
-  const scope = (table: typeof paymentEntries | typeof refundEntries) => and(
-    eq(table.organizationId, reservation.organizationId),
-    eq(table.reservationId, reservation.id),
-    eq(table.allocation, "booking"),
-  );
+  const scope = (table: typeof paymentEntries | typeof refundEntries) =>
+    and(
+      eq(table.organizationId, reservation.organizationId),
+      eq(table.reservationId, reservation.id),
+      eq(table.allocation, "booking"),
+    );
   const [charges, [paid], [refunded]] = await Promise.all([
     executor
-      .select({ type: reservationCharges.type, description: reservationCharges.description, quantity: reservationCharges.quantity, unitAmountCents: reservationCharges.unitAmountCents })
+      .select({
+        type: reservationCharges.type,
+        description: reservationCharges.description,
+        quantity: reservationCharges.quantity,
+        unitAmountCents: reservationCharges.unitAmountCents,
+      })
       .from(reservationCharges)
-      .where(and(eq(reservationCharges.organizationId, reservation.organizationId), eq(reservationCharges.reservationId, reservation.id))),
-    executor.select({ cents: sql<number>`coalesce(sum(${paymentEntries.amountCents}), 0)::int` }).from(paymentEntries).where(scope(paymentEntries)),
-    executor.select({ cents: sql<number>`coalesce(sum(${refundEntries.amountCents}), 0)::int` }).from(refundEntries).where(scope(refundEntries)),
+      .where(
+        and(
+          eq(reservationCharges.organizationId, reservation.organizationId),
+          eq(reservationCharges.reservationId, reservation.id),
+        ),
+      ),
+    executor
+      .select({
+        cents: sql<number>`coalesce(sum(${paymentEntries.amountCents}), 0)::int`,
+      })
+      .from(paymentEntries)
+      .where(scope(paymentEntries)),
+    executor
+      .select({
+        cents: sql<number>`coalesce(sum(${refundEntries.amountCents}), 0)::int`,
+      })
+      .from(refundEntries)
+      .where(scope(refundEntries)),
   ]);
-  const requiredCents = reservationFeeCents(rule, computeTotals(charges).bookingTotalCents);
+  const requiredCents = reservationFeeCents(
+    rule,
+    computeTotals(charges).bookingTotalCents,
+  );
   const netPaidCents = (paid?.cents ?? 0) - (refunded?.cents ?? 0);
-  return { requiredCents, outstandingCents: Math.max(0, requiredCents - netPaidCents) };
+  return {
+    requiredCents,
+    outstandingCents: Math.max(0, requiredCents - netPaidCents),
+  };
 }
 
 /** The reservation fee required and still owed; null when none applies. */
-export async function getReservationFeeStatus(organizationId: string, reservationId: string) {
+export async function getReservationFeeStatus(
+  organizationId: string,
+  reservationId: string,
+) {
   const [reservation] = await db
     .select()
     .from(reservations)
-    .where(and(eq(reservations.id, reservationId), eq(reservations.organizationId, organizationId)))
+    .where(
+      and(
+        eq(reservations.id, reservationId),
+        eq(reservations.organizationId, organizationId),
+      ),
+    )
     .limit(1);
   return reservation ? reservationFeeOutstanding(db, reservation) : null;
 }
@@ -1044,7 +1261,9 @@ export async function confirmHold(input: {
   reservationId: string;
   reason?: string;
 }) {
-  const { reason } = confirmHoldSchema.parse({ reason: input.reason || undefined });
+  const { reason } = confirmHoldSchema.parse({
+    reason: input.reason || undefined,
+  });
 
   return db.transaction(async (tx) => {
     await expireStaleHolds(tx, input.organizationId);
@@ -1111,7 +1330,10 @@ export async function confirmHold(input: {
       entity: "reservation",
       entityId: reservation.id,
       action: "reservation.confirmed",
-      metadata: { reason: reason ?? null, reservationFeeCents: fee?.requiredCents ?? null },
+      metadata: {
+        reason: reason ?? null,
+        reservationFeeCents: fee?.requiredCents ?? null,
+      },
     });
     return updated;
   });
@@ -1190,20 +1412,55 @@ async function resolvePrimaryGuest(
   guestId: string | undefined,
   details: GuestInput | undefined,
 ): Promise<{ id: string }> {
-  const contact = details ? { name: details.name, email: details.email || null, phone: details.phone || null } : null;
+  const contact = details
+    ? {
+        name: details.name,
+        email: details.email || null,
+        phone: details.phone || null,
+      }
+    : null;
   if (!guestId) {
-    const [created] = await tx.insert(guests).values({ organizationId, ...contact! }).returning({ id: guests.id, name: guests.name });
+    const [created] = await tx
+      .insert(guests)
+      .values({ organizationId, ...contact! })
+      .returning({ id: guests.id, name: guests.name });
     if (!created) throw new ReservationError("Failed to create the guest.");
-    await recordAudit(tx, { organizationId, actorUserId, entity: "guest", entityId: created.id, action: "guest.created", metadata: { name: created.name } });
+    await recordAudit(tx, {
+      organizationId,
+      actorUserId,
+      entity: "guest",
+      entityId: created.id,
+      action: "guest.created",
+      metadata: { name: created.name },
+    });
     return created;
   }
-  const [existing] = await tx.select().from(guests).where(and(eq(guests.id, guestId), eq(guests.organizationId, organizationId))).limit(1);
-  if (!existing) throw new ReservationError("Primary guest not found.", "guestId");
+  const [existing] = await tx
+    .select()
+    .from(guests)
+    .where(
+      and(eq(guests.id, guestId), eq(guests.organizationId, organizationId)),
+    )
+    .limit(1);
+  if (!existing)
+    throw new ReservationError("Primary guest not found.", "guestId");
   if (contact) {
-    const changed = (Object.keys(contact) as (keyof typeof contact)[]).filter((key) => contact[key] !== existing[key]);
+    const changed = (Object.keys(contact) as (keyof typeof contact)[]).filter(
+      (key) => contact[key] !== existing[key],
+    );
     if (changed.length) {
-      await tx.update(guests).set({ ...contact, updatedAt: new Date() }).where(eq(guests.id, existing.id));
-      await recordAudit(tx, { organizationId, actorUserId, entity: "guest", entityId: existing.id, action: "guest.updated", metadata: { fields: changed } });
+      await tx
+        .update(guests)
+        .set({ ...contact, updatedAt: new Date() })
+        .where(eq(guests.id, existing.id));
+      await recordAudit(tx, {
+        organizationId,
+        actorUserId,
+        entity: "guest",
+        entityId: existing.id,
+        action: "guest.updated",
+        metadata: { fields: changed },
+      });
     }
   }
   return existing;
@@ -1211,8 +1468,18 @@ async function resolvePrimaryGuest(
 
 /** Edit only a future hold or confirmed booking; financial snapshots remain immutable. */
 /** Refuses an arrival while the previous guest's late check-out and turnover still run. */
-async function assertNoLateCheckoutConflict(organizationId: string, unitId: string, checkIn: string, arrivalAt: Date | null, excludeReservationId?: string) {
-  const late = lateCheckoutConflict((await getLateCheckouts(organizationId, [unitId], checkIn)).get(unitId), arrivalAt, excludeReservationId);
+async function assertNoLateCheckoutConflict(
+  organizationId: string,
+  unitId: string,
+  checkIn: string,
+  arrivalAt: Date | null,
+  excludeReservationId?: string,
+) {
+  const late = lateCheckoutConflict(
+    (await getLateCheckouts(organizationId, [unitId], checkIn)).get(unitId),
+    arrivalAt,
+    excludeReservationId,
+  );
   if (late) {
     throw new ReservationError(
       `${late.guestName} has a late check-out on that day, and the unit isn't ready until after turnover. Choose another arrival date or shorten their extension.`,
@@ -1229,40 +1496,206 @@ export async function updateReservation(input: {
 }) {
   const data = updateReservationSchema.parse(input.data);
   return db.transaction(async (tx) => {
-    const [reservation] = await tx.select().from(reservations).where(and(eq(reservations.id, input.reservationId), eq(reservations.organizationId, input.organizationId))).limit(1);
-    if (!reservation) throw new ReservationError("Reservation not found.", "reservationId");
+    const [reservation] = await tx
+      .select()
+      .from(reservations)
+      .where(
+        and(
+          eq(reservations.id, input.reservationId),
+          eq(reservations.organizationId, input.organizationId),
+        ),
+      )
+      .limit(1);
+    if (!reservation)
+      throw new ReservationError("Reservation not found.", "reservationId");
     if (reservation.status !== "hold" && reservation.status !== "confirmed") {
-      throw new ReservationError("Only a hold or confirmed reservation can be edited.");
+      throw new ReservationError(
+        "Only a hold or confirmed reservation can be edited.",
+      );
     }
-    const [unit] = await tx.select().from(units).where(and(eq(units.id, data.unitId), eq(units.organizationId, input.organizationId), isNull(units.deletedAt))).limit(1);
-    if (!unit || data.guestCount > unit.capacity) throw new ReservationError(`This unit sleeps ${unit?.capacity ?? 0}; the guest count is too high.`, "guestCount");
+    const [unit] = await tx
+      .select()
+      .from(units)
+      .where(
+        and(
+          eq(units.id, data.unitId),
+          eq(units.organizationId, input.organizationId),
+          isNull(units.deletedAt),
+        ),
+      )
+      .limit(1);
+    if (!unit || data.guestCount > unit.capacity)
+      throw new ReservationError(
+        `This unit sleeps ${unit?.capacity ?? 0}; the guest count is too high.`,
+        "guestCount",
+      );
     const platformId = data.platformId ?? reservation.platformId;
-    const platform = await assertPlatform(tx, input.organizationId, platformId, reservation.platformId);
+    const platform = await assertPlatform(
+      tx,
+      input.organizationId,
+      platformId,
+      reservation.platformId,
+    );
     // A different unit or platform means a different fee; otherwise the
     // booking keeps the rule it was made with.
-    const fee = unit.id !== reservation.unitId || platformId !== reservation.platformId
-      ? applicableReservationFee(unit, platform)
-      : reservationFeeRule(reservation);
-    const guest = await resolvePrimaryGuest(tx, input.organizationId, input.actorUserId, data.guestId, data.primaryGuest);
-    const segments = (await getOccupancySegments(input.organizationId, [unit.id], data.checkIn, data.checkOut)).get(unit.id) ?? [];
-    const availability = checkIntervalAvailability(segments.filter((segment) => segment.kind !== "reservation" || segment.id !== reservation.id), data.checkIn, data.checkOut);
-    if (!availability.available) throw new ReservationError(`Those dates conflict with ${availability.conflict.reason}.`, "checkIn");
-    const [property] = await tx.select({ timezone: properties.timezone }).from(properties).where(and(eq(properties.id, unit.propertyId), eq(properties.organizationId, input.organizationId))).limit(1);
-    const arrivalAt = property ? localDateTimeToUtc(`${data.checkIn}T${unit.checkInTime}`, property.timezone) : null;
-    await assertNoLateCheckoutConflict(input.organizationId, unit.id, data.checkIn, arrivalAt, reservation.id);
+    const fee =
+      unit.id !== reservation.unitId || platformId !== reservation.platformId
+        ? applicableReservationFee(unit, platform)
+        : reservationFeeRule(reservation);
+    const guest = await resolvePrimaryGuest(
+      tx,
+      input.organizationId,
+      input.actorUserId,
+      data.guestId,
+      data.primaryGuest,
+    );
+    const segments =
+      (
+        await getOccupancySegments(
+          input.organizationId,
+          [unit.id],
+          data.checkIn,
+          data.checkOut,
+        )
+      ).get(unit.id) ?? [];
+    const availability = checkIntervalAvailability(
+      segments.filter(
+        (segment) =>
+          segment.kind !== "reservation" || segment.id !== reservation.id,
+      ),
+      data.checkIn,
+      data.checkOut,
+    );
+    if (!availability.available)
+      throw new ReservationError(
+        `Those dates conflict with ${availability.conflict.reason}.`,
+        "checkIn",
+      );
+    const [property] = await tx
+      .select({ timezone: properties.timezone })
+      .from(properties)
+      .where(
+        and(
+          eq(properties.id, unit.propertyId),
+          eq(properties.organizationId, input.organizationId),
+        ),
+      )
+      .limit(1);
+    const arrivalAt = property
+      ? localDateTimeToUtc(
+          `${data.checkIn}T${unit.checkInTime}`,
+          property.timezone,
+        )
+      : null;
+    await assertNoLateCheckoutConflict(
+      input.organizationId,
+      unit.id,
+      data.checkIn,
+      arrivalAt,
+      reservation.id,
+    );
     // Late check-out hours belong to the check-out day and unit they were checked against.
-    const extensions = await tx.select({ id: reservationExtensions.id }).from(reservationExtensions).where(and(eq(reservationExtensions.reservationId, reservation.id), eq(reservationExtensions.organizationId, input.organizationId), ne(reservationExtensions.status, "declined")));
-    if (extensions.length > 0 && (unit.id !== reservation.unitId || data.checkOut !== reservation.checkOutDate)) {
-      throw new ReservationError("This stay has a late check-out or a request for one. Remove or cancel it before changing the unit or the check-out date.", "checkOut");
+    const extensions = await tx
+      .select({ id: reservationExtensions.id })
+      .from(reservationExtensions)
+      .where(
+        and(
+          eq(reservationExtensions.reservationId, reservation.id),
+          eq(reservationExtensions.organizationId, input.organizationId),
+          ne(reservationExtensions.status, "declined"),
+        ),
+      );
+    if (
+      extensions.length > 0 &&
+      (unit.id !== reservation.unitId ||
+        data.checkOut !== reservation.checkOutDate)
+    ) {
+      throw new ReservationError(
+        "This stay has a late check-out or a request for one. Remove or cancel it before changing the unit or the check-out date.",
+        "checkOut",
+      );
     }
-    const [updated] = await tx.update(reservations).set({ unitId: unit.id, guestId: guest.id, checkInDate: data.checkIn, checkOutDate: data.checkOut, guestCount: data.guestCount, platformId, platformReference: data.platformReference === undefined ? reservation.platformReference : data.platformReference || null, reservationFeeType: fee?.type ?? null, reservationFeeAmount: fee?.amount ?? null, updatedAt: new Date() }).where(eq(reservations.id, reservation.id)).returning();
-    if (!updated) throw new ReservationError("Failed to update the reservation.");
-    await tx.delete(reservationOccupants).where(and(eq(reservationOccupants.reservationId, reservation.id), eq(reservationOccupants.organizationId, input.organizationId)));
-    if (data.occupantNames.length) await tx.insert(reservationOccupants).values(data.occupantNames.map((name, position) => ({ organizationId: input.organizationId, reservationId: reservation.id, name, position })));
+    const [updated] = await tx
+      .update(reservations)
+      .set({
+        unitId: unit.id,
+        guestId: guest.id,
+        checkInDate: data.checkIn,
+        checkOutDate: data.checkOut,
+        guestCount: data.guestCount,
+        platformId,
+        platformReference:
+          data.platformReference === undefined
+            ? reservation.platformReference
+            : data.platformReference || null,
+        reservationFeeType: fee?.type ?? null,
+        reservationFeeAmount: fee?.amount ?? null,
+        updatedAt: new Date(),
+      })
+      .where(eq(reservations.id, reservation.id))
+      .returning();
+    if (!updated)
+      throw new ReservationError("Failed to update the reservation.");
+    await tx
+      .delete(reservationOccupants)
+      .where(
+        and(
+          eq(reservationOccupants.reservationId, reservation.id),
+          eq(reservationOccupants.organizationId, input.organizationId),
+        ),
+      );
+    if (data.occupantNames.length)
+      await tx
+        .insert(reservationOccupants)
+        .values(
+          data.occupantNames.map((name, position) => ({
+            organizationId: input.organizationId,
+            reservationId: reservation.id,
+            name,
+            position,
+          })),
+        );
     // Extension charges are managed from the stay's extensions, not this form.
-    await tx.delete(reservationCharges).where(and(eq(reservationCharges.reservationId, reservation.id), eq(reservationCharges.organizationId, input.organizationId), ne(reservationCharges.type, "extension")));
-    await tx.insert(reservationCharges).values(data.charges.map((line) => ({ organizationId: input.organizationId, reservationId: reservation.id, type: line.type, description: line.description, quantity: line.quantity, unitAmountCents: line.unitAmountCents, amountCents: line.quantity * line.unitAmountCents, isRefundableDeposit: line.type === "security_deposit" })));
-    await recordAudit(tx, { organizationId: input.organizationId, actorUserId: input.actorUserId, entity: "reservation", entityId: reservation.id, action: "reservation.updated", metadata: { unitId: unit.id, guestId: guest.id, checkIn: data.checkIn, checkOut: data.checkOut, guestCount: data.guestCount, platformId: data.platformId ?? reservation.platformId, occupantCount: data.occupantNames.length, chargeCount: data.charges.length } });
+    await tx
+      .delete(reservationCharges)
+      .where(
+        and(
+          eq(reservationCharges.reservationId, reservation.id),
+          eq(reservationCharges.organizationId, input.organizationId),
+          ne(reservationCharges.type, "extension"),
+        ),
+      );
+    await tx
+      .insert(reservationCharges)
+      .values(
+        data.charges.map((line) => ({
+          organizationId: input.organizationId,
+          reservationId: reservation.id,
+          type: line.type,
+          description: line.description,
+          quantity: line.quantity,
+          unitAmountCents: line.unitAmountCents,
+          amountCents: line.quantity * line.unitAmountCents,
+          isRefundableDeposit: line.type === "security_deposit",
+        })),
+      );
+    await recordAudit(tx, {
+      organizationId: input.organizationId,
+      actorUserId: input.actorUserId,
+      entity: "reservation",
+      entityId: reservation.id,
+      action: "reservation.updated",
+      metadata: {
+        unitId: unit.id,
+        guestId: guest.id,
+        checkIn: data.checkIn,
+        checkOut: data.checkOut,
+        guestCount: data.guestCount,
+        platformId: data.platformId ?? reservation.platformId,
+        occupantCount: data.occupantNames.length,
+        chargeCount: data.charges.length,
+      },
+    });
     return updated;
   });
 }

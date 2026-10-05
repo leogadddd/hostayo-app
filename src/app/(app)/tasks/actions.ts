@@ -2,7 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { ZodError } from "zod";
-import { requireMembership, assertCan, PermissionError } from "@/lib/auth/session";
+import {
+  requireMembership,
+  assertCan,
+  PermissionError,
+} from "@/lib/auth/session";
 import { can } from "@/lib/permissions";
 import {
   createDamageReport,
@@ -95,7 +99,9 @@ export async function updateTaskNotesAction(
     assertCan(membership, "tasks.update");
     const { task } = await getTaskDetail(membership.organizationId, taskId);
     if (task.status !== "open") {
-      throw new OperationsError("This task is already marked ready and can no longer be edited.");
+      throw new OperationsError(
+        "This task is already marked ready and can no longer be edited.",
+      );
     }
     await updateTaskNotes({
       organizationId: membership.organizationId,
@@ -153,7 +159,10 @@ export async function resolveDamageReportAction(
   const membership = await requireMembership();
   assertCan(membership, "damage.update");
   try {
-    const { openDamage } = await getTaskDetail(membership.organizationId, taskId);
+    const { openDamage } = await getTaskDetail(
+      membership.organizationId,
+      taskId,
+    );
     if (!openDamage.some((report) => report.id === damageReportId)) {
       throw new OperationsError("Open damage report not found for this task.");
     }
@@ -184,9 +193,18 @@ export async function resolveReservationDamageAction(
   const membership = await requireMembership();
   try {
     assertCan(membership, "damage.update");
-    const reports = await listReservationDamageReports(membership.organizationId, reservationId);
-    if (!reports.some((report) => report.id === damageReportId && report.status === "open")) {
-      throw new OperationsError("Open damage report not found for this reservation.");
+    const reports = await listReservationDamageReports(
+      membership.organizationId,
+      reservationId,
+    );
+    if (
+      !reports.some(
+        (report) => report.id === damageReportId && report.status === "open",
+      )
+    ) {
+      throw new OperationsError(
+        "Open damage report not found for this reservation.",
+      );
     }
     await resolveDamageReport({
       organizationId: membership.organizationId,

@@ -16,7 +16,13 @@ describe("TimeInput", () => {
   });
 
   it("shows the readable time and submits the 24-hour value", () => {
-    const html = renderToStaticMarkup(h(TimeInput, { name: "checkInTime", defaultValue: "15:00", required: true }));
+    const html = renderToStaticMarkup(
+      h(TimeInput, {
+        name: "checkInTime",
+        defaultValue: "15:00",
+        required: true,
+      }),
+    );
     expect(html).toContain("3:00 PM");
     expect(html).toContain('name="checkInTime"');
     expect(html).toContain('value="15:00"');
@@ -24,6 +30,8 @@ describe("TimeInput", () => {
   });
 
   it("shows a placeholder when empty", () => {
-    expect(renderToStaticMarkup(h(TimeInput, { value: "", onChange: () => {} }))).toContain("Pick a time");
+    expect(
+      renderToStaticMarkup(h(TimeInput, { value: "", onChange: () => {} })),
+    ).toContain("Pick a time");
   });
 });

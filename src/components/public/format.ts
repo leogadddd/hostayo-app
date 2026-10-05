@@ -5,5 +5,8 @@ export function clockLabel(time: string) {
 }
 
 export const LONG_DATE = new Intl.DateTimeFormat("en-PH", {
-  weekday: "long", month: "long", day: "numeric", timeZone: "UTC",
+  weekday: "long",
+  month: "long",
+  day: "numeric",
+  timeZone: "UTC",
 });

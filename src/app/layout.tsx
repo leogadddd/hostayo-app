@@ -35,9 +35,14 @@ export default async function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const cookieStore = await cookies();
   const theme = parseThemePreference(cookieStore.get(THEME_COOKIE)?.value);
-  const answered = parseConsent(cookieStore.get(CONSENT_COOKIE)?.value) !== null;
+  const answered =
+    parseConsent(cookieStore.get(CONSENT_COOKIE)?.value) !== null;
   return (
-    <html lang="en" data-theme={theme} className={`${inter.variable} ${montserrat.variable}`}>
+    <html
+      lang="en"
+      data-theme={theme}
+      className={`${inter.variable} ${montserrat.variable}`}
+    >
       <body>
         {children}
         <HostayoToaster />

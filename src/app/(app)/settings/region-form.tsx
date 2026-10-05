@@ -26,7 +26,14 @@ export function RegionForm({ defaultTimezone }: { defaultTimezone: string }) {
   const saveBarVisible = dirty || pending || Boolean(state.error);
 
   return (
-    <form action={formAction} onSubmit={() => { setDirty(false); setSavedTimezone(selectedTimezone); }} className={saveBarVisible ? "space-y-6 pb-24" : "space-y-6"}>
+    <form
+      action={formAction}
+      onSubmit={() => {
+        setDirty(false);
+        setSavedTimezone(selectedTimezone);
+      }}
+      className={saveBarVisible ? "space-y-6 pb-24" : "space-y-6"}
+    >
       <div>
         <Label htmlFor="defaultTimezone">Organization timezone</Label>
         <TimezonePicker
@@ -45,7 +52,11 @@ export function RegionForm({ defaultTimezone }: { defaultTimezone: string }) {
           stays, and operations.
         </p>
       </div>
-      <SettingsSaveBar visible={saveBarVisible} pending={pending} error={state.error} />
+      <SettingsSaveBar
+        visible={saveBarVisible}
+        pending={pending}
+        error={state.error}
+      />
     </form>
   );
 }

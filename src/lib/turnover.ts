@@ -46,7 +46,9 @@ export function normalizeChecklistTemplate(
   value: unknown,
 ): ChecklistTemplateItem[] {
   const parsed = checklistTemplateSchema.safeParse(value);
-  return parsed.success ? parsed.data : DEFAULT_CHECKLIST.map((item) => ({ ...item }));
+  return parsed.success
+    ? parsed.data
+    : DEFAULT_CHECKLIST.map((item) => ({ ...item }));
 }
 
 export interface ReadyItemInput {

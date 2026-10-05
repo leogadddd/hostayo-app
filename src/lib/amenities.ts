@@ -50,7 +50,10 @@ export const DEFAULT_UNIT_AMENITIES: readonly DefaultAmenity[] = [
   { name: "Drinking water", icon: "water" },
 ];
 
-export const DEFAULT_AMENITIES: Record<AmenityScope, readonly DefaultAmenity[]> = {
+export const DEFAULT_AMENITIES: Record<
+  AmenityScope,
+  readonly DefaultAmenity[]
+> = {
   property: DEFAULT_PROPERTY_AMENITIES,
   unit: DEFAULT_UNIT_AMENITIES,
 };
@@ -61,5 +64,7 @@ export const AMENITY_NAME_MAX = 60;
 /** Collapses whitespace; returns null when the name is outside the allowed length. */
 export function normalizeAmenityName(value: string): string | null {
   const name = value.trim().replace(/\s+/g, " ");
-  return name.length >= AMENITY_NAME_MIN && name.length <= AMENITY_NAME_MAX ? name : null;
+  return name.length >= AMENITY_NAME_MIN && name.length <= AMENITY_NAME_MAX
+    ? name
+    : null;
 }

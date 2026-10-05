@@ -6,10 +6,17 @@ import { houseRulesPanel } from "../property-actions";
 
 export const metadata: Metadata = { title: "House rules" };
 
-export default async function HouseRulesPage({ params }: { params: Promise<{ propertyId: string }> }) {
+export default async function HouseRulesPage({
+  params,
+}: {
+  params: Promise<{ propertyId: string }>;
+}) {
   const membership = await requirePermission("properties.update");
   if (!membership) return <PermissionDenied />;
   const { propertyId } = await params;
-  const { form, ...panel } = await houseRulesPanel(membership.organizationId, propertyId);
+  const { form, ...panel } = await houseRulesPanel(
+    membership.organizationId,
+    propertyId,
+  );
   return <RoutePage {...panel}>{form}</RoutePage>;
 }

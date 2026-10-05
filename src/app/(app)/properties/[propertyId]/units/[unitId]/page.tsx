@@ -28,7 +28,11 @@ import { summarizeUnitActivity } from "@/lib/unit-activity";
 import { dayRateSummary } from "@/lib/rates";
 import { stayLengthHours, stayLengthLabel } from "@/lib/stay-times";
 import { getOccupancySegments } from "@/server/inventory/availability";
-import { getPropertyOrThrow, getUnitOrThrow, listUnitBlocks } from "@/server/inventory/service";
+import {
+  getPropertyOrThrow,
+  getUnitOrThrow,
+  listUnitBlocks,
+} from "@/server/inventory/service";
 import { InventoryError } from "@/server/inventory/validation";
 import { listUnitAmenities } from "@/server/inventory/amenities";
 import { buttonClassName } from "@/components/ui/button";
@@ -44,14 +48,22 @@ import {
   UnitStatusBadge,
   percent,
 } from "../../../inventory-display";
-import { dayLabel, timeLabel, UnitPhoto } from "../../../../calendar/availability/stay-display";
+import {
+  dayLabel,
+  timeLabel,
+  UnitPhoto,
+} from "../../../../calendar/availability/stay-display";
 
 export const metadata: Metadata = { title: "Unit" };
 
 const OUTLOOK_DAYS = 30;
 const UPCOMING_DAYS = 120;
 
-export default async function UnitDetailPage({ params }: { params: Promise<{ propertyId: string; unitId: string }> }) {
+export default async function UnitDetailPage({
+  params,
+}: {
+  params: Promise<{ propertyId: string; unitId: string }>;
+}) {
   const membership = await requirePermission("properties.view");
   if (!membership) return <PermissionDenied />;
 
@@ -71,11 +83,24 @@ export default async function UnitDetailPage({ params }: { params: Promise<{ pro
   const [blocks, amenities, segmentsByUnit] = await Promise.all([
     listUnitBlocks(membership.organizationId, unit.id, today),
     listUnitAmenities(membership.organizationId, unit.id),
-    getOccupancySegments(membership.organizationId, [unit.id], today, addDaysLocal(today, UPCOMING_DAYS)),
+    getOccupancySegments(
+      membership.organizationId,
+      [unit.id],
+      today,
+      addDaysLocal(today, UPCOMING_DAYS),
+    ),
   ]);
-  const activity = summarizeUnitActivity(segmentsByUnit.get(unit.id) ?? [], today, addDaysLocal(today, OUTLOOK_DAYS));
+  const activity = summarizeUnitActivity(
+    segmentsByUnit.get(unit.id) ?? [],
+    today,
+    addDaysLocal(today, OUTLOOK_DAYS),
+  );
   const checklist = normalizeChecklistTemplate(unit.checklistTemplate);
-  const dayRates = dayRateSummary(unit.defaultNightlyRateCents, unit.dayRates, formatPHP);
+  const dayRates = dayRateSummary(
+    unit.defaultNightlyRateCents,
+    unit.dayRates,
+    formatPHP,
+  );
   const feeRule = reservationFeeRule(unit);
   const unitHref = `/properties/${property.id}/units/${unit.id}`;
   const bookable = unit.status === "active";
@@ -119,7 +144,10 @@ export default async function UnitDetailPage({ params }: { params: Promise<{ pro
                   {unit.name}
                 </h1>
                 <p className="mt-1.5 flex items-center gap-1.5 text-sm text-ink/65">
-                  <MapPin className="h-4 w-4 shrink-0 text-pine/45" aria-hidden />
+                  <MapPin
+                    className="h-4 w-4 shrink-0 text-pine/45"
+                    aria-hidden
+                  />
                   <span className="truncate">
                     {property.name}
                     {property.address ? ` · ${property.address}` : ""}
@@ -128,17 +156,29 @@ export default async function UnitDetailPage({ params }: { params: Promise<{ pro
               </div>
               <div className="flex flex-wrap items-center gap-2 xl:justify-end">
                 {bookable ? (
-                  <Link href={newReservationHref} className={buttonClassName("clay", "md")}>
+                  <Link
+                    href={newReservationHref}
+                    className={buttonClassName("clay", "md")}
+                  >
                     <CalendarPlus className="h-4 w-4" aria-hidden />
                     New reservation
                   </Link>
                 ) : null}
-                <SharePublicLink href={`/h/${membership.organizationSlug}/${unit.publicSlug}`} title={`${unit.name} public page`} />
-                <Link href={`${unitHref}/edit`} className={buttonClassName("outline", "md")}>
+                <SharePublicLink
+                  href={`/h/${membership.organizationSlug}/${unit.publicSlug}`}
+                  title={`${unit.name} public page`}
+                />
+                <Link
+                  href={`${unitHref}/edit`}
+                  className={buttonClassName("outline", "md")}
+                >
                   <Pencil className="h-4 w-4" aria-hidden />
                   Edit
                 </Link>
-                <Link href={calendarHref} className={buttonClassName("ghost", "md")}>
+                <Link
+                  href={calendarHref}
+                  className={buttonClassName("ghost", "md")}
+                >
                   <CalendarDays className="h-4 w-4" aria-hidden />
                   Calendar
                 </Link>
@@ -149,8 +189,18 @@ export default async function UnitDetailPage({ params }: { params: Promise<{ pro
               <StatTile
                 icon={Wallet}
                 label="Nightly rate"
-                value={unit.defaultNightlyRateCents ? formatPHP(unit.defaultNightlyRateCents) : "Not set"}
-                detail={dayRates.length ? dayRates.join(" · ") : unit.cleaningFeeCents ? `+ ${formatPHP(unit.cleaningFeeCents)} cleaning` : undefined}
+                value={
+                  unit.defaultNightlyRateCents
+                    ? formatPHP(unit.defaultNightlyRateCents)
+                    : "Not set"
+                }
+                detail={
+                  dayRates.length
+                    ? dayRates.join(" · ")
+                    : unit.cleaningFeeCents
+                      ? `+ ${formatPHP(unit.cleaningFeeCents)} cleaning`
+                      : undefined
+                }
               />
               <StatTile
                 icon={Users}
@@ -169,7 +219,13 @@ export default async function UnitDetailPage({ params }: { params: Promise<{ pro
                 label="Tonight"
                 value={nowValue}
                 detail={nowDetail}
-                tone={activity.current ? "sage" : activity.blockedNow ? "clay" : undefined}
+                tone={
+                  activity.current
+                    ? "sage"
+                    : activity.blockedNow
+                      ? "clay"
+                      : undefined
+                }
               />
             </dl>
           </div>
@@ -183,9 +239,13 @@ export default async function UnitDetailPage({ params }: { params: Promise<{ pro
         >
           <CircleAlert className="h-4 w-4 shrink-0" aria-hidden />
           <span className="min-w-0 flex-1">
-            <strong>{UNIT_STATUS_LABELS[unit.status]}.</strong> {UNIT_STATUS_DESCRIPTIONS[unit.status]}
+            <strong>{UNIT_STATUS_LABELS[unit.status]}.</strong>{" "}
+            {UNIT_STATUS_DESCRIPTIONS[unit.status]}
           </span>
-          <Link href={`${unitHref}/status`} className="font-medium underline underline-offset-4">
+          <Link
+            href={`${unitHref}/status`}
+            className="font-medium underline underline-offset-4"
+          >
             Change status
           </Link>
         </p>
@@ -197,7 +257,10 @@ export default async function UnitDetailPage({ params }: { params: Promise<{ pro
             title="Upcoming stays"
             description={`Current and upcoming holds and bookings for the next ${UPCOMING_DAYS} days.`}
             action={
-              <Link href={calendarHref} className="text-xs font-medium text-clay-deep hover:underline">
+              <Link
+                href={calendarHref}
+                className="text-xs font-medium text-clay-deep hover:underline"
+              >
                 View calendar
               </Link>
             }
@@ -215,7 +278,10 @@ export default async function UnitDetailPage({ params }: { params: Promise<{ pro
               <div className="border-t border-pine/8 px-5 py-8 text-center sm:px-6">
                 <p className="text-sm text-ink/60">No upcoming stays.</p>
                 {bookable ? (
-                  <Link href={newReservationHref} className={buttonClassName("outline", "sm", "mt-3")}>
+                  <Link
+                    href={newReservationHref}
+                    className={buttonClassName("outline", "sm", "mt-3")}
+                  >
                     <Plus className="h-4 w-4" aria-hidden />
                     New reservation
                   </Link>
@@ -228,7 +294,10 @@ export default async function UnitDetailPage({ params }: { params: Promise<{ pro
             title="Out-of-service blocks"
             description="Nights closed for repairs or preparation."
             action={
-              <Link href={`${unitHref}/blocks/new`} className={buttonClassName("outline", "sm")}>
+              <Link
+                href={`${unitHref}/blocks/new`}
+                className={buttonClassName("outline", "sm")}
+              >
                 <Plus className="h-4 w-4" aria-hidden />
                 Add block
               </Link>
@@ -242,10 +311,18 @@ export default async function UnitDetailPage({ params }: { params: Promise<{ pro
                   const nights = nightsBetween(block.startDate, block.endDate);
                   const range = `${dayLabel(block.startDate)}${lastNight !== block.startDate ? ` → ${dayLabel(lastNight)}` : ""}`;
                   return (
-                    <li key={block.id} className="flex items-center gap-3 px-5 py-3 sm:px-6">
-                      <Construction className="h-4 w-4 shrink-0 text-ink/40" aria-hidden />
+                    <li
+                      key={block.id}
+                      className="flex items-center gap-3 px-5 py-3 sm:px-6"
+                    >
+                      <Construction
+                        className="h-4 w-4 shrink-0 text-ink/40"
+                        aria-hidden
+                      />
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium text-pine">{block.reason}</span>
+                        <span className="block truncate text-sm font-medium text-pine">
+                          {block.reason}
+                        </span>
                         <span className="block text-xs text-ink/55">
                           {range} · {nights} night{nights === 1 ? "" : "s"}
                         </span>
@@ -259,7 +336,12 @@ export default async function UnitDetailPage({ params }: { params: Promise<{ pro
                           <Pencil className="h-3.5 w-3.5" aria-hidden />
                           Edit
                         </Link>
-                        <RemoveBlockButton propertyId={property.id} unitId={unit.id} blockId={block.id} label={range} />
+                        <RemoveBlockButton
+                          propertyId={property.id}
+                          unitId={unit.id}
+                          blockId={block.id}
+                          label={range}
+                        />
                       </div>
                     </li>
                   );
@@ -276,7 +358,10 @@ export default async function UnitDetailPage({ params }: { params: Promise<{ pro
             title="Turnover checklist"
             description={`${checklist.length} items · ${checklist.filter((item) => item.required).length} required. Every checkout opens a cleaning task from this list.`}
             action={
-              <Link href={`${unitHref}/checklist/edit`} className={buttonClassName("outline", "sm")}>
+              <Link
+                href={`${unitHref}/checklist/edit`}
+                className={buttonClassName("outline", "sm")}
+              >
                 <Pencil className="h-4 w-4" aria-hidden />
                 Edit
               </Link>
@@ -285,9 +370,15 @@ export default async function UnitDetailPage({ params }: { params: Promise<{ pro
             <ol className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
               {checklist.map((item, index) => (
                 <li key={index} className="flex items-start gap-2 text-sm">
-                  <span className="mt-px w-5 shrink-0 text-right text-xs tabular-nums text-ink/40">{index + 1}.</span>
+                  <span className="mt-px w-5 shrink-0 text-right text-xs tabular-nums text-ink/40">
+                    {index + 1}.
+                  </span>
                   <span className="min-w-0 flex-1 text-pine">{item.label}</span>
-                  {item.required ? null : <span className="shrink-0 text-xs text-ink/40">Optional</span>}
+                  {item.required ? null : (
+                    <span className="shrink-0 text-xs text-ink/40">
+                      Optional
+                    </span>
+                  )}
                 </li>
               ))}
             </ol>
@@ -298,7 +389,11 @@ export default async function UnitDetailPage({ params }: { params: Promise<{ pro
           <Panel title="Manage unit">
             <div className="space-y-2">
               {bookable ? (
-                <SideAction href={newReservationHref} icon={CalendarPlus} tone="clay">
+                <SideAction
+                  href={newReservationHref}
+                  icon={CalendarPlus}
+                  tone="clay"
+                >
                   New reservation
                 </SideAction>
               ) : null}
@@ -308,7 +403,10 @@ export default async function UnitDetailPage({ params }: { params: Promise<{ pro
               <SideAction href={`${unitHref}/blocks/new`} icon={Construction}>
                 Block dates
               </SideAction>
-              <SideAction href={`${unitHref}/checklist/edit`} icon={ClipboardList}>
+              <SideAction
+                href={`${unitHref}/checklist/edit`}
+                icon={ClipboardList}
+              >
                 Edit checklist
               </SideAction>
               <SideAction href={`${unitHref}/edit`} icon={Pencil}>
@@ -319,29 +417,63 @@ export default async function UnitDetailPage({ params }: { params: Promise<{ pro
 
           <Panel title="Details">
             <dl className="space-y-3 text-sm">
-              <DetailRow label="Check-in from" value={timeLabel(unit.checkInTime)} />
-              <DetailRow label="Check-out by" value={`${timeLabel(unit.checkOutTime)}, next day`} />
-              <DetailRow label="Stay length" value={stayLengthLabel(stayLengthHours(unit.checkInTime, unit.checkOutTime))} />
+              <DetailRow
+                label="Check-in from"
+                value={timeLabel(unit.checkInTime)}
+              />
+              <DetailRow
+                label="Check-out by"
+                value={`${timeLabel(unit.checkOutTime)}, next day`}
+              />
+              <DetailRow
+                label="Stay length"
+                value={stayLengthLabel(
+                  stayLengthHours(unit.checkInTime, unit.checkOutTime),
+                )}
+              />
               <DetailRow
                 label="Nightly rate"
-                value={unit.defaultNightlyRateCents ? formatPHP(unit.defaultNightlyRateCents) : "Not set"}
+                value={
+                  unit.defaultNightlyRateCents
+                    ? formatPHP(unit.defaultNightlyRateCents)
+                    : "Not set"
+                }
               />
               {dayRates.map((line) => (
-                <DetailRow key={line} label={line.slice(0, line.lastIndexOf(" "))} value={line.slice(line.lastIndexOf(" ") + 1)} />
+                <DetailRow
+                  key={line}
+                  label={line.slice(0, line.lastIndexOf(" "))}
+                  value={line.slice(line.lastIndexOf(" ") + 1)}
+                />
               ))}
               {/* Optional charges only show when the unit has them. */}
-              {unit.cleaningFeeCents ? <DetailRow label="Cleaning fee" value={formatPHP(unit.cleaningFeeCents)} /> : null}
+              {unit.cleaningFeeCents ? (
+                <DetailRow
+                  label="Cleaning fee"
+                  value={formatPHP(unit.cleaningFeeCents)}
+                />
+              ) : null}
               {unit.securityDepositCents ? (
-                <DetailRow label="Refundable deposit" value={formatPHP(unit.securityDepositCents)} />
+                <DetailRow
+                  label="Refundable deposit"
+                  value={formatPHP(unit.securityDepositCents)}
+                />
               ) : null}
               {feeRule ? (
                 <DetailRow
                   label="Reservation fee"
-                  value={feeRule.type === "fixed" ? formatPHP(feeRule.amount) : `${formatPercent(feeRule.amount)} of total`}
+                  value={
+                    feeRule.type === "fixed"
+                      ? formatPHP(feeRule.amount)
+                      : `${formatPercent(feeRule.amount)} of total`
+                  }
                 />
               ) : null}
             </dl>
-            <AmenitySummary amenities={amenities} editHref={`${unitHref}/edit`} />
+            <AmenitySummary
+              amenities={amenities}
+              editHref={`${unitHref}/edit`}
+            />
           </Panel>
         </aside>
       </div>

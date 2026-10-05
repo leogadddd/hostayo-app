@@ -11,7 +11,11 @@ import { getOrganizationContactChannels } from "@/server/orgs/service";
 
 export const metadata: Metadata = { title: "Add unit" };
 
-export default async function NewUnitPage({ params }: { params: Promise<{ propertyId: string }> }) {
+export default async function NewUnitPage({
+  params,
+}: {
+  params: Promise<{ propertyId: string }>;
+}) {
   const membership = await requirePermission("properties.create");
   if (!membership) return <PermissionDenied />;
   const { propertyId } = await params;
@@ -33,9 +37,14 @@ export default async function NewUnitPage({ params }: { params: Promise<{ proper
       <UnitCreateForm
         propertyId={property.id}
         propertyName={property.name}
-        defaults={{ checkInTime: property.checkInTime, checkOutTime: property.checkOutTime }}
+        defaults={{
+          checkInTime: property.checkInTime,
+          checkOutTime: property.checkOutTime,
+        }}
         amenityOptions={await listAmenities(membership.organizationId, "unit")}
-        contactChannels={await getOrganizationContactChannels(membership.organizationId)}
+        contactChannels={await getOrganizationContactChannels(
+          membership.organizationId,
+        )}
       />
     </div>
   );

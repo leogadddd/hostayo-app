@@ -80,7 +80,8 @@ export function MiniCalendar({
         <div>
           <h2 className="font-display text-xl text-pine">{monthLabel}</h2>
           <p className="mt-1 text-xs text-ink/50">
-            Every stay, hold and block this month. Pick a day to see who&apos;s there.
+            Every stay, hold and block this month. Pick a day to see who&apos;s
+            there.
           </p>
         </div>
         <Link

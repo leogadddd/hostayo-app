@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -10,7 +16,8 @@ import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 type DeleteResult = { error?: string; success?: boolean };
 
-const MENU_ITEM = "flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-pine hover:bg-pine-mist/70 focus-visible:bg-pine-mist/70 focus-visible:outline-none";
+const MENU_ITEM =
+  "flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-pine hover:bg-pine-mist/70 focus-visible:bg-pine-mist/70 focus-visible:outline-none";
 
 export function TableActionsMenu({
   label,
@@ -60,12 +67,17 @@ export function TableActionsMenu({
     const { width, height } = element.getBoundingClientRect();
     const gap = 6;
     const margin = 8;
-    const fitsBelow = anchor.bottom + gap + height <= window.innerHeight - margin;
+    const fitsBelow =
+      anchor.bottom + gap + height <= window.innerHeight - margin;
     const fitsAbove = anchor.top - gap - height >= margin;
-    const top = fitsBelow || !fitsAbove
-      ? Math.min(anchor.bottom + gap, window.innerHeight - margin - height)
-      : anchor.top - gap - height;
-    const left = Math.min(Math.max(anchor.right - width, margin), window.innerWidth - margin - width);
+    const top =
+      fitsBelow || !fitsAbove
+        ? Math.min(anchor.bottom + gap, window.innerHeight - margin - height)
+        : anchor.top - gap - height;
+    const left = Math.min(
+      Math.max(anchor.right - width, margin),
+      window.innerWidth - margin - width,
+    );
     element.style.top = `${Math.max(margin, top)}px`;
     element.style.left = `${left}px`;
     element.style.visibility = "visible";
@@ -76,7 +88,8 @@ export function TableActionsMenu({
     menu.current?.querySelector<HTMLElement>("a, button")?.focus();
     const dismiss = (event: PointerEvent) => {
       const target = event.target as Node;
-      if (!menu.current?.contains(target) && !trigger.current?.contains(target)) setOpen(false);
+      if (!menu.current?.contains(target) && !trigger.current?.contains(target))
+        setOpen(false);
     };
     const keydown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -105,12 +118,24 @@ export function TableActionsMenu({
       className="invisible fixed left-0 top-0 z-50 w-44 overflow-hidden rounded-lg border border-pine/15 bg-linen p-1.5 text-left shadow-xl"
     >
       {viewHref ? (
-        <Link href={viewHref} role="menuitem" className={MENU_ITEM} onClick={() => setOpen(false)}>
-          <Eye className="h-4 w-4" aria-hidden />View
+        <Link
+          href={viewHref}
+          role="menuitem"
+          className={MENU_ITEM}
+          onClick={() => setOpen(false)}
+        >
+          <Eye className="h-4 w-4" aria-hidden />
+          View
         </Link>
       ) : null}
       {links.map((link) => (
-        <Link key={link.href} href={link.href} role="menuitem" className={MENU_ITEM} onClick={() => setOpen(false)}>
+        <Link
+          key={link.href}
+          href={link.href}
+          role="menuitem"
+          className={MENU_ITEM}
+          onClick={() => setOpen(false)}
+        >
           {link.icon}
           {link.label}
         </Link>
@@ -130,14 +155,38 @@ export function TableActionsMenu({
           {action.label}
         </button>
       ))}
-      {editHref ? <Link href={editHref} role="menuitem" className={MENU_ITEM} onClick={() => setOpen(false)}><Pencil className="h-4 w-4" aria-hidden />Edit</Link> : null}
-      {shareHref ? <button type="button" role="menuitem" className={MENU_ITEM} onClick={async () => {
-        setOpen(false);
-        try {
-          await navigator.clipboard.writeText(new URL(shareHref, window.location.origin).toString());
-          toast.success("Link copied");
-        } catch { toast.error("Couldn’t copy the link"); }
-      }}><Link2 className="h-4 w-4" aria-hidden />Copy public link</button> : null}
+      {editHref ? (
+        <Link
+          href={editHref}
+          role="menuitem"
+          className={MENU_ITEM}
+          onClick={() => setOpen(false)}
+        >
+          <Pencil className="h-4 w-4" aria-hidden />
+          Edit
+        </Link>
+      ) : null}
+      {shareHref ? (
+        <button
+          type="button"
+          role="menuitem"
+          className={MENU_ITEM}
+          onClick={async () => {
+            setOpen(false);
+            try {
+              await navigator.clipboard.writeText(
+                new URL(shareHref, window.location.origin).toString(),
+              );
+              toast.success("Link copied");
+            } catch {
+              toast.error("Couldn’t copy the link");
+            }
+          }}
+        >
+          <Link2 className="h-4 w-4" aria-hidden />
+          Copy public link
+        </button>
+      ) : null}
       {onDelete && deleteLabel && deleteDescription ? (
         <ConfirmationDialog
           title={deleteLabel}
@@ -150,7 +199,12 @@ export function TableActionsMenu({
             setOpen(false);
             router.refresh();
           }}
-          trigger={<><Trash2 className="h-4 w-4" aria-hidden />{destructiveActionLabel ?? "Delete"}</>}
+          trigger={
+            <>
+              <Trash2 className="h-4 w-4" aria-hidden />
+              {destructiveActionLabel ?? "Delete"}
+            </>
+          }
           triggerRole="menuitem"
           triggerSize="sm"
           triggerClassName="w-full justify-start px-3 text-clay-deep hover:bg-clay-mist/70"
@@ -172,7 +226,9 @@ export function TableActionsMenu({
       >
         <MoreHorizontal className="h-5 w-5" aria-hidden />
       </button>
-      {typeof document !== "undefined" && menuContent ? createPortal(menuContent, document.body) : null}
+      {typeof document !== "undefined" && menuContent
+        ? createPortal(menuContent, document.body)
+        : null}
     </>
   );
 }

@@ -45,17 +45,29 @@ export default function AppLoading() {
     case "properties":
       if (!id) return <CardGridSkeleton />;
       // New/edit property (…/new, /:id/edit) and unit (…/units/new, …/units/:id/edit).
-      if ((last === "new" && segments.length <= 4) || (last === "edit" && (segments.length === 3 || segments.length === 5))) {
+      if (
+        (last === "new" && segments.length <= 4) ||
+        (last === "edit" && (segments.length === 3 || segments.length === 5))
+      ) {
         return <WideFormSkeleton />;
       }
-      if (segments.length === 2 || (segments.length === 4 && segments[2] === "units")) return <DetailSkeleton />;
+      if (
+        segments.length === 2 ||
+        (segments.length === 4 && segments[2] === "units")
+      )
+        return <DetailSkeleton />;
       return <NarrowFormSkeleton />;
     case "guests":
       return <TableListSkeleton className="mx-auto max-w-6xl" filters={1} />;
     case "expenses":
-      return id ? <NarrowFormSkeleton /> : <TableListSkeleton className="mx-auto max-w-5xl" filters={3} />;
+      return id ? (
+        <NarrowFormSkeleton />
+      ) : (
+        <TableListSkeleton className="mx-auto max-w-5xl" filters={3} />
+      );
     case "tasks":
-      if (!id) return <TableListSkeleton className="mx-auto max-w-5xl" filters={1} />;
+      if (!id)
+        return <TableListSkeleton className="mx-auto max-w-5xl" filters={1} />;
       return action ? <NarrowFormSkeleton /> : <GenericPageSkeleton />;
     case "reports":
       return <ReportsSkeleton />;

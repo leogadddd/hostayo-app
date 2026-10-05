@@ -10,10 +10,14 @@ import { seedDefaultAmenities } from "@/server/inventory/amenities";
  * for organizations created before amenities existed. Idempotent.
  */
 async function main() {
-  const orgs = await db.select({ id: organizations.id, name: organizations.name }).from(organizations);
+  const orgs = await db
+    .select({ id: organizations.id, name: organizations.name })
+    .from(organizations);
   for (const org of orgs) {
     const added = await seedDefaultAmenities(db, org.id);
-    console.log(`${org.name}: ${added} amenit${added === 1 ? "y" : "ies"} added`);
+    console.log(
+      `${org.name}: ${added} amenit${added === 1 ? "y" : "ies"} added`,
+    );
   }
   process.exit(0);
 }

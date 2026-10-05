@@ -14,8 +14,15 @@ export function CancelReservationForm({
   reservationId: string;
   label?: string;
 }) {
-  const save = useReservationSaved(cancelReservationAction.bind(null, reservationId), reservationId, "Reservation cancelled.");
-  const [state, formAction, pending] = useActionState<ReservationFormState, FormData>(save, {});
+  const save = useReservationSaved(
+    cancelReservationAction.bind(null, reservationId),
+    reservationId,
+    "Reservation cancelled.",
+  );
+  const [state, formAction, pending] = useActionState<
+    ReservationFormState,
+    FormData
+  >(save, {});
   useActionFeedback(state);
 
   return (

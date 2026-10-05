@@ -80,16 +80,28 @@ export default function AuthLayout({
           </Link>
           {children}
           <footer className="mt-10 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-ink/50">
-            <Link href="/terms" className="underline-offset-4 hover:text-pine hover:underline">
+            <Link
+              href="/terms"
+              className="underline-offset-4 hover:text-pine hover:underline"
+            >
               Terms and Conditions
             </Link>
-            <Link href="/privacy" className="underline-offset-4 hover:text-pine hover:underline">
+            <Link
+              href="/privacy"
+              className="underline-offset-4 hover:text-pine hover:underline"
+            >
               Privacy Policy
             </Link>
-            <Link href="/cookies" className="underline-offset-4 hover:text-pine hover:underline">
+            <Link
+              href="/cookies"
+              className="underline-offset-4 hover:text-pine hover:underline"
+            >
               Cookie Policy
             </Link>
-            <Link href="/refunds" className="underline-offset-4 hover:text-pine hover:underline">
+            <Link
+              href="/refunds"
+              className="underline-offset-4 hover:text-pine hover:underline"
+            >
               Refund Policy
             </Link>
           </footer>

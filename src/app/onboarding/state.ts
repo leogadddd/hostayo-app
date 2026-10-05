@@ -6,7 +6,9 @@ import { db } from "@/lib/db";
 import { organizationJoinRequests, organizations } from "@/lib/db/schema";
 import { listOrgUnits, listProperties } from "@/server/inventory/service";
 
-export type OnboardingMembership = Awaited<ReturnType<typeof listMemberships>>[number];
+export type OnboardingMembership = Awaited<
+  ReturnType<typeof listMemberships>
+>[number];
 type Property = Awaited<ReturnType<typeof listProperties>>[number];
 type Unit = Awaited<ReturnType<typeof listOrgUnits>>[number];
 
@@ -31,7 +33,9 @@ function earliest<T extends { createdAt: Date }>(rows: T[]): T | null {
  * reload or a half-finished attempt resumes at the right step, and going back
  * edits what was already created.
  */
-export async function getOnboardingState(userId: string): Promise<OnboardingState> {
+export async function getOnboardingState(
+  userId: string,
+): Promise<OnboardingState> {
   const [membership] = await listMemberships(userId);
   if (!membership) return { membership: null, property: null, unit: null };
   const [properties, units] = await Promise.all([
@@ -59,8 +63,10 @@ export function guardOnboardingStep(
   state: OnboardingState,
   step: "organization" | "property" | "unit",
 ): string | null {
-  if (state.membership && state.membership.role !== "owner") return "/dashboard";
-  if (step === "property" && !state.membership) return "/onboarding/organization";
+  if (state.membership && state.membership.role !== "owner")
+    return "/dashboard";
+  if (step === "property" && !state.membership)
+    return "/onboarding/organization";
   if (step === "unit" && !state.property) return nextOnboardingPath(state);
   return null;
 }
@@ -71,9 +77,21 @@ export function guardOnboardingStep(
  */
 export async function listPendingJoinRequests(userId: string) {
   return db
-    .select({ id: organizationJoinRequests.id, organizationName: organizations.name, createdAt: organizationJoinRequests.createdAt })
+    .select({
+      id: organizationJoinRequests.id,
+      organizationName: organizations.name,
+      createdAt: organizationJoinRequests.createdAt,
+    })
     .from(organizationJoinRequests)
-    .innerJoin(organizations, eq(organizationJoinRequests.organizationId, organizations.id))
-    .where(and(eq(organizationJoinRequests.userId, userId), eq(organizationJoinRequests.status, "pending")))
+    .innerJoin(
+      organizations,
+      eq(organizationJoinRequests.organizationId, organizations.id),
+    )
+    .where(
+      and(
+        eq(organizationJoinRequests.userId, userId),
+        eq(organizationJoinRequests.status, "pending"),
+      ),
+    )
     .orderBy(desc(organizationJoinRequests.updatedAt));
 }

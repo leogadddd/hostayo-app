@@ -1,14 +1,21 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requirePermission } from "@/lib/auth/session";
-import { getGuestOrThrow, ReservationError } from "@/server/reservations/service";
+import {
+  getGuestOrThrow,
+  ReservationError,
+} from "@/server/reservations/service";
 import { PageHeading } from "@/components/app/page-heading";
 import { PermissionDenied } from "@/components/app/permission-denied";
 import { GuestForm } from "../../guest-form";
 
 export const metadata: Metadata = { title: "Edit guest" };
 
-export default async function EditGuestPage({ params }: { params: Promise<{ guestId: string }> }) {
+export default async function EditGuestPage({
+  params,
+}: {
+  params: Promise<{ guestId: string }>;
+}) {
   const membership = await requirePermission("guests.update");
   if (!membership) return <PermissionDenied />;
 
@@ -23,8 +30,15 @@ export default async function EditGuestPage({ params }: { params: Promise<{ gues
 
   return (
     <div className="min-w-0 overflow-hidden">
-      <PageHeading title="Edit guest" description={`${guest.name} · Changes show on all of this guest's reservations.`} backHref={`/guests/${guest.id}`} backLabel={guest.name} />
-      <GuestForm guestId={guest.id} initialValues={{
+      <PageHeading
+        title="Edit guest"
+        description={`${guest.name} · Changes show on all of this guest's reservations.`}
+        backHref={`/guests/${guest.id}`}
+        backLabel={guest.name}
+      />
+      <GuestForm
+        guestId={guest.id}
+        initialValues={{
           name: guest.name,
           email: guest.email ?? "",
           phone: guest.phone ?? "",
@@ -43,7 +57,8 @@ export default async function EditGuestPage({ params }: { params: Promise<{ gues
           flagged: guest.flagged,
           flagReason: guest.flagReason ?? "",
           marketingOptIn: guest.marketingOptIn,
-        }} />
+        }}
+      />
     </div>
   );
 }

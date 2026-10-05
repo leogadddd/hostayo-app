@@ -36,7 +36,11 @@ import { MonthCalendar, type DisplayCalendarEvent } from "./month-calendar";
 import { TimelineCalendar } from "./timeline-calendar";
 import { TodayPanel } from "./today-panel";
 import { UnitFilter } from "./unit-filter";
-import { isCalendarView, ViewSwitcher, type CalendarView } from "./view-switcher";
+import {
+  isCalendarView,
+  ViewSwitcher,
+  type CalendarView,
+} from "./view-switcher";
 
 export const metadata: Metadata = { title: "Calendar" };
 const MONTH_LABEL = new Intl.DateTimeFormat("en-PH", {
@@ -144,7 +148,11 @@ export default async function CalendarPage({
   ]);
   // Late check-out hours move the expected departure (src/lib/extensions.ts).
   const extensionHours = await getExtensionHours(membership.organizationId, [
-    ...[...segmentsByUnit.values()].flat().flatMap((segment) => (segment.kind === "reservation" ? [segment.id] : [])),
+    ...[...segmentsByUnit.values()]
+      .flat()
+      .flatMap((segment) =>
+        segment.kind === "reservation" ? [segment.id] : [],
+      ),
     ...activity.map((reservation) => reservation.id),
   ]);
   // Money for the quick view, only for people who may see it.
@@ -152,7 +160,11 @@ export default async function CalendarPage({
   const balances = showMoney
     ? await getReservationBalances(
         membership.organizationId,
-        [...segmentsByUnit.values()].flat().flatMap((segment) => (segment.kind === "reservation" ? [segment.id] : [])),
+        [...segmentsByUnit.values()]
+          .flat()
+          .flatMap((segment) =>
+            segment.kind === "reservation" ? [segment.id] : [],
+          ),
       )
     : new Map();
   const canStays = can(membership, "stays.update");
@@ -257,7 +269,9 @@ export default async function CalendarPage({
     const actual = event.actualCheckoutAt
       ? utcToLocalDateTimeParts(event.actualCheckoutAt, timezone)
       : null;
-    const lateHours = event.reservationId ? extensionHours.get(event.reservationId) ?? 0 : 0;
+    const lateHours = event.reservationId
+      ? (extensionHours.get(event.reservationId) ?? 0)
+      : 0;
     const expectedTime = extendedCheckoutTime(unit.checkOutTime, lateHours);
     const endDate = actual?.date ?? event.endDate;
     const endTime = actual?.time ?? expectedTime;
@@ -308,35 +322,65 @@ export default async function CalendarPage({
           kindLabel,
           tone,
           title: event.title,
-          reference: event.reservationId ? `#${event.reservationId.slice(0, 8).toUpperCase()}` : undefined,
+          reference: event.reservationId
+            ? `#${event.reservationId.slice(0, 8).toUpperCase()}`
+            : undefined,
           platform: event.platform ?? undefined,
           platformReference: event.platformReference ?? undefined,
           unitLabel: unitLabel(event.unitId),
           propertyName: propertyForUnit(event.unitId).name,
-          timing: stayTiming(event.status!, event.startDate, endDate, todayByUnit.get(event.unitId) ?? today),
+          timing: stayTiming(
+            event.status!,
+            event.startDate,
+            endDate,
+            todayByUnit.get(event.unitId) ?? today,
+          ),
           guest: {
             email: event.guestEmail ?? undefined,
             phone: event.guestPhone ?? undefined,
-            href: canSeeGuests && event.guestId ? `/guests/${event.guestId}` : undefined,
+            href:
+              canSeeGuests && event.guestId
+                ? `/guests/${event.guestId}`
+                : undefined,
           },
           money: (() => {
-            const balance = event.reservationId ? balances.get(event.reservationId) : undefined;
+            const balance = event.reservationId
+              ? balances.get(event.reservationId)
+              : undefined;
             if (!balance) return undefined;
-            const paid = balance.paidBookingCents - balance.refundedBookingCents;
+            const paid =
+              balance.paidBookingCents - balance.refundedBookingCents;
             return {
               total: formatPHP(balance.bookingTotalCents),
               paid: formatPHP(paid),
               balance: formatPHP(Math.max(0, balance.bookingBalanceCents)),
               due: balance.bookingBalanceCents > 0,
-              paidShare: balance.bookingTotalCents ? Math.min(1, Math.max(0, paid / balance.bookingTotalCents)) : 1,
-              depositHeld: balance.depositHeldCents ? formatPHP(balance.depositHeldCents) : undefined,
+              paidShare: balance.bookingTotalCents
+                ? Math.min(1, Math.max(0, paid / balance.bookingTotalCents))
+                : 1,
+              depositHeld: balance.depositHeldCents
+                ? formatPHP(balance.depositHeldCents)
+                : undefined,
             };
           })(),
           actions: [
-            ...(event.status === "hold" && canConfirm ? [{ label: "Confirm hold", href: `${href}/confirm` }] : []),
-            ...(event.status === "confirmed" && canStays && event.startDate <= (todayByUnit.get(event.unitId) ?? today) ? [{ label: "Check in", href: `${href}/check-in` }] : []),
-            ...(event.status === "checked_in" && canStays ? [{ label: "Check out", href: `${href}/check-out` }] : []),
-            ...(canRecordPayment && event.status !== "checked_out" && (balances.get(event.reservationId ?? "")?.bookingBalanceCents ?? 0) > 0 ? [{ label: "Record payment", href: `${href}/payments/new` }] : []),
+            ...(event.status === "hold" && canConfirm
+              ? [{ label: "Confirm hold", href: `${href}/confirm` }]
+              : []),
+            ...(event.status === "confirmed" &&
+            canStays &&
+            event.startDate <= (todayByUnit.get(event.unitId) ?? today)
+              ? [{ label: "Check in", href: `${href}/check-in` }]
+              : []),
+            ...(event.status === "checked_in" && canStays
+              ? [{ label: "Check out", href: `${href}/check-out` }]
+              : []),
+            ...(canRecordPayment &&
+            event.status !== "checked_out" &&
+            (balances.get(event.reservationId ?? "")?.bookingBalanceCents ??
+              0) > 0
+              ? [{ label: "Record payment", href: `${href}/payments/new` }]
+              : []),
           ],
           checkIn: {
             date: dayLabel(event.startDate),
@@ -346,7 +390,10 @@ export default async function CalendarPage({
             date: dayLabel(endDate),
             time: timeLabel(endTime),
             actual: Boolean(actual),
-            late: !actual && lateHours ? `+${lateHours}h late check-out` : undefined,
+            late:
+              !actual && lateHours
+                ? `+${lateHours}h late check-out`
+                : undefined,
             expected: actual
               ? `${shortDate(event.endDate)}, ${timeLabel(expectedTime)}`
               : lateHours
@@ -364,7 +411,9 @@ export default async function CalendarPage({
     ];
   });
 
-  const view: CalendarView = isCalendarView(params.view) ? params.view : "month";
+  const view: CalendarView = isCalendarView(params.view)
+    ? params.view
+    : "month";
   // Month, unit, and view all live in the URL so a refresh keeps them.
   const calendarHref = ({
     month: targetMonth = month,
@@ -440,7 +489,10 @@ export default async function CalendarPage({
               propertyName: property?.name ?? null,
               imageUrl: unitOrPropertyPhotoSrc(unit, property),
               bedrooms: unit.bedrooms,
-              statusLabel: unit.status === "active" ? null : UNIT_STATUS_LABELS[unit.status],
+              statusLabel:
+                unit.status === "active"
+                  ? null
+                  : UNIT_STATUS_LABELS[unit.status],
             };
           })}
         />
@@ -457,9 +509,7 @@ export default async function CalendarPage({
                 id: unit.id,
                 name: unit.name,
                 propertyName:
-                  properties.length > 1
-                    ? propertyForUnit(unit.id).name
-                    : null,
+                  properties.length > 1 ? propertyForUnit(unit.id).name : null,
                 bookable: unit.status === "active",
               }))}
               events={displayEvents}
@@ -523,13 +573,30 @@ export default async function CalendarPage({
 }
 
 /** "Arrives tomorrow", "Leaves in 3 days", "Left Sep 23"…, from the unit's today. */
-function stayTiming(status: string, startDate: string, endDate: string, today: string): string {
-  const days = (from: string, to: string) => Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000);
-  const inDays = (n: number) => (n === 0 ? "today" : n === 1 ? "tomorrow" : `in ${n} days`);
-  const short = (date: string) => new Intl.DateTimeFormat("en-PH", { month: "short", day: "numeric", timeZone: "UTC" }).format(new Date(`${date}T00:00:00Z`));
+function stayTiming(
+  status: string,
+  startDate: string,
+  endDate: string,
+  today: string,
+): string {
+  const days = (from: string, to: string) =>
+    Math.round(
+      (Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) /
+        86_400_000,
+    );
+  const inDays = (n: number) =>
+    n === 0 ? "today" : n === 1 ? "tomorrow" : `in ${n} days`;
+  const short = (date: string) =>
+    new Intl.DateTimeFormat("en-PH", {
+      month: "short",
+      day: "numeric",
+      timeZone: "UTC",
+    }).format(new Date(`${date}T00:00:00Z`));
   if (status === "checked_out") return `Checked out ${short(endDate)}`;
-  if (status === "checked_in") return `Staying now · leaves ${inDays(Math.max(0, days(today, endDate)))}`;
+  if (status === "checked_in")
+    return `Staying now · leaves ${inDays(Math.max(0, days(today, endDate)))}`;
   const untilArrival = days(today, startDate);
-  if (untilArrival < 0) return `Was due ${short(startDate)} · not checked in yet`;
+  if (untilArrival < 0)
+    return `Was due ${short(startDate)} · not checked in yet`;
   return `Arrives ${inDays(untilArrival)}`;
 }

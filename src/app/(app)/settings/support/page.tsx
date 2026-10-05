@@ -8,7 +8,10 @@ export const metadata: Metadata = { title: "Support" };
 
 /** Contact details, problem reports and quick answers. Open to every member. */
 export default async function SupportSettingsPage() {
-  const [currentUser, membership] = await Promise.all([requireUser(), requireMembership()]);
+  const [currentUser, membership] = await Promise.all([
+    requireUser(),
+    requireMembership(),
+  ]);
   return (
     <SupportSettings
       context={{

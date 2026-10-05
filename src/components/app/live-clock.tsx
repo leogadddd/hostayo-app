@@ -25,9 +25,17 @@ export function LiveClock({ initialNow }: { initialNow: string }) {
   }, []);
 
   return (
-    <div className="hidden border-l border-pine/15 pl-5 text-right lg:block" aria-label="Current date and time">
+    <div
+      className="hidden border-l border-pine/15 pl-5 text-right lg:block"
+      aria-label="Current date and time"
+    >
       <p className="text-xs text-ink/65">{DATE.format(now)}</p>
-      <time dateTime={now.toISOString()} className="mt-1 block text-xs font-medium tabular-nums text-pine">{TIME.format(now)}</time>
+      <time
+        dateTime={now.toISOString()}
+        className="mt-1 block text-xs font-medium tabular-nums text-pine"
+      >
+        {TIME.format(now)}
+      </time>
     </div>
   );
 }

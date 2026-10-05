@@ -15,7 +15,10 @@ import {
   unitBlocks,
   units,
 } from "@/lib/db/schema";
-import { buildDashboardSeries, type DashboardSeries } from "@/lib/dashboard-series";
+import {
+  buildDashboardSeries,
+  type DashboardSeries,
+} from "@/lib/dashboard-series";
 import { localDateTimeToUtc } from "@/lib/dates";
 import { OCCUPANCY_STATUSES } from "@/lib/reporting";
 
@@ -52,14 +55,28 @@ export async function getDashboardPlatformBreakdown(
         eq(reservations.organizationId, bookingPlatforms.organizationId),
       ),
     )
-    .where(and(
-      eq(reservations.organizationId, organizationId),
-      inArray(reservations.status, ["confirmed", "checked_in", "checked_out"]),
-      gte(reservations.checkInDate, range.from),
-      lt(reservations.checkInDate, range.to),
-    ))
-    .groupBy(bookingPlatforms.id, bookingPlatforms.name, bookingPlatforms.logoUrl, bookingPlatforms.color)
-    .orderBy(sql`${reservationCount} desc`, sql`coalesce(${bookingPlatforms.name}, 'Not recorded') asc`);
+    .where(
+      and(
+        eq(reservations.organizationId, organizationId),
+        inArray(reservations.status, [
+          "confirmed",
+          "checked_in",
+          "checked_out",
+        ]),
+        gte(reservations.checkInDate, range.from),
+        lt(reservations.checkInDate, range.to),
+      ),
+    )
+    .groupBy(
+      bookingPlatforms.id,
+      bookingPlatforms.name,
+      bookingPlatforms.logoUrl,
+      bookingPlatforms.color,
+    )
+    .orderBy(
+      sql`${reservationCount} desc`,
+      sql`coalesce(${bookingPlatforms.name}, 'Not recorded') asc`,
+    );
 }
 
 /** Open damage reports across the organization, newest first. */
@@ -77,9 +94,20 @@ export async function listOpenDamage(organizationId: string) {
       propertyName: properties.name,
     })
     .from(damageReports)
-    .innerJoin(units, and(eq(damageReports.unitId, units.id), eq(damageReports.organizationId, units.organizationId)))
+    .innerJoin(
+      units,
+      and(
+        eq(damageReports.unitId, units.id),
+        eq(damageReports.organizationId, units.organizationId),
+      ),
+    )
     .innerJoin(properties, eq(units.propertyId, properties.id))
-    .where(and(eq(damageReports.organizationId, organizationId), eq(damageReports.status, "open")))
+    .where(
+      and(
+        eq(damageReports.organizationId, organizationId),
+        eq(damageReports.status, "open"),
+      ),
+    )
     .orderBy(desc(damageReports.createdAt));
 }
 
@@ -94,9 +122,26 @@ export async function listPendingProofs(organizationId: string) {
       guestName: guests.name,
     })
     .from(paymentProofs)
-    .innerJoin(reservations, and(eq(paymentProofs.reservationId, reservations.id), eq(paymentProofs.organizationId, reservations.organizationId)))
-    .innerJoin(guests, and(eq(reservations.guestId, guests.id), eq(reservations.organizationId, guests.organizationId)))
-    .where(and(eq(paymentProofs.organizationId, organizationId), eq(paymentProofs.status, "unverified")))
+    .innerJoin(
+      reservations,
+      and(
+        eq(paymentProofs.reservationId, reservations.id),
+        eq(paymentProofs.organizationId, reservations.organizationId),
+      ),
+    )
+    .innerJoin(
+      guests,
+      and(
+        eq(reservations.guestId, guests.id),
+        eq(reservations.organizationId, guests.organizationId),
+      ),
+    )
+    .where(
+      and(
+        eq(paymentProofs.organizationId, organizationId),
+        eq(paymentProofs.status, "unverified"),
+      ),
+    )
     .orderBy(desc(paymentProofs.createdAt));
 }
 
@@ -109,57 +154,111 @@ export async function getDashboardSeries(
   const startUtc = localDateTimeToUtc(`${from}T00:00`, CASH_TIMEZONE)!;
   const endUtc = localDateTimeToUtc(`${to}T00:00`, CASH_TIMEZONE)!;
 
-  const paidOn = (column: typeof paymentEntries.receivedAt | typeof refundEntries.refundedAt) =>
+  const paidOn = (
+    column: typeof paymentEntries.receivedAt | typeof refundEntries.refundedAt,
+  ) =>
     // Inlined (a constant, never user input) so SELECT and GROUP BY are the same expression.
     sql<string>`to_char(${column} at time zone ${sql.raw(`'${CASH_TIMEZONE}'`)}, 'YYYY-MM-DD')`;
   const paymentDate = paidOn(paymentEntries.receivedAt);
   const refundDate = paidOn(refundEntries.refundedAt);
 
-  const [propertyRows, unitRows, blockRows, stayRows, paymentRows, refundRows, expenseRows] = await Promise.all([
-    db.select({ id: properties.id, name: properties.name })
+  const [
+    propertyRows,
+    unitRows,
+    blockRows,
+    stayRows,
+    paymentRows,
+    refundRows,
+    expenseRows,
+  ] = await Promise.all([
+    db
+      .select({ id: properties.id, name: properties.name })
       .from(properties)
       .where(eq(properties.organizationId, organizationId))
       .orderBy(properties.name),
-    db.select({ id: units.id, propertyId: units.propertyId, status: units.status })
+    db
+      .select({
+        id: units.id,
+        propertyId: units.propertyId,
+        status: units.status,
+      })
       .from(units)
       .where(eq(units.organizationId, organizationId)),
-    db.select({ unitId: unitBlocks.unitId, startDate: unitBlocks.startDate, endDate: unitBlocks.endDate })
+    db
+      .select({
+        unitId: unitBlocks.unitId,
+        startDate: unitBlocks.startDate,
+        endDate: unitBlocks.endDate,
+      })
       .from(unitBlocks)
-      .where(and(eq(unitBlocks.organizationId, organizationId), lt(unitBlocks.startDate, to), gte(unitBlocks.endDate, from))),
-    db.select({ unitId: reservations.unitId, checkInDate: reservations.checkInDate, checkOutDate: reservations.checkOutDate, status: reservations.status })
+      .where(
+        and(
+          eq(unitBlocks.organizationId, organizationId),
+          lt(unitBlocks.startDate, to),
+          gte(unitBlocks.endDate, from),
+        ),
+      ),
+    db
+      .select({
+        unitId: reservations.unitId,
+        checkInDate: reservations.checkInDate,
+        checkOutDate: reservations.checkOutDate,
+        status: reservations.status,
+      })
       .from(reservations)
-      .where(and(
-        eq(reservations.organizationId, organizationId),
-        inArray(reservations.status, [...OCCUPANCY_STATUSES]),
-        lt(reservations.checkInDate, to),
-        gte(reservations.checkOutDate, from),
-      )),
-    db.select({ date: paymentDate, amountCents: sql`sum(${paymentEntries.amountCents})`.mapWith(Number) })
+      .where(
+        and(
+          eq(reservations.organizationId, organizationId),
+          inArray(reservations.status, [...OCCUPANCY_STATUSES]),
+          lt(reservations.checkInDate, to),
+          gte(reservations.checkOutDate, from),
+        ),
+      ),
+    db
+      .select({
+        date: paymentDate,
+        amountCents: sql`sum(${paymentEntries.amountCents})`.mapWith(Number),
+      })
       .from(paymentEntries)
-      .where(and(
-        eq(paymentEntries.organizationId, organizationId),
-        eq(paymentEntries.allocation, "booking"),
-        gte(paymentEntries.receivedAt, startUtc),
-        lt(paymentEntries.receivedAt, endUtc),
-      ))
+      .where(
+        and(
+          eq(paymentEntries.organizationId, organizationId),
+          eq(paymentEntries.allocation, "booking"),
+          gte(paymentEntries.receivedAt, startUtc),
+          lt(paymentEntries.receivedAt, endUtc),
+        ),
+      )
       .groupBy(paymentDate),
-    db.select({ date: refundDate, amountCents: sql`sum(${refundEntries.amountCents})`.mapWith(Number) })
+    db
+      .select({
+        date: refundDate,
+        amountCents: sql`sum(${refundEntries.amountCents})`.mapWith(Number),
+      })
       .from(refundEntries)
-      .where(and(
-        eq(refundEntries.organizationId, organizationId),
-        eq(refundEntries.allocation, "booking"),
-        gte(refundEntries.refundedAt, startUtc),
-        lt(refundEntries.refundedAt, endUtc),
-      ))
+      .where(
+        and(
+          eq(refundEntries.organizationId, organizationId),
+          eq(refundEntries.allocation, "booking"),
+          gte(refundEntries.refundedAt, startUtc),
+          lt(refundEntries.refundedAt, endUtc),
+        ),
+      )
       .groupBy(refundDate),
-    db.select({
-      date: expenses.paidDate,
-      category: expenses.category,
-      classification: expenses.classification,
-      amountCents: sql`sum(${expenses.amountCents})`.mapWith(Number),
-    })
+    db
+      .select({
+        date: expenses.paidDate,
+        category: expenses.category,
+        classification: expenses.classification,
+        amountCents: sql`sum(${expenses.amountCents})`.mapWith(Number),
+      })
       .from(expenses)
-      .where(and(eq(expenses.organizationId, organizationId), gte(expenses.paidDate, from), lt(expenses.paidDate, to)))
+      .where(
+        and(
+          eq(expenses.organizationId, organizationId),
+          gte(expenses.paidDate, from),
+          lt(expenses.paidDate, to),
+        ),
+      )
       .groupBy(expenses.paidDate, expenses.category, expenses.classification),
   ]);
 

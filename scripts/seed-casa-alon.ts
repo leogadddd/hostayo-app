@@ -11,7 +11,10 @@ import {
   listProperties,
   listPropertyUnits,
 } from "@/server/inventory/service";
-import { discardInventoryPhoto, storeInventoryPhoto } from "@/server/inventory/photos";
+import {
+  discardInventoryPhoto,
+  storeInventoryPhoto,
+} from "@/server/inventory/photos";
 
 /**
  * Imports the Casa Alon sample property into the local development workspace.
@@ -65,7 +68,10 @@ const UNITS = [
 
 async function uploadPhoto(organizationId: string, filename: string) {
   const body = new Uint8Array(await readFile(join(SOURCE_DIRECTORY, filename)));
-  return storeInventoryPhoto(organizationId, { body, contentType: "image/png" });
+  return storeInventoryPhoto(organizationId, {
+    body,
+    contentType: "image/png",
+  });
 }
 
 async function main() {
@@ -79,7 +85,9 @@ async function main() {
     .where(eq(organizations.slug, DEVELOPMENT_ORGANIZATION_SLUG))
     .limit(1);
   if (!organization) {
-    throw new Error("Development workspace not found. Run npm run seed:development first.");
+    throw new Error(
+      "Development workspace not found. Run npm run seed:development first.",
+    );
   }
 
   const [owner] = await db
@@ -88,7 +96,9 @@ async function main() {
     .where(eq(user.email, OWNER_EMAIL))
     .limit(1);
   if (!owner) {
-    throw new Error("Development owner not found. Run npm run seed:development first.");
+    throw new Error(
+      "Development owner not found. Run npm run seed:development first.",
+    );
   }
 
   const existingProperties = await listProperties(organization.id);

@@ -13,14 +13,25 @@ export default async function NewPlatformPage() {
   if (!membership) return <PermissionDenied />;
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeading title="Add booking platform" description="A channel your bookings come from, like TikTok or a travel agent. It's added to the end of the reservation form's list." backHref="/settings/platforms" backLabel="Booking platforms" />
+      <PageHeading
+        title="Add booking platform"
+        description="A channel your bookings come from, like TikTok or a travel agent. It's added to the end of the reservation form's list."
+        backHref="/settings/platforms"
+        backLabel="Booking platforms"
+      />
       <Card className="bg-card">
         <CardBody>
           <PlatformForm
             action={createPlatformAction}
             submitLabel="Add platform"
             successMessage="Platform added."
-            values={{ name: "", color: "", websiteUrl: "", downPaymentApplies: true, logoUrl: null }}
+            values={{
+              name: "",
+              color: "",
+              websiteUrl: "",
+              downPaymentApplies: true,
+              logoUrl: null,
+            }}
           />
         </CardBody>
       </Card>

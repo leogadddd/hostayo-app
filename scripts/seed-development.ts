@@ -85,14 +85,18 @@ async function seedDevelopmentWorkspace() {
   if (!ownerUserId) throw new Error("Development owner is missing.");
   const organizationId = await ensureDevelopmentWorkspace(ownerUserId);
 
-  const roleRows = await db.select({ id: roles.id, key: roles.key }).from(roles);
+  const roleRows = await db
+    .select({ id: roles.id, key: roles.key })
+    .from(roles);
   const roleIds = new Map(roleRows.map((role) => [role.key, role.id]));
 
   for (const account of DEVELOPMENT_USERS) {
     const userId = usersByRole.get(account.role)!;
     const roleId = roleIds.get(account.role);
     if (!roleId) {
-      throw new Error(`The ${account.role} role is unavailable. Run npm run db:migrate first.`);
+      throw new Error(
+        `The ${account.role} role is unavailable. Run npm run db:migrate first.`,
+      );
     }
 
     await db
@@ -115,7 +119,9 @@ async function seedDevelopmentWorkspace() {
   }
 
   console.log(`Development workspace ready: ${DEVELOPMENT_ORGANIZATION.name}`);
-  console.log(`Password for every development account: ${DEVELOPMENT_PASSWORD}`);
+  console.log(
+    `Password for every development account: ${DEVELOPMENT_PASSWORD}`,
+  );
   for (const account of DEVELOPMENT_USERS) {
     console.log(`  ${account.role.padEnd(18)} ${account.email}`);
   }

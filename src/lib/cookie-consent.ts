@@ -11,7 +11,9 @@ export function parseConsent(value: string | undefined): CookieConsent | null {
 
 /** Browser only. */
 export function readConsent(): CookieConsent | null {
-  const match = document.cookie.match(new RegExp(`(?:^|; )${CONSENT_COOKIE}=([^;]*)`));
+  const match = document.cookie.match(
+    new RegExp(`(?:^|; )${CONSENT_COOKIE}=([^;]*)`),
+  );
   return parseConsent(match?.[1]);
 }
 

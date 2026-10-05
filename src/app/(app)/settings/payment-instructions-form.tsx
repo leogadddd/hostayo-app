@@ -27,7 +27,18 @@ export function PaymentInstructionsForm({
   const saveBarVisible = dirty || pending || Boolean(state.error);
 
   return (
-    <form action={formAction} onChange={(event) => setDirty(String(new FormData(event.currentTarget).get("paymentInstructions") ?? "") !== defaultValue)} onSubmit={() => setDirty(false)} className={saveBarVisible ? "pb-24" : undefined}>
+    <form
+      action={formAction}
+      onChange={(event) =>
+        setDirty(
+          String(
+            new FormData(event.currentTarget).get("paymentInstructions") ?? "",
+          ) !== defaultValue,
+        )
+      }
+      onSubmit={() => setDirty(false)}
+      className={saveBarVisible ? "pb-24" : undefined}
+    >
       <Label htmlFor="paymentInstructions">
         Payment instructions shown to guests
       </Label>
@@ -44,7 +55,12 @@ export function PaymentInstructionsForm({
         Guests see this on their private booking page — include account names
         and numbers for GCash, Maya or bank transfer.
       </p>
-      <SettingsSaveBar visible={saveBarVisible} pending={pending} error={state.error} label="Save instructions" />
+      <SettingsSaveBar
+        visible={saveBarVisible}
+        pending={pending}
+        error={state.error}
+        label="Save instructions"
+      />
     </form>
   );
 }

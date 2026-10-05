@@ -17,12 +17,14 @@ import { storeInventoryPhoto } from "@/server/inventory/photos";
  */
 const dryRun = process.argv.includes("--dry-run");
 
-async function migrate(
-  label: string,
-  table: typeof properties | typeof units,
-) {
+async function migrate(label: string, table: typeof properties | typeof units) {
   const rows = await db
-    .select({ id: table.id, organizationId: table.organizationId, name: table.name, imageUrl: table.imageUrl })
+    .select({
+      id: table.id,
+      organizationId: table.organizationId,
+      name: table.name,
+      imageUrl: table.imageUrl,
+    })
     .from(table)
     .where(like(table.imageUrl, "data:%"));
   let moved = 0;
@@ -32,7 +34,9 @@ async function migrate(
     try {
       upload = await imageUploadFromDataUrl(row.imageUrl ?? "");
     } catch (error) {
-      console.warn(`  skipped ${label} "${row.name}": ${error instanceof Error ? error.message : error}`);
+      console.warn(
+        `  skipped ${label} "${row.name}": ${error instanceof Error ? error.message : error}`,
+      );
       continue;
     }
     if (!upload) continue;

@@ -11,17 +11,22 @@ import {
 } from "@/server/inventory/validation";
 
 describe("imageUploadFromDataUrl", () => {
-  const onePixelPng = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAADElEQVQImWNgYGAAAAAEAAGjChXjAAAAAElFTkSuQmCC";
+  const onePixelPng =
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAADElEQVQImWNgYGAAAAAEAAGjChXjAAAAAElFTkSuQmCC";
 
   it("decodes and normalizes an uploaded image before storage", async () => {
-    await expect(imageUploadFromDataUrl(`data:image/png;base64,${onePixelPng}`)).resolves.toMatchObject({
+    await expect(
+      imageUploadFromDataUrl(`data:image/png;base64,${onePixelPng}`),
+    ).resolves.toMatchObject({
       contentType: "image/webp",
       body: expect.any(Uint8Array),
     });
   });
 
   it("rejects bytes that are not a valid image", async () => {
-    await expect(imageUploadFromDataUrl("data:image/png;base64,AQID")).rejects.toThrow("valid JPG, PNG, or WebP");
+    await expect(
+      imageUploadFromDataUrl("data:image/png;base64,AQID"),
+    ).rejects.toThrow("valid JPG, PNG, or WebP");
   });
 });
 
@@ -74,9 +79,18 @@ describe("propertyInputSchema", () => {
 
   it("defaults turnover to two hours and bounds its duration", () => {
     expect(propertyInputSchema.parse(valid).turnoverDurationMinutes).toBe(120);
-    expect(propertyInputSchema.safeParse({ ...valid, turnoverDurationMinutes: 0 }).success).toBe(false);
-    expect(propertyInputSchema.safeParse({ ...valid, turnoverDurationMinutes: 1441 }).success).toBe(false);
-    expect(propertyInputSchema.parse({ ...valid, turnoverDurationMinutes: 150 }).turnoverDurationMinutes).toBe(150);
+    expect(
+      propertyInputSchema.safeParse({ ...valid, turnoverDurationMinutes: 0 })
+        .success,
+    ).toBe(false);
+    expect(
+      propertyInputSchema.safeParse({ ...valid, turnoverDurationMinutes: 1441 })
+        .success,
+    ).toBe(false);
+    expect(
+      propertyInputSchema.parse({ ...valid, turnoverDurationMinutes: 150 })
+        .turnoverDurationMinutes,
+    ).toBe(150);
   });
 });
 
@@ -121,8 +135,9 @@ describe("unitInputSchema", () => {
   });
 
   it("rejects a non-listed status", () => {
-    expect(unitInputSchema.safeParse({ ...valid, status: "hidden" }).success)
-      .toBe(false);
+    expect(
+      unitInputSchema.safeParse({ ...valid, status: "hidden" }).success,
+    ).toBe(false);
   });
 
   it("rejects zero capacity", () => {

@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { isLocalDate } from "@/lib/dates";
-import { EXPENSE_CATEGORIES, PAYMENT_ALLOCATIONS, PAYMENT_METHODS } from "@/lib/db/schema";
+import {
+  EXPENSE_CATEGORIES,
+  PAYMENT_ALLOCATIONS,
+  PAYMENT_METHODS,
+} from "@/lib/db/schema";
 
 export class PaymentError extends Error {
   constructor(
@@ -86,11 +90,9 @@ export const createExpenseSchema = z.object({
     .min(2, "Describe the expense.")
     .max(300, "Description must be 300 characters or fewer."),
   classification: z.enum(["operating", "capital"]),
-  paidDate: z
-    .string()
-    .refine(isLocalDate, {
-      message: "Use a real calendar date (yyyy-mm-dd).",
-    }),
+  paidDate: z.string().refine(isLocalDate, {
+    message: "Use a real calendar date (yyyy-mm-dd).",
+  }),
 });
 
 export type CreateExpenseInput = z.infer<typeof createExpenseSchema>;

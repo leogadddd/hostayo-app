@@ -10,8 +10,16 @@ export const metadata: Metadata = { title: "Permissions" };
 export default async function PermissionsSettingsPage() {
   const membership = await requireMembership();
   if (!canManagePermissions(membership.role)) {
-    return <PermissionDenied description="Only owners and admins can see and change what each role is allowed to do." />;
+    return (
+      <PermissionDenied description="Only owners and admins can see and change what each role is allowed to do." />
+    );
   }
   const matrix = await getPermissionMatrix(membership.organizationId);
-  return <PermissionMatrixEditor matrix={matrix} editableRoles={editableRoles(membership.role)} actorRole={membership.role} />;
+  return (
+    <PermissionMatrixEditor
+      matrix={matrix}
+      editableRoles={editableRoles(membership.role)}
+      actorRole={membership.role}
+    />
+  );
 }

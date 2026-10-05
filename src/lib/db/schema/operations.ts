@@ -80,23 +80,46 @@ export const turnoverBlocks = pgTable(
   "turnover_blocks",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
     unitId: uuid("unit_id").notNull(),
     reservationId: uuid("reservation_id").notNull(),
     taskId: uuid("task_id").notNull(),
     startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
     endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
     durationMinutes: integer("duration_minutes").notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     unique("turnover_blocks_reservation_unique").on(table.reservationId),
-    index("turnover_blocks_unit_time_idx").on(table.unitId, table.startsAt, table.endsAt),
-    foreignKey({ columns: [table.organizationId, table.unitId], foreignColumns: [units.organizationId, units.id] }).onDelete("cascade"),
-    foreignKey({ columns: [table.organizationId, table.reservationId], foreignColumns: [reservations.organizationId, reservations.id] }).onDelete("cascade"),
-    foreignKey({ columns: [table.organizationId, table.taskId], foreignColumns: [tasks.organizationId, tasks.id] }).onDelete("cascade"),
-    check("turnover_blocks_range_check", sql`${table.endsAt} > ${table.startsAt}`),
-    check("turnover_blocks_duration_check", sql`${table.durationMinutes} >= 1 AND ${table.durationMinutes} <= 1440`),
+    index("turnover_blocks_unit_time_idx").on(
+      table.unitId,
+      table.startsAt,
+      table.endsAt,
+    ),
+    foreignKey({
+      columns: [table.organizationId, table.unitId],
+      foreignColumns: [units.organizationId, units.id],
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.organizationId, table.reservationId],
+      foreignColumns: [reservations.organizationId, reservations.id],
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.organizationId, table.taskId],
+      foreignColumns: [tasks.organizationId, tasks.id],
+    }).onDelete("cascade"),
+    check(
+      "turnover_blocks_range_check",
+      sql`${table.endsAt} > ${table.startsAt}`,
+    ),
+    check(
+      "turnover_blocks_duration_check",
+      sql`${table.durationMinutes} >= 1 AND ${table.durationMinutes} <= 1440`,
+    ),
   ],
 );
 
@@ -120,7 +143,10 @@ export const taskItems = pgTable(
       .defaultNow(),
   },
   (table) => [
-    unique("task_items_organization_id_unique").on(table.organizationId, table.id),
+    unique("task_items_organization_id_unique").on(
+      table.organizationId,
+      table.id,
+    ),
     foreignKey({
       columns: [table.organizationId, table.taskId],
       foreignColumns: [tasks.organizationId, tasks.id],
@@ -158,7 +184,10 @@ export const damageReports = pgTable(
       .defaultNow(),
   },
   (table) => [
-    unique("damage_reports_organization_id_unique").on(table.organizationId, table.id),
+    unique("damage_reports_organization_id_unique").on(
+      table.organizationId,
+      table.id,
+    ),
     foreignKey({
       columns: [table.organizationId, table.unitId],
       foreignColumns: [units.organizationId, units.id],

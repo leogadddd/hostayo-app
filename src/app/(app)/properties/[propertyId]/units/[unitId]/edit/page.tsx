@@ -14,7 +14,11 @@ import { getOrganizationContactChannels } from "@/server/orgs/service";
 
 export const metadata: Metadata = { title: "Edit unit" };
 
-export default async function EditUnitPage({ params }: { params: Promise<{ propertyId: string; unitId: string }> }) {
+export default async function EditUnitPage({
+  params,
+}: {
+  params: Promise<{ propertyId: string; unitId: string }>;
+}) {
   const membership = await requirePermission("properties.update");
   if (!membership) return <PermissionDenied />;
 
@@ -37,8 +41,51 @@ export default async function EditUnitPage({ params }: { params: Promise<{ prope
 
   return (
     <div className="min-w-0 overflow-hidden">
-      <PageHeading title="Edit unit" description={`${unit.name} · ${property.name}`} backHref={`/properties/${property.id}/units/${unit.id}`} backLabel={unit.name} />
-      <UnitEditForm propertyId={property.id} unitId={unit.id} propertyName={property.name} amenityOptions={amenityOptions} selectedAmenityIds={selected.map((amenity) => amenity.id)} contactChannels={contactChannels} values={{ name: unit.name, capacity: unit.capacity, bedrooms: unit.bedrooms, bathrooms: unit.bathrooms, nightlyRate: centavosToPesosInput(unit.defaultNightlyRateCents), cleaningFee: centavosToPesosInput(unit.cleaningFeeCents), securityDeposit: centavosToPesosInput(unit.securityDepositCents), reservationFeeType: unit.reservationFeeType ?? "", reservationFeeAmount: unit.reservationFeeAmount === null ? "" : unit.reservationFeeType === "percent" ? String(unit.reservationFeeAmount / 100) : centavosToPesosInput(unit.reservationFeeAmount), dayRates: Object.fromEntries(Object.entries(effectiveDayRates(unit.defaultNightlyRateCents, unit.dayRates)).map(([day, cents]) => [day, centavosToPesosInput(cents)])), extensionsEnabled: unit.extensionsEnabled, maxExtensionHours: String(unit.maxExtensionHours), extensionHourlyRate: centavosToPesosInput(unit.extensionHourlyRateCents), checkInTime: unit.checkInTime, checkOutTime: unit.checkOutTime, status: unit.status, imageUrl: photoSrc("unit", unit), contactChannelIds: unit.contactChannelIds }} />
+      <PageHeading
+        title="Edit unit"
+        description={`${unit.name} · ${property.name}`}
+        backHref={`/properties/${property.id}/units/${unit.id}`}
+        backLabel={unit.name}
+      />
+      <UnitEditForm
+        propertyId={property.id}
+        unitId={unit.id}
+        propertyName={property.name}
+        amenityOptions={amenityOptions}
+        selectedAmenityIds={selected.map((amenity) => amenity.id)}
+        contactChannels={contactChannels}
+        values={{
+          name: unit.name,
+          capacity: unit.capacity,
+          bedrooms: unit.bedrooms,
+          bathrooms: unit.bathrooms,
+          nightlyRate: centavosToPesosInput(unit.defaultNightlyRateCents),
+          cleaningFee: centavosToPesosInput(unit.cleaningFeeCents),
+          securityDeposit: centavosToPesosInput(unit.securityDepositCents),
+          reservationFeeType: unit.reservationFeeType ?? "",
+          reservationFeeAmount:
+            unit.reservationFeeAmount === null
+              ? ""
+              : unit.reservationFeeType === "percent"
+                ? String(unit.reservationFeeAmount / 100)
+                : centavosToPesosInput(unit.reservationFeeAmount),
+          dayRates: Object.fromEntries(
+            Object.entries(
+              effectiveDayRates(unit.defaultNightlyRateCents, unit.dayRates),
+            ).map(([day, cents]) => [day, centavosToPesosInput(cents)]),
+          ),
+          extensionsEnabled: unit.extensionsEnabled,
+          maxExtensionHours: String(unit.maxExtensionHours),
+          extensionHourlyRate: centavosToPesosInput(
+            unit.extensionHourlyRateCents,
+          ),
+          checkInTime: unit.checkInTime,
+          checkOutTime: unit.checkOutTime,
+          status: unit.status,
+          imageUrl: photoSrc("unit", unit),
+          contactChannelIds: unit.contactChannelIds,
+        }}
+      />
     </div>
   );
 }

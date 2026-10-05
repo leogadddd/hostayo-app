@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  buildDefaultCharges,
-  computeTotals,
-} from "@/lib/charges";
+import { buildDefaultCharges, computeTotals } from "@/lib/charges";
 import {
   ALLOWED_TRANSITIONS,
   chargeLineSchema,
@@ -244,8 +241,16 @@ describe("reservation input schemas", () => {
   });
 
   it("keeps additional occupants separate from the primary guest and requires a complete supplied list", () => {
-    expect(createConfirmedSchema.parse({ ...base, occupantNames: ["Ana Reyes"] }).occupantNames).toEqual(["Ana Reyes"]);
-    expect(createConfirmedSchema.safeParse({ ...base, occupantNames: ["Ana Reyes", "Ben Reyes"] }).success).toBe(false);
+    expect(
+      createConfirmedSchema.parse({ ...base, occupantNames: ["Ana Reyes"] })
+        .occupantNames,
+    ).toEqual(["Ana Reyes"]);
+    expect(
+      createConfirmedSchema.safeParse({
+        ...base,
+        occupantNames: ["Ana Reyes", "Ben Reyes"],
+      }).success,
+    ).toBe(false);
   });
 
   it("rejects a hold range where checkout is not after check-in", () => {
@@ -274,12 +279,14 @@ describe("reservation input schemas", () => {
   });
 
   it("requires a contact method on the guest", () => {
+    expect(guestInputSchema.safeParse({ name: "Maria Santos" }).success).toBe(
+      false,
+    );
     expect(
-      guestInputSchema.safeParse({ name: "Maria Santos" }).success,
-    ).toBe(false);
-    expect(
-      guestInputSchema.safeParse({ name: "Maria Santos", phone: "0917 555 0100" })
-        .success,
+      guestInputSchema.safeParse({
+        name: "Maria Santos",
+        phone: "0917 555 0100",
+      }).success,
     ).toBe(true);
     expect(
       guestInputSchema.safeParse({

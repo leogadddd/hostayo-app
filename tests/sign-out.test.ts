@@ -13,13 +13,19 @@ beforeEach(() => vi.resetAllMocks());
 
 describe("sign out", () => {
   it("uses the auth client and redirects only after success", async () => {
-    vi.mocked(authClient.signOut).mockResolvedValue({ data: { success: true }, error: null });
+    vi.mocked(authClient.signOut).mockResolvedValue({
+      data: { success: true },
+      error: null,
+    });
     const redirect = vi.fn();
 
     await signOutAndRedirect(redirect);
 
     expect(authClient.signOut).toHaveBeenCalledOnce();
-    expect(setToastAfterNavigation).toHaveBeenCalledExactlyOnceWith("success", "Signed out successfully.");
+    expect(setToastAfterNavigation).toHaveBeenCalledExactlyOnceWith(
+      "success",
+      "Signed out successfully.",
+    );
     expect(redirect).toHaveBeenCalledExactlyOnceWith("/login");
   });
 
@@ -30,12 +36,17 @@ describe("sign out", () => {
     } as Awaited<ReturnType<typeof authClient.signOut>>);
     const redirect = vi.fn();
 
-    await expect(signOutAndRedirect(redirect)).rejects.toThrow("Session service unavailable");
+    await expect(signOutAndRedirect(redirect)).rejects.toThrow(
+      "Session service unavailable",
+    );
     expect(redirect).not.toHaveBeenCalled();
   });
 
   it("returns a demo user to the public Hostayo site", async () => {
-    vi.mocked(authClient.signOut).mockResolvedValue({ data: { success: true }, error: null });
+    vi.mocked(authClient.signOut).mockResolvedValue({
+      data: { success: true },
+      error: null,
+    });
     const redirect = vi.fn();
 
     await signOutAndRedirect(redirect, true);

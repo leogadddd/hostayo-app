@@ -3,10 +3,7 @@ import { requirePermission } from "@/lib/auth/session";
 import { can } from "@/lib/permissions";
 import { PermissionDenied } from "@/components/app/permission-denied";
 import { addDaysLocal, isLocalDate, todayInTimeZone } from "@/lib/dates";
-import {
-  listOrgUnits,
-  listProperties,
-} from "@/server/inventory/service";
+import { listOrgUnits, listProperties } from "@/server/inventory/service";
 import { listGuests } from "@/server/reservations/service";
 import { listPlatforms } from "@/server/reservations/platforms";
 import { PageHeading } from "@/components/app/page-heading";
@@ -18,7 +15,13 @@ export const metadata: Metadata = { title: "New reservation" };
 export default async function NewReservationPage({
   searchParams,
 }: {
-  searchParams: Promise<{ unit?: string; checkIn?: string; checkOut?: string; guests?: string; guest?: string }>;
+  searchParams: Promise<{
+    unit?: string;
+    checkIn?: string;
+    checkOut?: string;
+    guests?: string;
+    guest?: string;
+  }>;
 }) {
   const membership = await requirePermission("reservations.create");
   if (!membership) return <PermissionDenied />;
@@ -35,12 +38,22 @@ export default async function NewReservationPage({
   const today = todayInTimeZone(timezone);
   const canSetCharges = can(membership, "payments.create");
   const canConfirm = canSetCharges && can(membership, "reservations.update");
-  const propertyById = new Map(properties.map((property) => [property.id, property]));
+  const propertyById = new Map(
+    properties.map((property) => [property.id, property]),
+  );
 
   const activeUnits = units.filter((unit) => unit.status === "active");
-  const defaultGuestCount = Math.min(50, Math.max(1, Math.trunc(Number(params.guests)) || 1));
+  const defaultGuestCount = Math.min(
+    50,
+    Math.max(1, Math.trunc(Number(params.guests)) || 1),
+  );
   // Coming from an availability search: offer the way back to that stay.
-  const fromSearch = params.unit && params.checkIn && params.checkOut && isLocalDate(params.checkIn) && isLocalDate(params.checkOut);
+  const fromSearch =
+    params.unit &&
+    params.checkIn &&
+    params.checkOut &&
+    isLocalDate(params.checkIn) &&
+    isLocalDate(params.checkOut);
   const backHref = fromSearch
     ? `/calendar/availability/${params.unit}?${new URLSearchParams({ checkIn: params.checkIn!, checkOut: params.checkOut!, guests: String(defaultGuestCount) })}`
     : "/reservations";
@@ -57,10 +70,20 @@ export default async function NewReservationPage({
       <ReservationForm
         canConfirm={canConfirm}
         canSetCharges={canSetCharges}
-        units={activeUnits.map((unit) => toUnitOption(unit, propertyById.get(unit.propertyId), { multipleProperties: properties.length > 1, showRates: canSetCharges }))}
+        units={activeUnits.map((unit) =>
+          toUnitOption(unit, propertyById.get(unit.propertyId), {
+            multipleProperties: properties.length > 1,
+            showRates: canSetCharges,
+          }),
+        )}
         canCreateGuest={can(membership, "guests.create")}
         platforms={platforms}
-        guests={guestRows.map((guest) => ({ id: guest.id, name: guest.name, email: guest.email, phone: guest.phone }))}
+        guests={guestRows.map((guest) => ({
+          id: guest.id,
+          name: guest.name,
+          email: guest.email,
+          phone: guest.phone,
+        }))}
         defaultCheckIn={params.checkIn ?? today}
         defaultCheckOut={params.checkOut ?? addDaysLocal(today, 1)}
         requestedUnitId={params.unit}

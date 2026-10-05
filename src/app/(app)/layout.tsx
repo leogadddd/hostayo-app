@@ -32,11 +32,13 @@ export default async function AppLayout({
       getOrganizationLogoUrl(organization.organizationId),
     ),
   );
-  const organizationLogoUrl = organizationLogoUrls[
-    organizations.findIndex(
-      (organization) => organization.organizationId === membership.organizationId,
-    )
-  ] ?? null;
+  const organizationLogoUrl =
+    organizationLogoUrls[
+      organizations.findIndex(
+        (organization) =>
+          organization.organizationId === membership.organizationId,
+      )
+    ] ?? null;
   const identity = {
     organizationId: membership.organizationId,
     organizationSlug: membership.organizationSlug,

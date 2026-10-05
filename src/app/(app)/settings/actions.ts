@@ -1,7 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireMembership, assertCan, assertNotDemoAccount, PermissionError } from "@/lib/auth/session";
+import {
+  requireMembership,
+  assertCan,
+  assertNotDemoAccount,
+  PermissionError,
+} from "@/lib/auth/session";
 import {
   inviteStaff,
   changeMemberRole,
@@ -17,11 +22,19 @@ import {
   updateOrganizationContactChannels,
 } from "@/server/orgs/service";
 import { unexpectedErrorMessage } from "@/lib/errors";
-import { INVITABLE_ROLE_KEYS, canManagePermissions, type InvitableRoleKey, type RoleKey } from "@/lib/permissions";
+import {
+  INVITABLE_ROLE_KEYS,
+  canManagePermissions,
+  type InvitableRoleKey,
+  type RoleKey,
+} from "@/lib/permissions";
 import { updateRolePermissions } from "@/server/orgs/permissions";
 import { imageUploadFromDataUrl } from "@/server/inventory/image-upload";
 import { InventoryError } from "@/server/inventory/validation";
-import { createObjectStorageFromEnvironment, StorageError } from "@/server/storage/service";
+import {
+  createObjectStorageFromEnvironment,
+  StorageError,
+} from "@/server/storage/service";
 import type { ContactChannel } from "@/lib/contact-channels";
 
 export interface OrgFormState {
@@ -33,7 +46,11 @@ export interface OrgFormState {
 }
 
 function toFormError(error: unknown): OrgFormState {
-  if (error instanceof OrgError || error instanceof InventoryError || error instanceof StorageError) {
+  if (
+    error instanceof OrgError ||
+    error instanceof InventoryError ||
+    error instanceof StorageError
+  ) {
     return { error: error.message };
   }
   if (error instanceof PermissionError) {
@@ -80,8 +97,8 @@ export async function saveOrganizationProfile(
     const logoUrl = removeLogo
       ? null
       : logo
-      ? `org/${membership.organizationId}/logo/logo.webp`
-      : undefined;
+        ? `org/${membership.organizationId}/logo/logo.webp`
+        : undefined;
     if (logo && logoUrl) {
       await createObjectStorageFromEnvironment().put({ key: logoUrl, ...logo });
     }
@@ -161,7 +178,9 @@ export async function savePaymentInstructions(
   return { success: true };
 }
 
-export async function saveContactChannelsAction(channels: ContactChannel[]): Promise<OrgFormState> {
+export async function saveContactChannelsAction(
+  channels: ContactChannel[],
+): Promise<OrgFormState> {
   const membership = await requireMembership();
   assertCan(membership, "organization.update");
   try {
@@ -191,10 +210,15 @@ export async function inviteStaffAction(
       organizationId: membership.organizationId,
       actorUserId: membership.userId,
       email: String(formData.get("email") ?? ""),
-      role: (String(formData.get("role") ?? "staff") || "staff") as "admin" | "operations_manager" | "staff",
+      role: (String(formData.get("role") ?? "staff") || "staff") as
+        "admin" | "operations_manager" | "staff",
     });
     revalidatePath("/settings");
-    return { success: true, invitationCode: invitation.code, invitationExpiresAt: invitation.expiresAt.toISOString() };
+    return {
+      success: true,
+      invitationCode: invitation.code,
+      invitationExpiresAt: invitation.expiresAt.toISOString(),
+    };
   } catch (error) {
     return toFormError(error);
   }
@@ -206,19 +230,30 @@ export async function createOrganizationJoinCodeAction(): Promise<OrgFormState> 
   assertCan(membership, "team.create");
   assertNotDemoAccount(membership);
   try {
-    const joinCode = await createOrganizationJoinCode({ organizationId: membership.organizationId, actorUserId: membership.userId });
+    const joinCode = await createOrganizationJoinCode({
+      organizationId: membership.organizationId,
+      actorUserId: membership.userId,
+    });
     return { success: true, joinCode: joinCode.code };
   } catch (error) {
     return toFormError(error);
   }
 }
 
-export async function reviewOrganizationJoinRequestAction(requestId: string, approve: boolean): Promise<OrgFormState> {
+export async function reviewOrganizationJoinRequestAction(
+  requestId: string,
+  approve: boolean,
+): Promise<OrgFormState> {
   const membership = await requireMembership();
   assertCan(membership, "team.update");
   assertNotDemoAccount(membership);
   try {
-    await reviewOrganizationJoinRequest({ organizationId: membership.organizationId, actorUserId: membership.userId, requestId, approve });
+    await reviewOrganizationJoinRequest({
+      organizationId: membership.organizationId,
+      actorUserId: membership.userId,
+      requestId,
+      approve,
+    });
     revalidatePath("/settings");
     return { success: true };
   } catch (error) {
@@ -226,13 +261,22 @@ export async function reviewOrganizationJoinRequestAction(requestId: string, app
   }
 }
 
-export async function changeMemberRoleAction(membershipId: string, role: InvitableRoleKey): Promise<OrgFormState> {
+export async function changeMemberRoleAction(
+  membershipId: string,
+  role: InvitableRoleKey,
+): Promise<OrgFormState> {
   const membership = await requireMembership();
   assertCan(membership, "team.update");
   assertNotDemoAccount(membership);
-  if (!(INVITABLE_ROLE_KEYS as readonly string[]).includes(role)) return { error: "Choose a valid role." };
+  if (!(INVITABLE_ROLE_KEYS as readonly string[]).includes(role))
+    return { error: "Choose a valid role." };
   try {
-    await changeMemberRole({ organizationId: membership.organizationId, actorUserId: membership.userId, membershipId, role });
+    await changeMemberRole({
+      organizationId: membership.organizationId,
+      actorUserId: membership.userId,
+      membershipId,
+      role,
+    });
     revalidatePath("/settings/team");
     return { success: true };
   } catch (error) {
@@ -241,7 +285,10 @@ export async function changeMemberRoleAction(membershipId: string, role: Invitab
 }
 
 /** Owners and admins only; the service also limits which roles each may edit. */
-export async function saveRolePermissionsAction(role: RoleKey, permissions: string[]): Promise<OrgFormState> {
+export async function saveRolePermissionsAction(
+  role: RoleKey,
+  permissions: string[],
+): Promise<OrgFormState> {
   const membership = await requireMembership();
   if (!canManagePermissions(membership.role)) {
     return { error: "Only owners and admins can change permissions." };
@@ -261,7 +308,9 @@ export async function saveRolePermissionsAction(role: RoleKey, permissions: stri
   return { success: true };
 }
 
-export async function removeStaffAction(membershipId: string): Promise<OrgFormState> {
+export async function removeStaffAction(
+  membershipId: string,
+): Promise<OrgFormState> {
   const membership = await requireMembership();
   assertCan(membership, "team.delete");
   assertNotDemoAccount(membership);

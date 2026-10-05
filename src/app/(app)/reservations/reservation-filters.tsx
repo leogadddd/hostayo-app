@@ -43,12 +43,24 @@ export function ReservationFilters({
     align: "end",
   });
 
-  const activeCount = Number(Boolean(unitId)) + Number(Boolean(platformId)) + Number(Boolean(startDate)) + Number(Boolean(endDate)) + Number(sort === "booked");
+  const activeCount =
+    Number(Boolean(unitId)) +
+    Number(Boolean(platformId)) +
+    Number(Boolean(startDate)) +
+    Number(Boolean(endDate)) +
+    Number(sort === "booked");
 
   return (
     <div ref={wrapperRef} className="relative ml-auto flex items-center gap-2">
       {activeCount ? (
-        <Link href={query || status ? `/reservations?${new URLSearchParams({ ...(query ? { q: query } : {}), ...(status ? { status } : {}) })}` : "/reservations"} className="hidden text-sm text-pine/70 underline-offset-4 hover:text-pine hover:underline sm:inline">
+        <Link
+          href={
+            query || status
+              ? `/reservations?${new URLSearchParams({ ...(query ? { q: query } : {}), ...(status ? { status } : {}) })}`
+              : "/reservations"
+          }
+          className="hidden text-sm text-pine/70 underline-offset-4 hover:text-pine hover:underline sm:inline"
+        >
           Reset filters
         </Link>
       ) : null}
@@ -80,43 +92,109 @@ export function ReservationFilters({
         >
           <form method="get" className="space-y-4">
             {query ? <input type="hidden" name="q" value={query} /> : null}
-            {status ? <input type="hidden" name="status" value={status} /> : null}
+            {status ? (
+              <input type="hidden" name="status" value={status} />
+            ) : null}
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label htmlFor="reservation-filter-unit" className="mb-1.5 block text-sm font-medium text-ink">Unit</label>
-                <Select id="reservation-filter-unit" name="unit" defaultValue={unitId ?? ""}>
+                <label
+                  htmlFor="reservation-filter-unit"
+                  className="mb-1.5 block text-sm font-medium text-ink"
+                >
+                  Unit
+                </label>
+                <Select
+                  id="reservation-filter-unit"
+                  name="unit"
+                  defaultValue={unitId ?? ""}
+                >
                   <option value="">All units</option>
-                  {units.map((unit) => <option key={unit.id} value={unit.id}>{unit.name}</option>)}
+                  {units.map((unit) => (
+                    <option key={unit.id} value={unit.id}>
+                      {unit.name}
+                    </option>
+                  ))}
                 </Select>
               </div>
               <div>
-                <label htmlFor="reservation-filter-platform" className="mb-1.5 block text-sm font-medium text-ink">Booked through</label>
-                <Select id="reservation-filter-platform" name="platform" defaultValue={platformId ?? ""}>
+                <label
+                  htmlFor="reservation-filter-platform"
+                  className="mb-1.5 block text-sm font-medium text-ink"
+                >
+                  Booked through
+                </label>
+                <Select
+                  id="reservation-filter-platform"
+                  name="platform"
+                  defaultValue={platformId ?? ""}
+                >
                   <option value="">All platforms</option>
-                  {platforms.map((platform) => <option key={platform.id} value={platform.id}>{platform.name}{platform.isActive ? "" : " (retired)"}</option>)}
+                  {platforms.map((platform) => (
+                    <option key={platform.id} value={platform.id}>
+                      {platform.name}
+                      {platform.isActive ? "" : " (retired)"}
+                    </option>
+                  ))}
                 </Select>
               </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label htmlFor="reservation-filter-start" className="mb-1.5 block text-sm font-medium text-ink">Start date</label>
-                <Input id="reservation-filter-start" name="start" type="date" defaultValue={startDate ?? ""} />
+                <label
+                  htmlFor="reservation-filter-start"
+                  className="mb-1.5 block text-sm font-medium text-ink"
+                >
+                  Start date
+                </label>
+                <Input
+                  id="reservation-filter-start"
+                  name="start"
+                  type="date"
+                  defaultValue={startDate ?? ""}
+                />
               </div>
               <div>
-                <label htmlFor="reservation-filter-end" className="mb-1.5 block text-sm font-medium text-ink">End date</label>
-                <Input id="reservation-filter-end" name="end" type="date" defaultValue={endDate ?? ""} min={startDate} />
+                <label
+                  htmlFor="reservation-filter-end"
+                  className="mb-1.5 block text-sm font-medium text-ink"
+                >
+                  End date
+                </label>
+                <Input
+                  id="reservation-filter-end"
+                  name="end"
+                  type="date"
+                  defaultValue={endDate ?? ""}
+                  min={startDate}
+                />
               </div>
             </div>
             <div>
-              <label htmlFor="reservation-filter-sort" className="mb-1.5 block text-sm font-medium text-ink">Sort by</label>
-              <Select id="reservation-filter-sort" name="sort" defaultValue={sort}>
+              <label
+                htmlFor="reservation-filter-sort"
+                className="mb-1.5 block text-sm font-medium text-ink"
+              >
+                Sort by
+              </label>
+              <Select
+                id="reservation-filter-sort"
+                name="sort"
+                defaultValue={sort}
+              >
                 <option value="checkin">Check-in date</option>
                 <option value="booked">Date booked</option>
               </Select>
             </div>
             <div className="flex items-center justify-between gap-3 border-t border-pine/10 pt-4">
-              <Link href="/reservations" className={buttonClassName("ghost", "md")}>Clear</Link>
-              <Button type="submit" variant="primary" size="md">Apply filters</Button>
+              <Link
+                href="/reservations"
+                className={buttonClassName("ghost", "md")}
+              >
+                Clear
+              </Link>
+              <Button type="submit" variant="primary" size="md">
+                Apply filters
+              </Button>
             </div>
           </form>
         </div>

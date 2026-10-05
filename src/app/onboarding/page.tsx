@@ -27,13 +27,15 @@ const CHOICES = [
   {
     href: "/onboarding/organization",
     title: "Create a new organization",
-    description: "Set up your business, first property and first unit. You’ll be its owner.",
+    description:
+      "Set up your business, first property and first unit. You’ll be its owner.",
     icon: Building2,
   },
   {
     href: "/onboarding/join",
     title: "Join an existing organization",
-    description: "Enter the organization join code you were given. The owner approves your request.",
+    description:
+      "Enter the organization join code you were given. The owner approves your request.",
     icon: UsersRound,
   },
 ];
@@ -44,7 +46,9 @@ export default async function OnboardingIntroPage({
   searchParams: Promise<{ invite?: string | string[] }>;
 }) {
   const { invite: inviteParam } = await searchParams;
-  const invite = (Array.isArray(inviteParam) ? inviteParam[0] : inviteParam)?.trim() || undefined;
+  const invite =
+    (Array.isArray(inviteParam) ? inviteParam[0] : inviteParam)?.trim() ||
+    undefined;
   const session = await getSession();
   if (!session) {
     redirect(invite ? `/login?invite=${encodeURIComponent(invite)}` : "/login");
@@ -54,8 +58,11 @@ export default async function OnboardingIntroPage({
   }
 
   const state = await getOnboardingState(session.user.id);
-  if (state.membership && state.membership.role !== "owner") redirect("/dashboard");
-  const pendingRequests = state.membership ? [] : await listPendingJoinRequests(session.user.id);
+  if (state.membership && state.membership.role !== "owner")
+    redirect("/dashboard");
+  const pendingRequests = state.membership
+    ? []
+    : await listPendingJoinRequests(session.user.id);
 
   return (
     <div>
@@ -87,7 +94,10 @@ export default async function OnboardingIntroPage({
       {state.membership ? (
         // An owner partway through setup picks up where they left off.
         <StepNav>
-          <Link href="/onboarding/organization" className={buttonClassName("clay", "lg")}>
+          <Link
+            href="/onboarding/organization"
+            className={buttonClassName("clay", "lg")}
+          >
             Get started
             <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
@@ -98,7 +108,10 @@ export default async function OnboardingIntroPage({
           className="animate-rise mt-10 border-t border-pine/10 pt-8"
           style={{ animationDelay: "220ms" }}
         >
-          <h2 id="onboarding-choice-title" className="font-display text-2xl text-pine">
+          <h2
+            id="onboarding-choice-title"
+            className="font-display text-2xl text-pine"
+          >
             How would you like to start?
           </h2>
           {pendingRequests.length > 0 ? (
@@ -108,9 +121,17 @@ export default async function OnboardingIntroPage({
             >
               <Clock3 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
               <span>
-                Your request to join <strong className="font-semibold">{pendingRequests[0]!.organizationName}</strong>
-                {pendingRequests.length > 1 ? ` and ${pendingRequests.length - 1} more` : ""} is waiting for owner
-                approval. <span className="underline underline-offset-4">View status</span>
+                Your request to join{" "}
+                <strong className="font-semibold">
+                  {pendingRequests[0]!.organizationName}
+                </strong>
+                {pendingRequests.length > 1
+                  ? ` and ${pendingRequests.length - 1} more`
+                  : ""}{" "}
+                is waiting for owner approval.{" "}
+                <span className="underline underline-offset-4">
+                  View status
+                </span>
               </span>
             </Link>
           ) : null}
@@ -126,16 +147,21 @@ export default async function OnboardingIntroPage({
                   </span>
                   <span className="mt-4 flex items-center gap-1.5 font-medium text-pine">
                     {title}
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+                    <ArrowRight
+                      className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                      aria-hidden
+                    />
                   </span>
-                  <span className="mt-1.5 text-sm leading-relaxed text-ink/60">{description}</span>
+                  <span className="mt-1.5 text-sm leading-relaxed text-ink/60">
+                    {description}
+                  </span>
                 </Link>
               </li>
             ))}
           </ul>
           <p className="mt-5 text-xs leading-relaxed text-ink/55">
-            Were you sent an invitation link? Open that link while signed in with the invited email address to join
-            directly.
+            Were you sent an invitation link? Open that link while signed in
+            with the invited email address to join directly.
           </p>
         </section>
       )}

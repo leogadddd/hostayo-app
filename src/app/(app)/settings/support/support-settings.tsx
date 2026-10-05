@@ -3,7 +3,16 @@
 import { useState, type ComponentType, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowUpRight, Bug, ChevronDown, Copy, LifeBuoy, Mail, MessageCircle, Send } from "lucide-react";
+import {
+  ArrowUpRight,
+  Bug,
+  ChevronDown,
+  Copy,
+  LifeBuoy,
+  Mail,
+  MessageCircle,
+  Send,
+} from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button, buttonClassName } from "@/components/ui/button";
@@ -20,7 +29,11 @@ import {
   type ProblemReportContext,
 } from "@/lib/support";
 
-export function SupportSettings({ context }: { context: ProblemReportContext }) {
+export function SupportSettings({
+  context,
+}: {
+  context: ProblemReportContext;
+}) {
   return (
     <div className="min-w-0 space-y-6">
       <ContactCard />
@@ -38,7 +51,8 @@ function ContactCard() {
         <div className="min-w-0">
           <h2 className="font-display text-xl text-pine">Contact us</h2>
           <p className="mt-1 max-w-xl text-sm text-ink/60">
-            Reach the Hostayo team by email or message us on Facebook or Instagram.
+            Reach the Hostayo team by email or message us on Facebook or
+            Instagram.
           </p>
         </div>
       </CardHeader>
@@ -65,7 +79,10 @@ function ContactCard() {
               >
                 <Copy className="h-4 w-4" aria-hidden />
               </Button>
-              <a href={`mailto:${SUPPORT_EMAIL}`} className={buttonClassName("outline", "sm")}>
+              <a
+                href={`mailto:${SUPPORT_EMAIL}`}
+                className={buttonClassName("outline", "sm")}
+              >
                 Send email
               </a>
             </div>
@@ -75,13 +92,17 @@ function ContactCard() {
           icon={FacebookIcon}
           title="Facebook"
           value="Hostayo on Facebook"
-          action={<ExternalButton href={SUPPORT_FACEBOOK_URL}>Message</ExternalButton>}
+          action={
+            <ExternalButton href={SUPPORT_FACEBOOK_URL}>Message</ExternalButton>
+          }
         />
         <ContactRow
           icon={InstagramIcon}
           title="Instagram"
           value={SUPPORT_INSTAGRAM_HANDLE}
-          action={<ExternalButton href={SUPPORT_INSTAGRAM_URL}>Open</ExternalButton>}
+          action={
+            <ExternalButton href={SUPPORT_INSTAGRAM_URL}>Open</ExternalButton>
+          }
         />
       </div>
     </Card>
@@ -96,7 +117,13 @@ function ReportProblemCard({ context }: { context: ProblemReportContext }) {
   const [error, setError] = useState<string | null>(null);
 
   function buildMailto() {
-    return problemReportMailto({ category, page: page.trim(), details, context, browser: navigator.userAgent });
+    return problemReportMailto({
+      category,
+      page: page.trim(),
+      details,
+      context,
+      browser: navigator.userAgent,
+    });
   }
 
   function validate() {
@@ -115,7 +142,9 @@ function ReportProblemCard({ context }: { context: ProblemReportContext }) {
         <div className="min-w-0">
           <h2 className="font-display text-xl text-pine">Report a problem</h2>
           <p className="mt-1 max-w-xl text-sm text-ink/60">
-            This opens an email to us with your report filled in. We add your name, organization, role, Hostayo version and browser so we don’t have to ask.
+            This opens an email to us with your report filled in. We add your
+            name, organization, role, Hostayo version and browser so we don’t
+            have to ask.
           </p>
         </div>
       </CardHeader>
@@ -131,19 +160,34 @@ function ReportProblemCard({ context }: { context: ProblemReportContext }) {
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="report-category">What is this about?</Label>
-              <Select id="report-category" value={category} onChange={(event) => setCategory(event.target.value as ProblemCategory)}>
+              <Select
+                id="report-category"
+                value={category}
+                onChange={(event) =>
+                  setCategory(event.target.value as ProblemCategory)
+                }
+              >
                 {PROBLEM_CATEGORIES.map((item) => (
-                  <option key={item.value} value={item.value}>{item.label}</option>
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
                 ))}
               </Select>
             </div>
             <div>
-              <Label htmlFor="report-page">Where did it happen? <span className="font-normal text-ink/45">(optional)</span></Label>
+              <Label htmlFor="report-page">
+                Where did it happen?{" "}
+                <span className="font-normal text-ink/45">(optional)</span>
+              </Label>
               <Input
                 id="report-page"
                 value={page}
                 maxLength={120}
-                placeholder={pathname === "/settings/support" ? "e.g. Reservations, Calendar" : pathname}
+                placeholder={
+                  pathname === "/settings/support"
+                    ? "e.g. Reservations, Calendar"
+                    : pathname
+                }
                 onChange={(event) => setPage(event.target.value)}
               />
             </div>
@@ -160,8 +204,18 @@ function ReportProblemCard({ context }: { context: ProblemReportContext }) {
               aria-describedby={error ? "report-details-error" : undefined}
               onChange={(event) => setDetails(event.target.value)}
             />
-            {error ? <p id="report-details-error" className="mt-1.5 text-sm text-clay-deep" role="alert">{error}</p> : null}
-            <p className="mt-1.5 text-xs text-ink/45">Please leave out passwords and guests’ personal details.</p>
+            {error ? (
+              <p
+                id="report-details-error"
+                className="mt-1.5 text-sm text-clay-deep"
+                role="alert"
+              >
+                {error}
+              </p>
+            ) : null}
+            <p className="mt-1.5 text-xs text-ink/45">
+              Please leave out passwords and guests’ personal details.
+            </p>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
             <Button
@@ -173,7 +227,9 @@ function ReportProblemCard({ context }: { context: ProblemReportContext }) {
                 const text = `To: ${SUPPORT_EMAIL}\nSubject: ${url.searchParams.get("subject")}\n\n${url.searchParams.get("body")}`;
                 try {
                   await navigator.clipboard.writeText(text);
-                  toast.success("Report copied", { description: `Paste it into an email to ${SUPPORT_EMAIL} or a message to us.` });
+                  toast.success("Report copied", {
+                    description: `Paste it into an email to ${SUPPORT_EMAIL} or a message to us.`,
+                  });
                 } catch {
                   toast.error("Couldn’t copy the report");
                 }
@@ -198,7 +254,11 @@ const HELP_TOPICS: readonly { question: string; answer: ReactNode }[] = [
     question: "How do I confirm a reservation?",
     answer: (
       <>
-        Open the reservation and use <strong>Record payment</strong> for the down payment you received. Once it’s recorded you can confirm the booking. To confirm without a recorded payment, Hostayo asks you for a reason. A guest uploading payment proof never confirms a booking on its own; you check the payment first.
+        Open the reservation and use <strong>Record payment</strong> for the
+        down payment you received. Once it’s recorded you can confirm the
+        booking. To confirm without a recorded payment, Hostayo asks you for a
+        reason. A guest uploading payment proof never confirms a booking on its
+        own; you check the payment first.
       </>
     ),
   },
@@ -206,7 +266,10 @@ const HELP_TOPICS: readonly { question: string; answer: ReactNode }[] = [
     question: "How do I send a guest their booking details?",
     answer: (
       <>
-        On the reservation, create the guest link, copy it and send it the way you usually talk to the guest (Messenger, Viber, SMS). The page shows their dates, total, amount paid, balance and your payment instructions, and lets them upload payment proof. You can revoke the link at any time.
+        On the reservation, create the guest link, copy it and send it the way
+        you usually talk to the guest (Messenger, Viber, SMS). The page shows
+        their dates, total, amount paid, balance and your payment instructions,
+        and lets them upload payment proof. You can revoke the link at any time.
       </>
     ),
   },
@@ -214,7 +277,10 @@ const HELP_TOPICS: readonly { question: string; answer: ReactNode }[] = [
     question: "Why isn’t the security deposit counted as income?",
     answer: (
       <>
-        A security deposit is the guest’s money that you hold and usually return. Hostayo tracks it separately from booking payments so your income and balances aren’t overstated. Record refunds against the deposit when the guest checks out.
+        A security deposit is the guest’s money that you hold and usually
+        return. Hostayo tracks it separately from booking payments so your
+        income and balances aren’t overstated. Record refunds against the
+        deposit when the guest checks out.
       </>
     ),
   },
@@ -222,7 +288,16 @@ const HELP_TOPICS: readonly { question: string; answer: ReactNode }[] = [
     question: "How do I add teammates?",
     answer: (
       <>
-        Go to <Link href="/settings/team" className="font-medium text-pine underline underline-offset-4">Settings → Team</Link> to invite someone with a role, or share your join code and approve each request that comes in. Owners and admins can adjust what each role can do under Permissions.
+        Go to{" "}
+        <Link
+          href="/settings/team"
+          className="font-medium text-pine underline underline-offset-4"
+        >
+          Settings → Team
+        </Link>{" "}
+        to invite someone with a role, or share your join code and approve each
+        request that comes in. Owners and admins can adjust what each role can
+        do under Permissions.
       </>
     ),
   },
@@ -230,7 +305,15 @@ const HELP_TOPICS: readonly { question: string; answer: ReactNode }[] = [
     question: "Can I add or remove booking platforms?",
     answer: (
       <>
-        Yes, under <Link href="/settings/platforms" className="font-medium text-pine underline underline-offset-4">Settings → Booking platforms</Link>. Built-in platforms and ones already used on a reservation are archived instead of deleted, so past bookings keep their history.
+        Yes, under{" "}
+        <Link
+          href="/settings/platforms"
+          className="font-medium text-pine underline underline-offset-4"
+        >
+          Settings → Booking platforms
+        </Link>
+        . Built-in platforms and ones already used on a reservation are archived
+        instead of deleted, so past bookings keep their history.
       </>
     ),
   },
@@ -238,7 +321,9 @@ const HELP_TOPICS: readonly { question: string; answer: ReactNode }[] = [
     question: "When does a guest show as checked in?",
     answer: (
       <>
-        Only when someone on your team presses <strong>Check in guest</strong> on the reservation. Hostayo never checks guests in or out automatically based on the dates.
+        Only when someone on your team presses <strong>Check in guest</strong>{" "}
+        on the reservation. Hostayo never checks guests in or out automatically
+        based on the dates.
       </>
     ),
   },
@@ -252,7 +337,8 @@ function HelpCard() {
         <div className="min-w-0">
           <h2 className="font-display text-xl text-pine">Help &amp; support</h2>
           <p className="mt-1 max-w-xl text-sm text-ink/60">
-            Quick answers to common questions. Can’t find yours? Contact us above.
+            Quick answers to common questions. Can’t find yours? Contact us
+            above.
           </p>
         </div>
       </CardHeader>
@@ -261,21 +347,46 @@ function HelpCard() {
           <details key={topic.question} className="group px-6 py-4">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-pine [&::-webkit-details-marker]:hidden">
               {topic.question}
-              <ChevronDown className="h-4 w-4 shrink-0 text-pine/50 transition-transform group-open:rotate-180" aria-hidden />
+              <ChevronDown
+                className="h-4 w-4 shrink-0 text-pine/50 transition-transform group-open:rotate-180"
+                aria-hidden
+              />
             </summary>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink/65">{topic.answer}</p>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink/65">
+              {topic.answer}
+            </p>
           </details>
         ))}
       </div>
       <CardBody className="flex flex-wrap gap-x-5 gap-y-2 border-t border-pine/10 text-sm">
-        <Link href="/terms" className="font-medium text-pine underline underline-offset-4">Terms and Conditions</Link>
-        <Link href="/privacy" className="font-medium text-pine underline underline-offset-4">Privacy Policy</Link>
+        <Link
+          href="/terms"
+          className="font-medium text-pine underline underline-offset-4"
+        >
+          Terms and Conditions
+        </Link>
+        <Link
+          href="/privacy"
+          className="font-medium text-pine underline underline-offset-4"
+        >
+          Privacy Policy
+        </Link>
       </CardBody>
     </Card>
   );
 }
 
-function ContactRow({ icon, title, value, action }: { icon: ComponentType<{ className?: string }>; title: string; value: string; action: ReactNode }) {
+function ContactRow({
+  icon,
+  title,
+  value,
+  action,
+}: {
+  icon: ComponentType<{ className?: string }>;
+  title: string;
+  value: string;
+  action: ReactNode;
+}) {
   return (
     <div className="flex flex-wrap items-center gap-4 px-6 py-4">
       <IconTile icon={icon} small />
@@ -288,21 +399,42 @@ function ContactRow({ icon, title, value, action }: { icon: ComponentType<{ clas
   );
 }
 
-function ExternalButton({ href, children }: { href: string; children: ReactNode }) {
+function ExternalButton({
+  href,
+  children,
+}: {
+  href: string;
+  children: ReactNode;
+}) {
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" className={buttonClassName("outline", "sm")}>
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={buttonClassName("outline", "sm")}
+    >
       {children}
       <ArrowUpRight className="h-4 w-4" aria-hidden />
     </a>
   );
 }
 
-function IconTile({ icon: Icon, small = false }: { icon: ComponentType<{ className?: string }>; small?: boolean }) {
+function IconTile({
+  icon: Icon,
+  small = false,
+}: {
+  icon: ComponentType<{ className?: string }>;
+  small?: boolean;
+}) {
   return (
-    <span className={cn(
-      "flex shrink-0 items-center justify-center rounded-xl",
-      small ? "h-9 w-9 bg-pine/[0.06] text-pine/55" : "h-11 w-11 bg-sage/70 text-pine",
-    )}>
+    <span
+      className={cn(
+        "flex shrink-0 items-center justify-center rounded-xl",
+        small
+          ? "h-9 w-9 bg-pine/[0.06] text-pine/55"
+          : "h-11 w-11 bg-sage/70 text-pine",
+      )}
+    >
       <Icon className={small ? "h-4 w-4" : "h-5 w-5"} aria-hidden />
     </span>
   );
@@ -311,7 +443,12 @@ function IconTile({ icon: Icon, small = false }: { icon: ComponentType<{ classNa
 /** lucide-react no longer ships brand marks, so these two are drawn inline. */
 function FacebookIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+      aria-hidden
+    >
       <path d="M13.5 21v-7.5h2.5l.4-3h-2.9V8.6c0-.9.3-1.5 1.5-1.5h1.5V4.4c-.3 0-1.2-.1-2.2-.1-2.2 0-3.8 1.4-3.8 3.9v2.3H8v3h2.5V21h3Z" />
     </svg>
   );
@@ -319,7 +456,16 @@ function FacebookIcon({ className }: { className?: string }) {
 
 function InstagramIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
       <rect x="3" y="3" width="18" height="18" rx="5" />
       <circle cx="12" cy="12" r="4" />
       <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" />

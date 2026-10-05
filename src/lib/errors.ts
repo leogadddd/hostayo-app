@@ -25,11 +25,18 @@ function postgresCode(error: unknown): string | undefined {
  * form can show instead of crashing the page. Next.js control-flow errors
  * such as redirect() and notFound() are rethrown untouched.
  */
-export function unexpectedErrorMessage(error: unknown, context: string): string {
+export function unexpectedErrorMessage(
+  error: unknown,
+  context: string,
+): string {
   unstable_rethrow(error);
   const code = postgresCode(error);
   console.error(`[${context}] unexpected error`, error);
-  if (code && SCHEMA_MISMATCH_CODES.has(code) && process.env.NODE_ENV !== "production") {
+  if (
+    code &&
+    SCHEMA_MISMATCH_CODES.has(code) &&
+    process.env.NODE_ENV !== "production"
+  ) {
     return "The database schema is out of date. Run `npm run db:migrate` and try again.";
   }
   return "Something went wrong on our side. Please try again in a moment.";

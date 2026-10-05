@@ -39,7 +39,10 @@ import {
 import { expireStaleHolds } from "@/server/reservations/holds";
 import { getExtensionState } from "@/server/reservations/extensions";
 import { getReservationLedger } from "@/server/payments/service";
-import { getTaskForReservation, listReservationDamageReports } from "@/server/operations/service";
+import {
+  getTaskForReservation,
+  listReservationDamageReports,
+} from "@/server/operations/service";
 import { ReservationStatusBadge } from "@/components/app/reservation-status-badge";
 import { PlatformBadge } from "@/components/app/platform-badge";
 import { reservationFeeCents, reservationFeeRule } from "@/lib/reservation-fee";
@@ -129,19 +132,41 @@ export default async function ReservationDetailPage({
     reservation.status === "checked_out"
       ? await getTaskForReservation(membership.organizationId, id)
       : null;
-  const damage = await listReservationDamageReports(membership.organizationId, id);
+  const damage = await listReservationDamageReports(
+    membership.organizationId,
+    id,
+  );
   // Late check-out: requested by staff, approved by someone with extensions.update.
-  const inStay = reservation.status === "confirmed" || reservation.status === "checked_in";
-  const extension = inStay || reservation.status === "checked_out"
-    ? await getExtensionState(membership.organizationId, id)
-    : null;
-  const canRequestLate = can(membership, "extensions.create") && inStay && Boolean(extension?.enabled);
-  const canReviewLate = can(membership, "extensions.update") && inStay && Boolean(extension?.openRequest);
-  const showExtensions = Boolean(extension && (extension.extensions.length > 0 || canRequestLate));
+  const inStay =
+    reservation.status === "confirmed" || reservation.status === "checked_in";
+  const extension =
+    inStay || reservation.status === "checked_out"
+      ? await getExtensionState(membership.organizationId, id)
+      : null;
+  const canRequestLate =
+    can(membership, "extensions.create") &&
+    inStay &&
+    Boolean(extension?.enabled);
+  const canReviewLate =
+    can(membership, "extensions.update") &&
+    inStay &&
+    Boolean(extension?.openRequest);
+  const showExtensions = Boolean(
+    extension && (extension.extensions.length > 0 || canRequestLate),
+  );
   const extensionRows = (extension?.extensions ?? []).map((row, index, all) => {
     // Each row's departure: check-out plus the approved hours before it, plus its own.
-    const approvedBefore = all.slice(0, index).reduce((sum, earlier) => sum + (earlier.status === "approved" ? earlier.hours : 0), 0);
-    const untilAt = new Date(extension!.checkoutAt.getTime() + (approvedBefore + row.hours) * 3_600_000).toISOString();
+    const approvedBefore = all
+      .slice(0, index)
+      .reduce(
+        (sum, earlier) =>
+          sum + (earlier.status === "approved" ? earlier.hours : 0),
+        0,
+      );
+    const untilAt = new Date(
+      extension!.checkoutAt.getTime() +
+        (approvedBefore + row.hours) * 3_600_000,
+    ).toISOString();
     return {
       id: row.id,
       status: row.status,
@@ -159,13 +184,22 @@ export default async function ReservationDetailPage({
   const nights = listNights(reservation.checkInDate, reservation.checkOutDate);
   const liveHold = isLiveHold(reservation.status, reservation.expiresAt);
   const moneyEditable =
-    canRecordMoney && reservation.status !== "cancelled" && reservation.status !== "expired";
-  const canCancel = can(membership, "reservations.delete") && (liveHold || reservation.status === "confirmed");
+    canRecordMoney &&
+    reservation.status !== "cancelled" &&
+    reservation.status !== "expired";
+  const canCancel =
+    can(membership, "reservations.delete") &&
+    (liveHold || reservation.status === "confirmed");
   // Matches updateReservation: only an active hold or a confirmed booking is
   // editable. Editing re-prices the stay, so it also needs payments.create.
-  const canEdit = canConfirmHold && canRecordMoney && (liveHold || reservation.status === "confirmed");
-  const canReportDamage = can(membership, "damage.create")
-    && (reservation.status === "checked_in" || reservation.status === "checked_out");
+  const canEdit =
+    canConfirmHold &&
+    canRecordMoney &&
+    (liveHold || reservation.status === "confirmed");
+  const canReportDamage =
+    can(membership, "damage.create") &&
+    (reservation.status === "checked_in" ||
+      reservation.status === "checked_out");
   const href = `/reservations/${reservation.id}`;
 
   const timezone = property?.timezone ?? "Asia/Manila";
@@ -180,8 +214,14 @@ export default async function ReservationDetailPage({
   const balanceDue = balances ? Math.max(0, balances.bookingBalanceCents) : 0;
   // The down payment this booking needs, from the rule it was made with.
   const feeRule = reservationFeeRule(reservation);
-  const feeRequiredCents = feeRule && balances ? reservationFeeCents(feeRule, balances.bookingTotalCents) : 0;
-  const feePaid = balances ? balances.paidBookingCents - balances.refundedBookingCents >= feeRequiredCents : false;
+  const feeRequiredCents =
+    feeRule && balances
+      ? reservationFeeCents(feeRule, balances.bookingTotalCents)
+      : 0;
+  const feePaid = balances
+    ? balances.paidBookingCents - balances.refundedBookingCents >=
+      feeRequiredCents
+    : false;
   const paidShare =
     balances && balances.bookingTotalCents > 0
       ? Math.min(1, balances.paidBookingCents / balances.bookingTotalCents)
@@ -236,79 +276,99 @@ export default async function ReservationDetailPage({
             {/* Who and what on the left, the next actions on the right. */}
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                <ReservationStatusBadge status={reservation.status} />
-                <span className="font-mono text-xs text-ink/50">
-                  #{reservation.id.slice(0, 8).toUpperCase()}
-                </span>
-                {reservation.createdAt ? (
-                  <span className="text-xs text-ink/50">
-                    Booked {timeFormat.format(reservation.createdAt)}
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <ReservationStatusBadge status={reservation.status} />
+                  <span className="font-mono text-xs text-ink/50">
+                    #{reservation.id.slice(0, 8).toUpperCase()}
                   </span>
-                ) : null}
-                {platform ? (
-                  <span className="inline-flex items-center gap-1 text-xs text-ink/60">
-                    via <PlatformBadge platform={platform} className="font-medium text-pine" />
-                    {reservation.platformReference ? <span className="font-mono text-ink/50">· {reservation.platformReference}</span> : null}
+                  {reservation.createdAt ? (
+                    <span className="text-xs text-ink/50">
+                      Booked {timeFormat.format(reservation.createdAt)}
+                    </span>
+                  ) : null}
+                  {platform ? (
+                    <span className="inline-flex items-center gap-1 text-xs text-ink/60">
+                      via{" "}
+                      <PlatformBadge
+                        platform={platform}
+                        className="font-medium text-pine"
+                      />
+                      {reservation.platformReference ? (
+                        <span className="font-mono text-ink/50">
+                          · {reservation.platformReference}
+                        </span>
+                      ) : null}
+                    </span>
+                  ) : null}
+                </div>
+                <h1 className="mt-3 truncate font-display text-3xl tracking-tight text-pine sm:text-4xl">
+                  {can(membership, "guests.view") ? (
+                    <Link
+                      href={`/guests/${guest.id}`}
+                      className="underline-offset-4 hover:underline"
+                    >
+                      {guest.name}
+                    </Link>
+                  ) : (
+                    guest.name
+                  )}
+                </h1>
+                <p className="mt-1.5 flex items-center gap-1.5 text-sm text-ink/65">
+                  <MapPin
+                    className="h-4 w-4 shrink-0 text-pine/45"
+                    aria-hidden
+                  />
+                  <span className="truncate">
+                    {unit.name}
+                    {property ? ` · ${property.name}` : ""}
                   </span>
-                ) : null}
+                </p>
               </div>
-              <h1 className="mt-3 truncate font-display text-3xl tracking-tight text-pine sm:text-4xl">
-                {can(membership, "guests.view") ? <Link href={`/guests/${guest.id}`} className="underline-offset-4 hover:underline">{guest.name}</Link> : guest.name}
-              </h1>
-              <p className="mt-1.5 flex items-center gap-1.5 text-sm text-ink/65">
-                <MapPin className="h-4 w-4 shrink-0 text-pine/45" aria-hidden />
-                <span className="truncate">
-                  {unit.name}
-                  {property ? ` · ${property.name}` : ""}
-                </span>
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 xl:justify-end">
-              {canConfirmHold && liveHold ? (
+              <div className="flex flex-wrap items-center gap-2 xl:justify-end">
+                {canConfirmHold && liveHold ? (
+                  <Link
+                    href={`${href}/confirm`}
+                    className={buttonClassName("clay", "md")}
+                  >
+                    <Check className="h-4 w-4" aria-hidden />
+                    Confirm hold
+                  </Link>
+                ) : null}
+                {canRunStay && reservation.status === "confirmed" ? (
+                  <Link
+                    href={`${href}/check-in`}
+                    className={buttonClassName("clay", "md")}
+                  >
+                    <BedDouble className="h-4 w-4" aria-hidden />
+                    Check in
+                  </Link>
+                ) : null}
+                {canRunStay && reservation.status === "checked_in" ? (
+                  <Link
+                    href={`${href}/check-out`}
+                    className={buttonClassName("clay", "md")}
+                  >
+                    <LogOut className="h-4 w-4" aria-hidden />
+                    Check out
+                  </Link>
+                ) : null}
+                {canEdit ? (
+                  <Link
+                    href={`${href}/edit`}
+                    className={buttonClassName("outline", "md")}
+                  >
+                    <Pencil className="h-4 w-4" aria-hidden />
+                    Edit
+                  </Link>
+                ) : null}
                 <Link
-                  href={`${href}/confirm`}
-                  className={buttonClassName("clay", "md")}
+                  href={`/calendar?${new URLSearchParams({ unit: unit.id, month: reservation.checkInDate.slice(0, 7) })}`}
+                  className={buttonClassName("ghost", "md")}
                 >
-                  <Check className="h-4 w-4" aria-hidden />
-                  Confirm hold
+                  <CalendarDays className="h-4 w-4" aria-hidden />
+                  Calendar
                 </Link>
-              ) : null}
-              {canRunStay && reservation.status === "confirmed" ? (
-                <Link
-                  href={`${href}/check-in`}
-                  className={buttonClassName("clay", "md")}
-                >
-                  <BedDouble className="h-4 w-4" aria-hidden />
-                  Check in
-                </Link>
-              ) : null}
-              {canRunStay && reservation.status === "checked_in" ? (
-                <Link
-                  href={`${href}/check-out`}
-                  className={buttonClassName("clay", "md")}
-                >
-                  <LogOut className="h-4 w-4" aria-hidden />
-                  Check out
-                </Link>
-              ) : null}
-              {canEdit ? (
-                <Link
-                  href={`${href}/edit`}
-                  className={buttonClassName("outline", "md")}
-                >
-                  <Pencil className="h-4 w-4" aria-hidden />
-                  Edit
-                </Link>
-              ) : null}
-              <Link
-                href={`/calendar?${new URLSearchParams({ unit: unit.id, month: reservation.checkInDate.slice(0, 7) })}`}
-                className={buttonClassName("ghost", "md")}
-              >
-                <CalendarDays className="h-4 w-4" aria-hidden />
-                Calendar
-              </Link>
-            </div>
+              </div>
             </div>
 
             <dl
@@ -317,40 +377,50 @@ export default async function ReservationDetailPage({
                 "grid grid-cols-2 gap-2.5 @3xl:grid-cols-3",
               )}
             >
-        <StayRangeCard
-          checkIn={dayLabel(reservation.checkInDate)}
-          checkInDetail={checkInTime ? `From ${timeLabel(checkInTime)}` : undefined}
-          checkOut={dayLabel(reservation.checkOutDate)}
-          checkOutDetail={extension && extension.extendedHours > 0
-            ? `Late check-out · by ${new Intl.DateTimeFormat("en-PH", { hour: "numeric", minute: "2-digit", timeZone: timezone }).format(extension.departureAt)}`
-            : checkOutTime ? `By ${timeLabel(checkOutTime)}` : undefined}
-          nights={nights.length}
-        />
-        <StatTile
-          icon={Users}
-          label="Guests"
-          value={String(reservation.guestCount)}
-        />
-        {canSeeMoney && balances ? (
-          <>
-            <StatTile
-              icon={Wallet}
-              label="Total"
-              value={formatPHP(balances.bookingTotalCents)}
-              detail={
-                balances.depositTotalCents
-                  ? `+ ${formatPHP(balances.depositTotalCents)} deposit`
-                  : undefined
-              }
-            />
-            <BalanceCard
-              balanceCents={balances.bookingBalanceCents}
-              paidShare={paidShare}
-              href={moneyEditable && balanceDue > 0 ? `${href}/payments/new` : undefined}
-              muted={ended}
-            />
-          </>
-        ) : null}
+              <StayRangeCard
+                checkIn={dayLabel(reservation.checkInDate)}
+                checkInDetail={
+                  checkInTime ? `From ${timeLabel(checkInTime)}` : undefined
+                }
+                checkOut={dayLabel(reservation.checkOutDate)}
+                checkOutDetail={
+                  extension && extension.extendedHours > 0
+                    ? `Late check-out · by ${new Intl.DateTimeFormat("en-PH", { hour: "numeric", minute: "2-digit", timeZone: timezone }).format(extension.departureAt)}`
+                    : checkOutTime
+                      ? `By ${timeLabel(checkOutTime)}`
+                      : undefined
+                }
+                nights={nights.length}
+              />
+              <StatTile
+                icon={Users}
+                label="Guests"
+                value={String(reservation.guestCount)}
+              />
+              {canSeeMoney && balances ? (
+                <>
+                  <StatTile
+                    icon={Wallet}
+                    label="Total"
+                    value={formatPHP(balances.bookingTotalCents)}
+                    detail={
+                      balances.depositTotalCents
+                        ? `+ ${formatPHP(balances.depositTotalCents)} deposit`
+                        : undefined
+                    }
+                  />
+                  <BalanceCard
+                    balanceCents={balances.bookingBalanceCents}
+                    paidShare={paidShare}
+                    href={
+                      moneyEditable && balanceDue > 0
+                        ? `${href}/payments/new`
+                        : undefined
+                    }
+                    muted={ended}
+                  />
+                </>
+              ) : null}
             </dl>
           </div>
         </div>
@@ -383,7 +453,6 @@ export default async function ReservationDetailPage({
           </span>
         </p>
       ) : null}
-
 
       <div className="mt-6 grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_24rem]">
         <div className="min-w-0 space-y-6">
@@ -682,7 +751,11 @@ export default async function ReservationDetailPage({
 
           <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)] sm:p-6">
             <h2 className="font-display text-lg text-pine">History</h2>
-            <ReservationHistory transitions={transitions} ledger={ledger} timeZone={timezone} />
+            <ReservationHistory
+              transitions={transitions}
+              ledger={ledger}
+              timeZone={timezone}
+            />
           </section>
         </div>
 
@@ -736,8 +809,14 @@ export default async function ReservationDetailPage({
                 {feeRule ? (
                   <div className="flex justify-between gap-3 text-ink/65">
                     <dt>Reservation fee</dt>
-                    <dd className={cn("tabular-nums", feePaid ? "text-pine" : "text-clay-deep")}>
-                      {formatPHP(feeRequiredCents)} · {feePaid ? "paid" : "unpaid"}
+                    <dd
+                      className={cn(
+                        "tabular-nums",
+                        feePaid ? "text-pine" : "text-clay-deep",
+                      )}
+                    >
+                      {formatPHP(feeRequiredCents)} ·{" "}
+                      {feePaid ? "paid" : "unpaid"}
                     </dd>
                   </div>
                 ) : null}
@@ -908,7 +987,11 @@ export default async function ReservationDetailPage({
               {reservation.status === "checked_out" && canReportDamage ? (
                 <Link
                   href={`${href}/damage/new`}
-                  className={buttonClassName("outline", "md", "w-full justify-between")}
+                  className={buttonClassName(
+                    "outline",
+                    "md",
+                    "w-full justify-between",
+                  )}
                 >
                   Report damage
                   <Plus className="h-4 w-4" aria-hidden />
@@ -916,13 +999,17 @@ export default async function ReservationDetailPage({
               ) : null}
               {liveHold && !canConfirmHold ? (
                 <p className="text-sm text-ink/60">
-                  Someone who can confirm bookings will confirm or cancel this hold.
+                  Someone who can confirm bookings will confirm or cancel this
+                  hold.
                 </p>
               ) : null}
             </div>
           </section>
 
-          {can(membership, "guests.update") && !["checked_out", "cancelled", "expired"].includes(reservation.status) ? (
+          {can(membership, "guests.update") &&
+          !["checked_out", "cancelled", "expired"].includes(
+            reservation.status,
+          ) ? (
             <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)]">
               <h2 className="font-display text-lg text-pine">Welcome link</h2>
               <div className="mt-4">
@@ -998,7 +1085,13 @@ function DisabledAction({
 }
 
 /** Check-in and check-out as one card, with the length of stay between them. */
-function StayRangeCard({ checkIn, checkInDetail, checkOut, checkOutDetail, nights }: {
+function StayRangeCard({
+  checkIn,
+  checkInDetail,
+  checkOut,
+  checkOutDetail,
+  nights,
+}: {
   checkIn: string;
   checkInDetail?: string;
   checkOut: string;
@@ -1008,27 +1101,50 @@ function StayRangeCard({ checkIn, checkInDetail, checkOut, checkOutDetail, night
   return (
     <div className="col-span-2 flex min-w-0 items-center gap-3 rounded-xl bg-linen p-3 sm:gap-4 sm:p-4">
       <div className="flex min-w-0 items-center gap-3">
-        <span className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sage/60 text-pine sm:flex"><LogIn className="h-5 w-5" aria-hidden /></span>
+        <span className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sage/60 text-pine sm:flex">
+          <LogIn className="h-5 w-5" aria-hidden />
+        </span>
         <div className="min-w-0">
-          <dt className="text-xs font-medium uppercase tracking-wide text-ink/45">Check-in</dt>
-          <dd className="mt-0.5 truncate font-display text-lg text-pine">{checkIn}</dd>
-          {checkInDetail ? <dd className="truncate text-xs text-ink/55">{checkInDetail}</dd> : null}
+          <dt className="text-xs font-medium uppercase tracking-wide text-ink/45">
+            Check-in
+          </dt>
+          <dd className="mt-0.5 truncate font-display text-lg text-pine">
+            {checkIn}
+          </dd>
+          {checkInDetail ? (
+            <dd className="truncate text-xs text-ink/55">{checkInDetail}</dd>
+          ) : null}
         </div>
       </div>
       <div className="flex min-w-[5.5rem] flex-1 items-center" aria-hidden>
         <span className="h-px flex-1 border-t border-dashed border-pine/25" />
-        <span className="mx-2 inline-flex shrink-0 items-center gap-1 rounded-full bg-pine-mist px-2.5 py-1 text-xs font-medium text-pine"><BedDouble className="h-3.5 w-3.5" />{nights}<span className="hidden sm:inline"> {nights === 1 ? "night" : "nights"}</span></span>
+        <span className="mx-2 inline-flex shrink-0 items-center gap-1 rounded-full bg-pine-mist px-2.5 py-1 text-xs font-medium text-pine">
+          <BedDouble className="h-3.5 w-3.5" />
+          {nights}
+          <span className="hidden sm:inline">
+            {" "}
+            {nights === 1 ? "night" : "nights"}
+          </span>
+        </span>
         <span className="h-px flex-1 border-t border-dashed border-pine/25" />
       </div>
       <dt className="sr-only">Nights</dt>
       <dd className="sr-only">{nights}</dd>
       <div className="flex min-w-0 items-center gap-3 text-right">
         <div className="min-w-0">
-          <dt className="text-xs font-medium uppercase tracking-wide text-ink/45">Check-out</dt>
-          <dd className="mt-0.5 truncate font-display text-lg text-pine">{checkOut}</dd>
-          {checkOutDetail ? <dd className="truncate text-xs text-ink/55">{checkOutDetail}</dd> : null}
+          <dt className="text-xs font-medium uppercase tracking-wide text-ink/45">
+            Check-out
+          </dt>
+          <dd className="mt-0.5 truncate font-display text-lg text-pine">
+            {checkOut}
+          </dd>
+          {checkOutDetail ? (
+            <dd className="truncate text-xs text-ink/55">{checkOutDetail}</dd>
+          ) : null}
         </div>
-        <span className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sage/60 text-pine sm:flex"><LogOut className="h-5 w-5" aria-hidden /></span>
+        <span className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sage/60 text-pine sm:flex">
+          <LogOut className="h-5 w-5" aria-hidden />
+        </span>
       </div>
     </div>
   );
@@ -1038,34 +1154,88 @@ function StayRangeCard({ checkIn, checkInDetail, checkOut, checkOutDetail, night
  * The balance, loud: solid clay while money is owed (and a shortcut to record
  * it), solid green once paid. Muted for cancelled or expired stays.
  */
-function BalanceCard({ balanceCents, paidShare, href, muted }: { balanceCents: number; paidShare: number; href?: string; muted: boolean }) {
+function BalanceCard({
+  balanceCents,
+  paidShare,
+  href,
+  muted,
+}: {
+  balanceCents: number;
+  paidShare: number;
+  href?: string;
+  muted: boolean;
+}) {
   const due = balanceCents > 0;
   const overpaid = balanceCents < 0;
   const body = (
     <>
-      <span className={cn("hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl sm:flex", muted ? "bg-pine/10 text-pine" : "bg-white/20 text-white")}>
-        {due ? <Wallet className="h-5 w-5" aria-hidden /> : <Check className="h-5 w-5" aria-hidden />}
+      <span
+        className={cn(
+          "hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl sm:flex",
+          muted ? "bg-pine/10 text-pine" : "bg-white/20 text-white",
+        )}
+      >
+        {due ? (
+          <Wallet className="h-5 w-5" aria-hidden />
+        ) : (
+          <Check className="h-5 w-5" aria-hidden />
+        )}
       </span>
       <div className="min-w-0 flex-1">
-        <dt className={cn("text-xs font-semibold uppercase tracking-wide", muted ? "text-ink/45" : "text-white/80")}>{overpaid ? "Overpaid" : due ? "Balance due" : "Balance"}</dt>
-        <dd className="mt-0.5 truncate font-display text-2xl leading-tight @3xl:text-3xl">{due || overpaid ? formatPHP(Math.abs(balanceCents)) : "Paid in full"}</dd>
-        <dd className={cn("truncate text-xs", muted ? "text-ink/55" : "text-white/80")}>
-          {due ? `${Math.round(paidShare * 100)}% paid` : overpaid ? "Refund the difference" : "Nothing left to collect"}
+        <dt
+          className={cn(
+            "text-xs font-semibold uppercase tracking-wide",
+            muted ? "text-ink/45" : "text-white/80",
+          )}
+        >
+          {overpaid ? "Overpaid" : due ? "Balance due" : "Balance"}
+        </dt>
+        <dd className="mt-0.5 truncate font-display text-2xl leading-tight @3xl:text-3xl">
+          {due || overpaid ? formatPHP(Math.abs(balanceCents)) : "Paid in full"}
+        </dd>
+        <dd
+          className={cn(
+            "truncate text-xs",
+            muted ? "text-ink/55" : "text-white/80",
+          )}
+        >
+          {due
+            ? `${Math.round(paidShare * 100)}% paid`
+            : overpaid
+              ? "Refund the difference"
+              : "Nothing left to collect"}
         </dd>
       </div>
-      {href ? <ArrowRight className="h-5 w-5 shrink-0 text-white/80" aria-hidden /> : null}
+      {href ? (
+        <ArrowRight className="h-5 w-5 shrink-0 text-white/80" aria-hidden />
+      ) : null}
     </>
   );
   const className = cn(
     "col-span-2 flex min-w-0 items-center gap-3 rounded-xl p-3 sm:p-4 @3xl:col-span-1 @3xl:col-start-3 @3xl:row-span-2 @3xl:row-start-1 @3xl:p-5",
-    muted ? "bg-linen text-pine" : due ? "bg-clay text-white shadow-[0_6px_18px_rgba(166,78,55,0.3)]" : overpaid ? "bg-amber-500 text-white" : "bg-primary text-white",
+    muted
+      ? "bg-linen text-pine"
+      : due
+        ? "bg-clay text-white shadow-[0_6px_18px_rgba(166,78,55,0.3)]"
+        : overpaid
+          ? "bg-amber-500 text-white"
+          : "bg-primary text-white",
   );
   if (!href) return <div className={className}>{body}</div>;
   // A stretched link keeps the <dl> valid while making the whole card open the payment modal.
   return (
-    <div className={cn(className, "relative transition-colors hover:bg-clay-strong has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-clay has-[a:focus-visible]:ring-offset-2")}>
+    <div
+      className={cn(
+        className,
+        "relative transition-colors hover:bg-clay-strong has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-clay has-[a:focus-visible]:ring-offset-2",
+      )}
+    >
       {body}
-      <Link href={href} className="absolute inset-0 rounded-xl focus-visible:outline-none" aria-label="Record payment" />
+      <Link
+        href={href}
+        className="absolute inset-0 rounded-xl focus-visible:outline-none"
+        aria-label="Record payment"
+      />
     </div>
   );
 }

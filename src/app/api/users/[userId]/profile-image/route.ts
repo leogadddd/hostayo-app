@@ -2,7 +2,10 @@ import { eq } from "drizzle-orm";
 import { requireUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { user } from "@/lib/db/schema";
-import { createObjectStorageFromEnvironment, StorageError } from "@/server/storage/service";
+import {
+  createObjectStorageFromEnvironment,
+  StorageError,
+} from "@/server/storage/service";
 
 export const runtime = "nodejs";
 
@@ -22,7 +25,10 @@ export async function GET(
     where: eq(user.id, userId),
   });
   if (!profile?.image?.startsWith(`user/${userId}/`)) {
-    return Response.json({ error: "Profile picture not found." }, { status: 404 });
+    return Response.json(
+      { error: "Profile picture not found." },
+      { status: 404 },
+    );
   }
 
   try {
@@ -38,7 +44,10 @@ export async function GET(
     });
   } catch (error) {
     if (error instanceof StorageError) {
-      return Response.json({ error: "Profile picture not found." }, { status: 404 });
+      return Response.json(
+        { error: "Profile picture not found." },
+        { status: 404 },
+      );
     }
     throw error;
   }

@@ -52,14 +52,22 @@ describe("listNights", () => {
 describe("rangesOverlap", () => {
   it("detects intersecting half-open ranges", () => {
     // Existing stay Sep 28–30 conflicts with Sep 29–Oct 1…
-    expect(rangesOverlap("2026-09-28", "2026-09-30", "2026-09-29", "2026-10-01")).toBe(true);
+    expect(
+      rangesOverlap("2026-09-28", "2026-09-30", "2026-09-29", "2026-10-01"),
+    ).toBe(true);
     // …but a stay starting on checkout day is fine.
-    expect(rangesOverlap("2026-09-28", "2026-09-30", "2026-09-30", "2026-10-01")).toBe(false);
-    expect(rangesOverlap("2026-09-28", "2026-09-30", "2026-09-26", "2026-09-28")).toBe(false);
+    expect(
+      rangesOverlap("2026-09-28", "2026-09-30", "2026-09-30", "2026-10-01"),
+    ).toBe(false);
+    expect(
+      rangesOverlap("2026-09-28", "2026-09-30", "2026-09-26", "2026-09-28"),
+    ).toBe(false);
   });
 
   it("treats nested ranges as overlapping", () => {
-    expect(rangesOverlap("2026-09-01", "2026-09-30", "2026-09-10", "2026-09-12")).toBe(true);
+    expect(
+      rangesOverlap("2026-09-01", "2026-09-30", "2026-09-10", "2026-09-12"),
+    ).toBe(true);
   });
 });
 

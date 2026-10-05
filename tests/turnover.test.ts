@@ -39,9 +39,9 @@ describe("normalizeChecklistTemplate", () => {
   it("falls back to the PRD default for null or malformed jsonb", () => {
     expect(normalizeChecklistTemplate(null)).toEqual(DEFAULT_CHECKLIST);
     expect(normalizeChecklistTemplate("nonsense")).toEqual(DEFAULT_CHECKLIST);
-    expect(normalizeChecklistTemplate([{ label: "  ", required: true }])).toEqual(
-      DEFAULT_CHECKLIST,
-    );
+    expect(
+      normalizeChecklistTemplate([{ label: "  ", required: true }]),
+    ).toEqual(DEFAULT_CHECKLIST);
     expect(normalizeChecklistTemplate([])).toEqual(DEFAULT_CHECKLIST);
   });
 });

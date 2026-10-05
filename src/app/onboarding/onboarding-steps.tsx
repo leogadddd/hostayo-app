@@ -15,12 +15,17 @@ const STEPS = [
 function useIsSetupFlow() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  return !pathname.startsWith("/onboarding/join") && !searchParams.has("invite");
+  return (
+    !pathname.startsWith("/onboarding/join") && !searchParams.has("invite")
+  );
 }
 
 function useCurrentStep() {
   const pathname = usePathname();
-  return Math.max(0, STEPS.findLastIndex((step) => pathname.startsWith(step.href)));
+  return Math.max(
+    0,
+    STEPS.findLastIndex((step) => pathname.startsWith(step.href)),
+  );
 }
 
 /** "Step 2 of 5" for the header row. */
@@ -29,7 +34,8 @@ export function OnboardingStepCount() {
   if (!useIsSetupFlow()) return null;
   return (
     <p className="text-xs tabular-nums text-ink/50">
-      Step <span className="font-medium text-pine">{current + 1}</span> of {STEPS.length}
+      Step <span className="font-medium text-pine">{current + 1}</span> of{" "}
+      {STEPS.length}
     </p>
   );
 }
@@ -52,18 +58,29 @@ export function OnboardingProgress() {
         const active = index === current;
         return (
           <li key={step.href} aria-current={active ? "step" : undefined}>
-            <span className="block h-1.5 overflow-hidden rounded-full bg-pine/10" aria-hidden>
+            <span
+              className="block h-1.5 overflow-hidden rounded-full bg-pine/10"
+              aria-hidden
+            >
               <span
                 className={cn(
                   "block h-full origin-left rounded-full transition-transform duration-500 ease-out",
-                  done ? "scale-x-100 bg-moss" : active ? "scale-x-100 bg-clay" : "scale-x-0",
+                  done
+                    ? "scale-x-100 bg-moss"
+                    : active
+                      ? "scale-x-100 bg-clay"
+                      : "scale-x-0",
                 )}
               />
             </span>
             <span
               className={cn(
                 "mt-2 block truncate text-[11px] transition-colors",
-                active ? "font-medium text-pine" : done ? "text-ink/55" : "text-ink/30",
+                active
+                  ? "font-medium text-pine"
+                  : done
+                    ? "text-ink/55"
+                    : "text-ink/30",
                 // Small screens only name the current step.
                 !active && "max-sm:invisible",
               )}

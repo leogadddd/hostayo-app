@@ -24,7 +24,9 @@ export default async function OnboardingOrganizationPage() {
         You can add a logo and contact details later in Settings.
       </p>
       <div className="animate-rise mt-8" style={{ animationDelay: "180ms" }}>
-        <OrganizationForm defaultName={state.membership?.organizationName ?? ""} />
+        <OrganizationForm
+          defaultName={state.membership?.organizationName ?? ""}
+        />
       </div>
     </div>
   );

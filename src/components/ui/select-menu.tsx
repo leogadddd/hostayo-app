@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useId, useRef, useState, type ComponentType } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ComponentType,
+} from "react";
 import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAnchoredPopover } from "./use-anchored-popover";
@@ -53,10 +60,20 @@ export function SelectMenu<T extends string>({
   const selected = options[selectedIndex];
 
   const close = useCallback(() => setOpen(false), []);
-  useAnchoredPopover({ open, onClose: close, wrapperRef, triggerRef, popoverRef, matchWidth: true });
+  useAnchoredPopover({
+    open,
+    onClose: close,
+    wrapperRef,
+    triggerRef,
+    popoverRef,
+    matchWidth: true,
+  });
 
   useEffect(() => {
-    if (open) popoverRef.current?.querySelector(`[data-index='${active}']`)?.scrollIntoView({ block: "nearest" });
+    if (open)
+      popoverRef.current
+        ?.querySelector(`[data-index='${active}']`)
+        ?.scrollIntoView({ block: "nearest" });
   }, [open, active]);
 
   const openList = () => {
@@ -89,8 +106,10 @@ export function SelectMenu<T extends string>({
       event.preventDefault();
       if (!open) return openList();
       setActive((current) =>
-        event.key === "Home" ? 0
-          : event.key === "End" ? options.length - 1
+        event.key === "Home"
+          ? 0
+          : event.key === "End"
+            ? options.length - 1
             : Math.min(options.length - 1, Math.max(0, current + move!)),
       );
       return;
@@ -102,10 +121,22 @@ export function SelectMenu<T extends string>({
       return;
     }
     // Type-ahead: jump to the first option starting with what was typed.
-    if (event.key.length === 1 && !event.metaKey && !event.ctrlKey && !event.altKey) {
+    if (
+      event.key.length === 1 &&
+      !event.metaKey &&
+      !event.ctrlKey &&
+      !event.altKey
+    ) {
       const now = event.timeStamp;
-      typed.current = { text: (now - typed.current.at < 700 ? typed.current.text : "") + event.key.toLowerCase(), at: now };
-      const match = options.findIndex((option) => option.label.toLowerCase().startsWith(typed.current.text));
+      typed.current = {
+        text:
+          (now - typed.current.at < 700 ? typed.current.text : "") +
+          event.key.toLowerCase(),
+        at: now,
+      };
+      const match = options.findIndex((option) =>
+        option.label.toLowerCase().startsWith(typed.current.text),
+      );
       if (match === -1) return;
       if (open) setActive(match);
       else onChange(options[match]!.value);
@@ -114,7 +145,11 @@ export function SelectMenu<T extends string>({
 
   const SelectedIcon = selected?.icon;
   return (
-    <div ref={wrapperRef} className={cn("relative", className)} onKeyDown={onKeyDown}>
+    <div
+      ref={wrapperRef}
+      className={cn("relative", className)}
+      onKeyDown={onKeyDown}
+    >
       {name ? <input type="hidden" name={name} value={value} /> : null}
       <button
         ref={triggerRef}
@@ -131,12 +166,26 @@ export function SelectMenu<T extends string>({
         className={cn(
           "flex h-10 w-full min-w-0 items-center gap-2 rounded-lg border bg-surface pl-3 pr-2.5 text-left text-sm text-ink transition-colors",
           "focus:border-pine focus:outline-none focus:ring-2 focus:ring-sage disabled:cursor-not-allowed disabled:opacity-60",
-          open ? "border-pine ring-2 ring-sage" : "border-pine/20 hover:border-pine/40",
+          open
+            ? "border-pine ring-2 ring-sage"
+            : "border-pine/20 hover:border-pine/40",
         )}
       >
-        {SelectedIcon ? <SelectedIcon className="h-4 w-4 shrink-0 text-pine/60" /> : null}
-        <span className={cn("min-w-0 flex-1 truncate", !selected && "text-ink/40")}>{selected?.label ?? placeholder}</span>
-        <ChevronDown className={cn("h-4 w-4 shrink-0 text-ink/40 transition-transform", open && "rotate-180")} aria-hidden />
+        {SelectedIcon ? (
+          <SelectedIcon className="h-4 w-4 shrink-0 text-pine/60" />
+        ) : null}
+        <span
+          className={cn("min-w-0 flex-1 truncate", !selected && "text-ink/40")}
+        >
+          {selected?.label ?? placeholder}
+        </span>
+        <ChevronDown
+          className={cn(
+            "h-4 w-4 shrink-0 text-ink/40 transition-transform",
+            open && "rotate-180",
+          )}
+          aria-hidden
+        />
       </button>
 
       {open ? (
@@ -166,15 +215,38 @@ export function SelectMenu<T extends string>({
                 )}
               >
                 {Icon ? (
-                  <span className={cn("mt-px flex h-7 w-7 shrink-0 items-center justify-center rounded-md", isSelected ? "bg-primary text-white" : "bg-sage/50 text-pine")}>
+                  <span
+                    className={cn(
+                      "mt-px flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
+                      isSelected
+                        ? "bg-primary text-white"
+                        : "bg-sage/50 text-pine",
+                    )}
+                  >
                     <Icon className="h-3.5 w-3.5" />
                   </span>
                 ) : null}
                 <span className="min-w-0 flex-1">
-                  <span className={cn("block whitespace-nowrap", isSelected ? "font-semibold text-pine" : "text-ink")}>{option.label}</span>
-                  {option.description ? <span className="block text-xs text-ink/55">{option.description}</span> : null}
+                  <span
+                    className={cn(
+                      "block whitespace-nowrap",
+                      isSelected ? "font-semibold text-pine" : "text-ink",
+                    )}
+                  >
+                    {option.label}
+                  </span>
+                  {option.description ? (
+                    <span className="block text-xs text-ink/55">
+                      {option.description}
+                    </span>
+                  ) : null}
                 </span>
-                {isSelected ? <Check className="mt-1 h-4 w-4 shrink-0 text-pine" aria-hidden /> : null}
+                {isSelected ? (
+                  <Check
+                    className="mt-1 h-4 w-4 shrink-0 text-pine"
+                    aria-hidden
+                  />
+                ) : null}
               </li>
             );
           })}

@@ -5,9 +5,21 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { memberships, organizationRolePermissions, organizations, roles, systemAdmins, user } from "@/lib/db/schema";
+import {
+  memberships,
+  organizationRolePermissions,
+  organizations,
+  roles,
+  systemAdmins,
+  user,
+} from "@/lib/db/schema";
 import { and, asc, desc, eq } from "drizzle-orm";
-import { can, resolvePermissions, type Permission, type RoleKey } from "@/lib/permissions";
+import {
+  can,
+  resolvePermissions,
+  type Permission,
+  type RoleKey,
+} from "@/lib/permissions";
 
 export const ACTIVE_ORGANIZATION_COOKIE = "hostayo_active_organization_id";
 
@@ -79,12 +91,17 @@ export const requireMembership = cache(async (): Promise<MembershipContext> => {
   ]);
   // The cookie is only a preference; always resolve it against this user's
   // current access before using it as a tenant boundary.
-  const preferredOrganizationId = cookieStore.get(ACTIVE_ORGANIZATION_COOKIE)?.value;
-  const own = rows.find((row) => row.organizationId === preferredOrganizationId);
+  const preferredOrganizationId = cookieStore.get(
+    ACTIVE_ORGANIZATION_COOKIE,
+  )?.value;
+  const own = rows.find(
+    (row) => row.organizationId === preferredOrganizationId,
+  );
   const membership = own
     ? { ...own, viaL1: false }
     : l1
-      ? (await getL1Organization(preferredOrganizationId)) ?? (rows[0] ? { ...rows[0], viaL1: false } : await getL1Organization())
+      ? ((await getL1Organization(preferredOrganizationId)) ??
+        (rows[0] ? { ...rows[0], viaL1: false } : await getL1Organization()))
       : rows[0] && { ...rows[0], viaL1: false };
   if (!membership) {
     redirect("/onboarding");
@@ -94,40 +111,60 @@ export const requireMembership = cache(async (): Promise<MembershipContext> => {
     ...membership,
     userId: session.user.id,
     isDemoAccount: account,
-    permissions: await getRolePermissions(membership.organizationId, membership.role),
+    permissions: await getRolePermissions(
+      membership.organizationId,
+      membership.role,
+    ),
   };
 });
 
 /** The organization's permission matrix for one role, defaults merged with its overrides. */
-export const getRolePermissions = cache(async (organizationId: string, role: RoleKey): Promise<Permission[]> => {
-  if (role === "owner") return resolvePermissions("owner");
-  const overrides = await db
-    .select({ permission: organizationRolePermissions.permission, allowed: organizationRolePermissions.allowed })
-    .from(organizationRolePermissions)
-    .innerJoin(roles, eq(organizationRolePermissions.roleId, roles.id))
-    .where(and(eq(organizationRolePermissions.organizationId, organizationId), eq(roles.key, role)));
-  return resolvePermissions(role, overrides);
-});
+export const getRolePermissions = cache(
+  async (organizationId: string, role: RoleKey): Promise<Permission[]> => {
+    if (role === "owner") return resolvePermissions("owner");
+    const overrides = await db
+      .select({
+        permission: organizationRolePermissions.permission,
+        allowed: organizationRolePermissions.allowed,
+      })
+      .from(organizationRolePermissions)
+      .innerJoin(roles, eq(organizationRolePermissions.roleId, roles.id))
+      .where(
+        and(
+          eq(organizationRolePermissions.organizationId, organizationId),
+          eq(roles.key, role),
+        ),
+      );
+    return resolvePermissions(role, overrides);
+  },
+);
 
 /**
  * Page guard: the membership when it holds `permission`, otherwise null so the
  * page can render a permission-denied state instead of silently redirecting.
  */
-export const requirePermission = cache(async (permission: Permission): Promise<MembershipContext | null> => {
-  const membership = await requireMembership();
-  return can(membership, permission) ? membership : null;
-});
+export const requirePermission = cache(
+  async (permission: Permission): Promise<MembershipContext | null> => {
+    const membership = await requireMembership();
+    return can(membership, permission) ? membership : null;
+  },
+);
 
 /** Thrown by server actions when a member attempts something their role doesn't allow. */
 export class PermissionError extends Error {
-  constructor(message = "Your role doesn’t allow that. Ask an owner or admin for access.") {
+  constructor(
+    message = "Your role doesn’t allow that. Ask an owner or admin for access.",
+  ) {
     super(message);
     this.name = "PermissionError";
   }
 }
 
 /** Server action guard: throws a PermissionError unless the member holds `permission`. */
-export function assertCan(membership: MembershipContext, permission: Permission): void {
+export function assertCan(
+  membership: MembershipContext,
+  permission: Permission,
+): void {
   if (!can(membership, permission)) throw new PermissionError();
 }
 
@@ -139,10 +176,16 @@ export function assertNotDemoAccount(user: { isDemoAccount?: boolean }): void {
 }
 
 /** Read the persisted flag instead of relying on a demo email or hostname. */
-export const getDemoAccountStatus = cache(async (userId: string): Promise<boolean> => {
-  const [account] = await db.select({ isDemoAccount: user.isDemoAccount }).from(user).where(eq(user.id, userId)).limit(1);
-  return account?.isDemoAccount ?? false;
-});
+export const getDemoAccountStatus = cache(
+  async (userId: string): Promise<boolean> => {
+    const [account] = await db
+      .select({ isDemoAccount: user.isDemoAccount })
+      .from(user)
+      .where(eq(user.id, userId))
+      .limit(1);
+    return account?.isDemoAccount ?? false;
+  },
+);
 
 /** Onboarding creates the organization's first property; that flow stays with its owner. */
 export function assertOwner(membership: MembershipContext): void {
@@ -169,7 +212,11 @@ export const listMemberships = cache(async (userId: string) => {
 
 /** Whether the user is an L1 operator (see `systemAdmins`). */
 export const isL1 = cache(async (userId: string): Promise<boolean> => {
-  const [row] = await db.select({ userId: systemAdmins.userId }).from(systemAdmins).where(eq(systemAdmins.userId, userId)).limit(1);
+  const [row] = await db
+    .select({ userId: systemAdmins.userId })
+    .from(systemAdmins)
+    .where(eq(systemAdmins.userId, userId))
+    .limit(1);
   return Boolean(row);
 });
 
@@ -183,7 +230,11 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 async function getL1Organization(organizationId?: string) {
   if (organizationId !== undefined && !UUID.test(organizationId)) return null;
   const [row] = await db
-    .select({ organizationId: organizations.id, organizationName: organizations.name, organizationSlug: organizations.slug })
+    .select({
+      organizationId: organizations.id,
+      organizationName: organizations.name,
+      organizationSlug: organizations.slug,
+    })
     .from(organizations)
     .where(organizationId ? eq(organizations.id, organizationId) : undefined)
     .orderBy(asc(organizations.name))
@@ -192,10 +243,15 @@ async function getL1Organization(organizationId?: string) {
 }
 
 /** Whether the user may switch to this organization: a member, or L1. */
-export async function canOpenOrganization(userId: string, organizationId: string): Promise<boolean> {
+export async function canOpenOrganization(
+  userId: string,
+  organizationId: string,
+): Promise<boolean> {
   const rows = await listMemberships(userId);
   if (rows.some((row) => row.organizationId === organizationId)) return true;
-  return (await isL1(userId)) && (await getL1Organization(organizationId)) !== null;
+  return (
+    (await isL1(userId)) && (await getL1Organization(organizationId)) !== null
+  );
 }
 
 /** Whether the user has somewhere to work: a membership, or L1 access. */

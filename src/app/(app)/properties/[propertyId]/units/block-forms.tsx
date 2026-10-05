@@ -6,11 +6,20 @@ import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { FieldError, Input, Label } from "@/components/ui/input";
-import { addUnitBlockAction, removeUnitBlockAction, updateUnitBlockAction, type BlockFormState } from "./block-actions";
+import {
+  addUnitBlockAction,
+  removeUnitBlockAction,
+  updateUnitBlockAction,
+  type BlockFormState,
+} from "./block-actions";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
 import { useSaveAndReturn } from "@/hooks/use-save-and-return";
 
-export function BlockForms({ propertyId, unitId, block }: {
+export function BlockForms({
+  propertyId,
+  unitId,
+  block,
+}: {
   propertyId: string;
   unitId: string;
   /** Present → edit this block; absent → add a new one. */
@@ -23,14 +32,20 @@ export function BlockForms({ propertyId, unitId, block }: {
     `/properties/${propertyId}/units/${unitId}`,
     block ? "Blocked period updated." : "Blocked period added.",
   );
-  const [state, formAction, pending] = useActionState<BlockFormState, FormData>(save, {});
+  const [state, formAction, pending] = useActionState<BlockFormState, FormData>(
+    save,
+    {},
+  );
   useActionFeedback(state);
   const [startDate, setStartDate] = useState(block?.startDate ?? "");
   const [endDate, setEndDate] = useState(block?.endDate ?? "");
 
   return (
     <form action={formAction} className="space-y-4">
-      <p className="text-sm text-ink/60">The end date is exclusive: a block from September 5 to 7 covers the nights of the 5th and 6th.</p>
+      <p className="text-sm text-ink/60">
+        The end date is exclusive: a block from September 5 to 7 covers the
+        nights of the 5th and 6th.
+      </p>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <Label htmlFor="block-start">Start date (first blocked night)</Label>
@@ -59,15 +74,41 @@ export function BlockForms({ propertyId, unitId, block }: {
       </div>
       <div>
         <Label htmlFor="block-reason">Reason (shown on the calendar)</Label>
-        <Input id="block-reason" name="reason" defaultValue={block?.reason} required minLength={2} maxLength={200} placeholder="AC repair, repainting, deep clean…" />
+        <Input
+          id="block-reason"
+          name="reason"
+          defaultValue={block?.reason}
+          required
+          minLength={2}
+          maxLength={200}
+          placeholder="AC repair, repainting, deep clean…"
+        />
       </div>
       <FieldError message={state.error} />
-      <Button type="submit" variant="clay" size="lg" className="w-full" disabled={pending}>{pending ? "Saving…" : block ? "Save changes" : "Add block"}</Button>
+      <Button
+        type="submit"
+        variant="clay"
+        size="lg"
+        className="w-full"
+        disabled={pending}
+      >
+        {pending ? "Saving…" : block ? "Save changes" : "Add block"}
+      </Button>
     </form>
   );
 }
 
-export function RemoveBlockButton({ propertyId, unitId, blockId, label }: { propertyId: string; unitId: string; blockId: string; label: string }) {
+export function RemoveBlockButton({
+  propertyId,
+  unitId,
+  blockId,
+  label,
+}: {
+  propertyId: string;
+  unitId: string;
+  blockId: string;
+  label: string;
+}) {
   return (
     <ConfirmationDialog
       title="Remove this blocked period?"

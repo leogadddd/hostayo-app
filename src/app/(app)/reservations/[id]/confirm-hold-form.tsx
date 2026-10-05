@@ -21,13 +21,23 @@ export function ConfirmHoldForm({
   reservationId: string;
   fee: { requiredCents: number; outstandingCents: number } | null;
 }) {
-  const save = useReservationSaved(confirmHoldAction.bind(null, reservationId), reservationId, "Hold confirmed.");
-  const [state, formAction, pending] = useActionState<ReservationFormState, FormData>(save, {});
+  const save = useReservationSaved(
+    confirmHoldAction.bind(null, reservationId),
+    reservationId,
+    "Hold confirmed.",
+  );
+  const [state, formAction, pending] = useActionState<
+    ReservationFormState,
+    FormData
+  >(save, {});
   useActionFeedback(state);
 
   if (state.success) {
     return (
-      <p className="inline-flex items-center gap-1.5 text-sm text-pine" role="status">
+      <p
+        className="inline-flex items-center gap-1.5 text-sm text-pine"
+        role="status"
+      >
         <CheckCircle2 className="h-4 w-4" aria-hidden />
         Hold confirmed.
       </p>
@@ -47,8 +57,12 @@ export function ConfirmHoldForm({
         <>
           {fee ? (
             <p className="rounded-xl bg-clay-mist/60 px-3 py-2 text-sm text-clay-deep">
-              {formatPHP(fee.outstandingCents)} of the {formatPHP(fee.requiredCents)} reservation fee is unpaid.{" "}
-              <Link href={`/reservations/${reservationId}/payments/new`} className="font-medium underline underline-offset-4">
+              {formatPHP(fee.outstandingCents)} of the{" "}
+              {formatPHP(fee.requiredCents)} reservation fee is unpaid.{" "}
+              <Link
+                href={`/reservations/${reservationId}/payments/new`}
+                className="font-medium underline underline-offset-4"
+              >
                 Record the payment
               </Link>{" "}
               to confirm, or give a reason below.
@@ -56,7 +70,9 @@ export function ConfirmHoldForm({
           ) : null}
           <div>
             <Label htmlFor="confirm-reason">
-              {fee ? "Why confirm without the reservation fee?" : "Why confirm without a recorded payment?"}
+              {fee
+                ? "Why confirm without the reservation fee?"
+                : "Why confirm without a recorded payment?"}
             </Label>
             <Textarea
               id="confirm-reason"

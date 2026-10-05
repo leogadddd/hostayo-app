@@ -18,11 +18,21 @@ function read(key: string) {
  * A scratchpad for the day. It lives in this browser only (per organization
  * and person), never on the server, and saves itself a moment after typing.
  */
-export function NotesCard({ organizationId, userId, className }: { organizationId: string; userId: string; className?: string }) {
+export function NotesCard({
+  organizationId,
+  userId,
+  className,
+}: {
+  organizationId: string;
+  userId: string;
+  className?: string;
+}) {
   const key = `hostayo:dashboard-notes:${organizationId}:${userId}`;
   const [text, setText] = useState("");
   const [loaded, setLoaded] = useState(false);
-  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "unavailable">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "saving" | "saved" | "unavailable"
+  >("idle");
   const timer = useRef<number | null>(null);
 
   // Browser storage only exists on the client, so the saved note loads after hydration.
@@ -32,9 +42,12 @@ export function NotesCard({ organizationId, userId, className }: { organizationI
     setLoaded(true);
   }, [key]);
 
-  useEffect(() => () => {
-    if (timer.current) window.clearTimeout(timer.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (timer.current) window.clearTimeout(timer.current);
+    },
+    [],
+  );
 
   const save = (value: string) => {
     try {
@@ -62,7 +75,9 @@ export function NotesCard({ organizationId, userId, className }: { organizationI
           </span>
           <div>
             <h2 className="font-display text-xl text-pine">Notes</h2>
-            <p className="text-xs text-ink/50">Only on this browser. Saves as you type.</p>
+            <p className="text-xs text-ink/50">
+              Only on this browser. Saves as you type.
+            </p>
           </div>
         </div>
         {text ? (
@@ -78,7 +93,9 @@ export function NotesCard({ organizationId, userId, className }: { organizationI
         ) : null}
       </CardHeader>
       <CardBody className="flex flex-1 flex-col">
-        <label htmlFor="dashboard-notes" className="sr-only">Notes</label>
+        <label htmlFor="dashboard-notes" className="sr-only">
+          Notes
+        </label>
         <textarea
           id="dashboard-notes"
           value={text}
@@ -91,14 +108,32 @@ export function NotesCard({ organizationId, userId, className }: { organizationI
           }}
           disabled={!loaded}
           maxLength={MAX_LENGTH}
-          placeholder={"Jot down reminders for today…\n\n• Ask 12B guest about late check-out\n• Buy extra towels"}
+          placeholder={
+            "Jot down reminders for today…\n\n• Ask 12B guest about late check-out\n• Buy extra towels"
+          }
           className="min-h-48 w-full flex-1 resize-none rounded-lg border border-pine/10 bg-local bg-[position:0_0.5rem] bg-[repeating-linear-gradient(to_bottom,transparent,transparent_1.6rem,color-mix(in_oklab,var(--color-pine)_7%,transparent)_1.6rem,color-mix(in_oklab,var(--color-pine)_7%,transparent)_calc(1.6rem+1px))] bg-surface px-3 py-2 text-sm leading-[1.6rem] text-ink placeholder:text-ink/35 focus:border-pine focus:outline-none focus:ring-2 focus:ring-sage"
         />
-        <div className="mt-2 flex items-center justify-between text-[11px] text-ink/45" aria-live="polite">
+        <div
+          className="mt-2 flex items-center justify-between text-[11px] text-ink/45"
+          aria-live="polite"
+        >
           <span>
-            {status === "saving" ? "Saving…" : status === "saved" ? <span className="inline-flex items-center gap-1 text-moss"><Check className="h-3 w-3" aria-hidden />Saved</span> : status === "unavailable" ? <span className="text-clay-deep">This browser isn’t letting Hostayo save notes.</span> : null}
+            {status === "saving" ? (
+              "Saving…"
+            ) : status === "saved" ? (
+              <span className="inline-flex items-center gap-1 text-moss">
+                <Check className="h-3 w-3" aria-hidden />
+                Saved
+              </span>
+            ) : status === "unavailable" ? (
+              <span className="text-clay-deep">
+                This browser isn’t letting Hostayo save notes.
+              </span>
+            ) : null}
           </span>
-          <span className="tabular-nums">{text.length}/{MAX_LENGTH}</span>
+          <span className="tabular-nums">
+            {text.length}/{MAX_LENGTH}
+          </span>
         </div>
       </CardBody>
     </Card>

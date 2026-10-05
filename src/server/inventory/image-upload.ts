@@ -31,7 +31,7 @@ export function imageDataUrlFromValue(value: string) {
   }
   // Base64 adds roughly one third overhead; keep the resulting value within
   // the same 4 MB input limit used by normal image uploads.
-  if (value.length > Math.ceil(MAX_IMAGE_BYTES * 4 / 3) + 128) {
+  if (value.length > Math.ceil((MAX_IMAGE_BYTES * 4) / 3) + 128) {
     throw new InventoryError("Image must be 4 MB or smaller.", "logo");
   }
   return value;
@@ -41,8 +41,10 @@ export function imageDataUrlFromValue(value: string) {
 export async function imageUploadFromDataUrl(value: string) {
   const dataUrl = imageDataUrlFromValue(value);
   if (!dataUrl) return undefined;
-  const match = /^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl);
-  if (!match) throw new InventoryError("Upload a JPG, PNG, or WebP image.", "logo");
+  const match =
+    /^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl);
+  if (!match)
+    throw new InventoryError("Upload a JPG, PNG, or WebP image.", "logo");
   return normalizeImage(Buffer.from(match[2]!, "base64"), "logo");
 }
 
@@ -59,16 +61,28 @@ async function normalizeImage(body: Uint8Array, field: string) {
       limitInputPixels: MAX_IMAGE_PIXELS,
     });
     const metadata = await image.metadata();
-    if (!metadata.format || !ACCEPTED_IMAGE_FORMATS.has(metadata.format) || (metadata.pages ?? 1) > 1) {
+    if (
+      !metadata.format ||
+      !ACCEPTED_IMAGE_FORMATS.has(metadata.format) ||
+      (metadata.pages ?? 1) > 1
+    ) {
       throw new Error("Unsupported image format.");
     }
     const normalized = await image
       .rotate()
-      .resize({ width: 4096, height: 4096, fit: "inside", withoutEnlargement: true })
+      .resize({
+        width: 4096,
+        height: 4096,
+        fit: "inside",
+        withoutEnlargement: true,
+      })
       .webp({ quality: 86 })
       .toBuffer();
     return { contentType: "image/webp", body: normalized };
   } catch {
-    throw new InventoryError("Upload a valid JPG, PNG, or WebP image no larger than 40 megapixels.", field);
+    throw new InventoryError(
+      "Upload a valid JPG, PNG, or WebP image no larger than 40 megapixels.",
+      field,
+    );
   }
 }

@@ -32,18 +32,33 @@ function isSubsequence(needle: string, haystack: string) {
 }
 
 /** How well one query word matches a guest; 0 means not at all. */
-function tokenScore(token: string, name: string, words: string[], email: string, phone: string) {
+function tokenScore(
+  token: string,
+  name: string,
+  words: string[],
+  email: string,
+  phone: string,
+) {
   let best = 0;
   if (words.some((word) => word.startsWith(token))) best = Math.max(best, 100);
   else if (name.includes(token)) best = Math.max(best, 70);
   if (email.startsWith(token)) best = Math.max(best, 80);
   else if (email.includes(token)) best = Math.max(best, 60);
   const digits = phoneDigits(token);
-  if (digits.length >= 3 && /^[\d\s()+-]+$/.test(token) && phone.includes(digits)) {
+  if (
+    digits.length >= 3 &&
+    /^[\d\s()+-]+$/.test(token) &&
+    phone.includes(digits)
+  ) {
     best = Math.max(best, phone.startsWith(digits) ? 90 : 65);
   }
   // Typos and skipped letters in names, only for words long enough to mean something.
-  if (!best && token.length >= 3 && isSubsequence(token, name.replace(/\s+/g, ""))) best = 30;
+  if (
+    !best &&
+    token.length >= 3 &&
+    isSubsequence(token, name.replace(/\s+/g, ""))
+  )
+    best = 30;
   return best;
 }
 
@@ -52,7 +67,11 @@ function tokenScore(token: string, name: string, words: string[], email: string,
  * of the query must match something, so "ana gmail" narrows to Anas with a
  * Gmail address. An empty query matches nobody.
  */
-export function searchGuests<T extends SearchableGuest>(guests: readonly T[], query: string, limit = 8): T[] {
+export function searchGuests<T extends SearchableGuest>(
+  guests: readonly T[],
+  query: string,
+  limit = 8,
+): T[] {
   const tokens = fold(query).trim().split(/\s+/).filter(Boolean);
   if (!tokens.length) return [];
   const scored: { guest: T; score: number }[] = [];
@@ -73,7 +92,9 @@ export function searchGuests<T extends SearchableGuest>(guests: readonly T[], qu
     if (total) scored.push({ guest, score: total });
   }
   return scored
-    .sort((a, b) => b.score - a.score || a.guest.name.localeCompare(b.guest.name))
+    .sort(
+      (a, b) => b.score - a.score || a.guest.name.localeCompare(b.guest.name),
+    )
     .slice(0, limit)
     .map((entry) => entry.guest);
 }

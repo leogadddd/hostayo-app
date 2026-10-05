@@ -14,7 +14,13 @@ type Amenity = { id: string; name: string; icon: string | null };
  * The first few amenities as chips, a "Show all" button that opens the full
  * list in a dialog, and an Edit link. Renders nothing when there are none.
  */
-export function AmenitySummary({ amenities, editHref }: { amenities: Amenity[]; editHref: string }) {
+export function AmenitySummary({
+  amenities,
+  editHref,
+}: {
+  amenities: Amenity[];
+  editHref: string;
+}) {
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   if (!amenities.length) return null;
@@ -23,12 +29,20 @@ export function AmenitySummary({ amenities, editHref }: { amenities: Amenity[]; 
   return (
     <div className="mt-4 border-t border-pine/10 pt-4">
       <div className="mb-2 flex items-baseline justify-between gap-3">
-        <p className="text-xs font-medium uppercase tracking-wide text-ink/45">Amenities</p>
-        <Link href={editHref} className="text-xs font-medium text-clay-deep hover:underline">
+        <p className="text-xs font-medium uppercase tracking-wide text-ink/45">
+          Amenities
+        </p>
+        <Link
+          href={editHref}
+          className="text-xs font-medium text-clay-deep hover:underline"
+        >
           Edit
         </Link>
       </div>
-      <AmenityList amenities={amenities.slice(0, PREVIEW_COUNT)} emptyLabel="" />
+      <AmenityList
+        amenities={amenities.slice(0, PREVIEW_COUNT)}
+        emptyLabel=""
+      />
       {hidden > 0 ? (
         <button
           type="button"
@@ -49,8 +63,12 @@ export function AmenitySummary({ amenities, editHref }: { amenities: Amenity[]; 
       >
         <div className="flex items-start gap-4 border-b border-pine/10 px-6 py-5">
           <div className="min-w-0 flex-1">
-            <h2 id={titleId} className="font-display text-2xl text-pine">Amenities</h2>
-            <p className="mt-1 text-sm text-ink/60">{amenities.length} included with this unit.</p>
+            <h2 id={titleId} className="font-display text-2xl text-pine">
+              Amenities
+            </h2>
+            <p className="mt-1 text-sm text-ink/60">
+              {amenities.length} included with this unit.
+            </p>
           </div>
           <button
             type="button"
@@ -65,7 +83,11 @@ export function AmenitySummary({ amenities, editHref }: { amenities: Amenity[]; 
           <AmenityList amenities={amenities} emptyLabel="" />
         </div>
         <div className="flex justify-end gap-2 border-t border-pine/10 px-6 py-4">
-          <button type="button" onClick={() => dialog.current?.close()} className={buttonClassName("ghost", "md")}>
+          <button
+            type="button"
+            onClick={() => dialog.current?.close()}
+            className={buttonClassName("ghost", "md")}
+          >
             Close
           </button>
           <Link href={editHref} className={buttonClassName("outline", "md")}>

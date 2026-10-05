@@ -44,9 +44,8 @@ export async function getAuditLogPage(
   organizationId: string,
   filters: AuditLogFilters = {},
 ): Promise<AuditLogPage> {
-  const requestedPage = Number.isSafeInteger(filters.page) && filters.page! > 0
-    ? filters.page!
-    : 1;
+  const requestedPage =
+    Number.isSafeInteger(filters.page) && filters.page! > 0 ? filters.page! : 1;
   const conditions = [eq(auditEvents.organizationId, organizationId)];
 
   if (filters.action?.trim()) {
@@ -72,7 +71,10 @@ export async function getAuditLogPage(
     .leftJoin(user, eq(auditEvents.actorUserId, user.id))
     .where(where);
   const total = Number(rawTotal);
-  const page = Math.min(requestedPage, Math.max(1, Math.ceil(total / AUDIT_LOG_PAGE_SIZE)));
+  const page = Math.min(
+    requestedPage,
+    Math.max(1, Math.ceil(total / AUDIT_LOG_PAGE_SIZE)),
+  );
   const rows = await db
     .select({
       id: auditEvents.id,

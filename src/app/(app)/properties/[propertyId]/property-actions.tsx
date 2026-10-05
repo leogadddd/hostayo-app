@@ -16,7 +16,10 @@ export interface PropertyActionPanel {
   form: ReactNode;
 }
 
-export async function houseRulesPanel(organizationId: string, propertyId: string): Promise<PropertyActionPanel> {
+export async function houseRulesPanel(
+  organizationId: string,
+  propertyId: string,
+): Promise<PropertyActionPanel> {
   let property;
   try {
     property = await getPropertyOrThrow(organizationId, propertyId);
@@ -29,6 +32,11 @@ export async function houseRulesPanel(organizationId: string, propertyId: string
     description: `${property.name} · Shown to guests on their booking link.`,
     backHref: `/properties/${property.id}`,
     backLabel: property.name,
-    form: <HouseRulesForm propertyId={property.id} defaultValue={property.houseRules ?? ""} />,
+    form: (
+      <HouseRulesForm
+        propertyId={property.id}
+        defaultValue={property.houseRules ?? ""}
+      />
+    ),
   };
 }

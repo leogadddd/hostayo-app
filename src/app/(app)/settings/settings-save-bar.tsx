@@ -21,10 +21,17 @@ export function SettingsSaveBar({
     <div className="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-xl">
       <div className="flex items-center justify-between gap-4 rounded-xl border border-pine/15 bg-card/95 px-4 py-3 shadow-xl shadow-ink/15 backdrop-blur">
         <div className="min-w-0">
-          <p className="text-sm font-medium text-pine">{pending ? "Saving changes…" : "You have unsaved changes"}</p>
+          <p className="text-sm font-medium text-pine">
+            {pending ? "Saving changes…" : "You have unsaved changes"}
+          </p>
           <FieldError message={error} />
         </div>
-        <Button type="submit" variant="clay" disabled={pending} className="shrink-0">
+        <Button
+          type="submit"
+          variant="clay"
+          disabled={pending}
+          className="shrink-0"
+        >
           <Save className="h-4 w-4" aria-hidden />
           {pending ? "Saving…" : label}
         </Button>

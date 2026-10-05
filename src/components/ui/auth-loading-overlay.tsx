@@ -40,7 +40,14 @@ export function AuthLoadingOverlay({
           className={dark ? undefined : "dark:hidden"}
         />
         {dark ? null : (
-          <Image src={whiteLoader} alt="" width={112} height={112} unoptimized className="hidden dark:block" />
+          <Image
+            src={whiteLoader}
+            alt=""
+            width={112}
+            height={112}
+            unoptimized
+            className="hidden dark:block"
+          />
         )}
         <p className="mt-4 text-sm font-medium">{label}</p>
       </div>

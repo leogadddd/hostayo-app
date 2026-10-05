@@ -10,7 +10,13 @@ function reservationHref(checkIn: string, checkOut: string, unitId?: string) {
   return `/reservations/new?${query}`;
 }
 
-export function CalendarSelection({ days, unitId }: { days: string[]; unitId?: string }) {
+export function CalendarSelection({
+  days,
+  unitId,
+}: {
+  days: string[];
+  unitId?: string;
+}) {
   const router = useRouter();
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
@@ -18,8 +24,10 @@ export function CalendarSelection({ days, unitId }: { days: string[]; unitId?: s
   useEffect(() => {
     function finishSelection() {
       if (!startDate) return;
-      const first = startDate < (endDate ?? startDate) ? startDate : endDate ?? startDate;
-      const last = startDate > (endDate ?? startDate) ? startDate : endDate ?? startDate;
+      const first =
+        startDate < (endDate ?? startDate) ? startDate : (endDate ?? startDate);
+      const last =
+        startDate > (endDate ?? startDate) ? startDate : (endDate ?? startDate);
       router.push(reservationHref(first, addDaysLocal(last, 1), unitId));
       setStartDate(null);
       setEndDate(null);
@@ -29,11 +37,25 @@ export function CalendarSelection({ days, unitId }: { days: string[]; unitId?: s
     return () => window.removeEventListener("pointerup", finishSelection);
   }, [endDate, router, startDate, unitId]);
 
-  const first = startDate && endDate ? (startDate < endDate ? startDate : endDate) : startDate;
-  const last = startDate && endDate ? (startDate > endDate ? startDate : endDate) : endDate;
+  const first =
+    startDate && endDate
+      ? startDate < endDate
+        ? startDate
+        : endDate
+      : startDate;
+  const last =
+    startDate && endDate
+      ? startDate > endDate
+        ? startDate
+        : endDate
+      : endDate;
 
   return (
-    <div className="pointer-events-none absolute inset-0 z-0 grid" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }} aria-hidden="true">
+    <div
+      className="pointer-events-none absolute inset-0 z-0 grid"
+      style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}
+      aria-hidden="true"
+    >
       {days.map((day) => {
         const selected = first && last && day >= first && day <= last;
         return (

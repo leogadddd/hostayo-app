@@ -10,11 +10,35 @@ import { amenities, unitAmenities, units } from "@/lib/db/schema";
  * /g/[token] page has content. Idempotent: rerunning overwrites these fields.
  */
 const UNIT_NAME = "Unit 12B — Studio";
-const UNIT_AMENITIES = ["Wi-Fi", "Air conditioning", "Refrigerator", "Microwave", "Coffee maker", "Kitchen tools", "Towels", "Toiletries", "Hot shower", "Hair dryer", "Bed linens", "Smart TV", "Streaming apps", "Iron", "Workspace", "Balcony", "Drinking water"];
+const UNIT_AMENITIES = [
+  "Wi-Fi",
+  "Air conditioning",
+  "Refrigerator",
+  "Microwave",
+  "Coffee maker",
+  "Kitchen tools",
+  "Towels",
+  "Toiletries",
+  "Hot shower",
+  "Hair dryer",
+  "Bed linens",
+  "Smart TV",
+  "Streaming apps",
+  "Iron",
+  "Workspace",
+  "Balcony",
+  "Drinking water",
+];
 
 async function main() {
-  const matches = await db.select({ id: units.id, organizationId: units.organizationId }).from(units).where(eq(units.name, UNIT_NAME));
-  if (matches.length === 0) throw new Error(`No unit named "${UNIT_NAME}" found. Run npm run seed:demo first.`);
+  const matches = await db
+    .select({ id: units.id, organizationId: units.organizationId })
+    .from(units)
+    .where(eq(units.name, UNIT_NAME));
+  if (matches.length === 0)
+    throw new Error(
+      `No unit named "${UNIT_NAME}" found. Run npm run seed:demo first.`,
+    );
 
   for (const unit of matches) {
     await db
@@ -44,10 +68,22 @@ async function main() {
           "Close the windows and lock the door behind you.",
         ],
         areaTips: [
-          { title: "Coffee and breakfast", detail: "Two cafés on the ground floor open from 7:00 AM." },
-          { title: "Groceries", detail: "A 24-hour convenience store is across the street." },
-          { title: "Riverside walk", detail: "A 5 minute stroll from the lobby. Best at sunset." },
-          { title: "Getting around", detail: "Grab and taxis are easy to book from the lobby." },
+          {
+            title: "Coffee and breakfast",
+            detail: "Two cafés on the ground floor open from 7:00 AM.",
+          },
+          {
+            title: "Groceries",
+            detail: "A 24-hour convenience store is across the street.",
+          },
+          {
+            title: "Riverside walk",
+            detail: "A 5 minute stroll from the lobby. Best at sunset.",
+          },
+          {
+            title: "Getting around",
+            detail: "Grab and taxis are easy to book from the lobby.",
+          },
         ],
       })
       .where(eq(units.id, unit.id));
@@ -55,12 +91,35 @@ async function main() {
     const options = await db
       .select({ id: amenities.id })
       .from(amenities)
-      .where(and(eq(amenities.organizationId, unit.organizationId), eq(amenities.scope, "unit"), inArray(amenities.name, UNIT_AMENITIES)));
+      .where(
+        and(
+          eq(amenities.organizationId, unit.organizationId),
+          eq(amenities.scope, "unit"),
+          inArray(amenities.name, UNIT_AMENITIES),
+        ),
+      );
     if (options.length) {
-      await db.delete(unitAmenities).where(and(eq(unitAmenities.organizationId, unit.organizationId), eq(unitAmenities.unitId, unit.id)));
-      await db.insert(unitAmenities).values(options.map((o) => ({ organizationId: unit.organizationId, unitId: unit.id, amenityId: o.id })));
+      await db
+        .delete(unitAmenities)
+        .where(
+          and(
+            eq(unitAmenities.organizationId, unit.organizationId),
+            eq(unitAmenities.unitId, unit.id),
+          ),
+        );
+      await db
+        .insert(unitAmenities)
+        .values(
+          options.map((o) => ({
+            organizationId: unit.organizationId,
+            unitId: unit.id,
+            amenityId: o.id,
+          })),
+        );
     }
-    console.log(`unit ${unit.id}: details updated, ${options.length} amenities linked`);
+    console.log(
+      `unit ${unit.id}: details updated, ${options.length} amenities linked`,
+    );
   }
   process.exit(0);
 }

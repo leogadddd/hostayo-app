@@ -13,7 +13,10 @@ export async function GET(
   const membership = await requireMembership();
   const { propertyId } = await params;
   try {
-    const property = await getPropertyOrThrow(membership.organizationId, propertyId);
+    const property = await getPropertyOrThrow(
+      membership.organizationId,
+      propertyId,
+    );
     return photoResponse(membership.organizationId, property.imageUrl);
   } catch (error) {
     if (error instanceof InventoryError) {

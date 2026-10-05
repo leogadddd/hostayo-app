@@ -18,7 +18,11 @@ import {
   units,
 } from "@/lib/db/schema";
 import { computeBalances } from "@/lib/balances";
-import { computeTotals, getReservationDetail, ReservationError } from "./service";
+import {
+  computeTotals,
+  getReservationDetail,
+  ReservationError,
+} from "./service";
 
 const TOKEN_TTL_DAYS = 30;
 const RAW_TOKEN_BYTES = 24;
@@ -64,9 +68,15 @@ export async function createGuestLink(input: {
   actorUserId: string;
   reservationId: string;
 }): Promise<{ tokenId: string; token: string }> {
-  const { reservation } = await getReservationDetail(input.organizationId, input.reservationId);
+  const { reservation } = await getReservationDetail(
+    input.organizationId,
+    input.reservationId,
+  );
   if (["checked_out", "cancelled", "expired"].includes(reservation.status)) {
-    throw new ReservationError("A welcome link can't be created once the stay has ended or been cancelled.", "reservationId");
+    throw new ReservationError(
+      "A welcome link can't be created once the stay has ended or been cancelled.",
+      "reservationId",
+    );
   }
 
   return db.transaction(async (tx) => {
@@ -322,7 +332,12 @@ export async function getGuestViewByToken(
         ),
       ),
   ]);
-  const balances = computeBalances({ charges: chargeRows, payments, refunds, deductions });
+  const balances = computeBalances({
+    charges: chargeRows,
+    payments,
+    refunds,
+    deductions,
+  });
 
   return {
     guestName: view.guestName,

@@ -2,7 +2,14 @@ import "server-only";
 
 import { and, asc, eq, gt, inArray, isNull, lt, ne, or } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { auditEvents, organizations, properties, reservations, unitBlocks, units } from "@/lib/db/schema";
+import {
+  auditEvents,
+  organizations,
+  properties,
+  reservations,
+  unitBlocks,
+  units,
+} from "@/lib/db/schema";
 import {
   InventoryError,
   propertyInputSchema,
@@ -14,14 +21,17 @@ import {
 } from "./validation";
 import { replacePropertyAmenities, replaceUnitAmenities } from "./amenities";
 
-async function recordAudit(tx: Parameters<Parameters<typeof db.transaction>[0]>[0], input: {
-  organizationId: string;
-  actorUserId: string;
-  entity: string;
-  entityId: string;
-  action: string;
-  metadata?: Record<string, unknown>;
-}) {
+async function recordAudit(
+  tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
+  input: {
+    organizationId: string;
+    actorUserId: string;
+    entity: string;
+    entityId: string;
+    action: string;
+    metadata?: Record<string, unknown>;
+  },
+) {
   await tx.insert(auditEvents).values({
     organizationId: input.organizationId,
     actorUserId: input.actorUserId,
@@ -32,10 +42,16 @@ async function recordAudit(tx: Parameters<Parameters<typeof db.transaction>[0]>[
   });
 }
 
-async function assertKnownContactChannels(organizationId: string, channelIds: string[] | undefined) {
+async function assertKnownContactChannels(
+  organizationId: string,
+  channelIds: string[] | undefined,
+) {
   if (channelIds === undefined) return;
-  const [organization] = await db.select({ contactChannels: organizations.contactChannels })
-    .from(organizations).where(eq(organizations.id, organizationId)).limit(1);
+  const [organization] = await db
+    .select({ contactChannels: organizations.contactChannels })
+    .from(organizations)
+    .where(eq(organizations.id, organizationId))
+    .limit(1);
   if (!organization) throw new InventoryError("Organization not found.");
   const known = new Set(
     Array.isArray(organization.contactChannels)
@@ -43,21 +59,42 @@ async function assertKnownContactChannels(organizationId: string, channelIds: st
       : [],
   );
   if (channelIds.some((id) => !known.has(id))) {
-    throw new InventoryError("Choose contact channels from your organization settings.", "contactChannelId");
+    throw new InventoryError(
+      "Choose contact channels from your organization settings.",
+      "contactChannelId",
+    );
   }
 }
 
 function publicSlugBase(name: string) {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "unit";
+  return (
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 48) || "unit"
+  );
 }
 
-async function allocateUnitPublicSlug(tx: Parameters<Parameters<typeof db.transaction>[0]>[0], organizationId: string, name: string) {
+async function allocateUnitPublicSlug(
+  tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
+  organizationId: string,
+  name: string,
+) {
   const base = publicSlugBase(name);
   for (let attempt = 0; attempt < 20; attempt++) {
     const suffix = attempt ? `-${attempt + 1}` : "";
     const slug = `${base.slice(0, 60 - suffix.length)}${suffix}`;
-    const [existing] = await tx.select({ id: units.id }).from(units)
-      .where(and(eq(units.organizationId, organizationId), eq(units.publicSlug, slug))).limit(1);
+    const [existing] = await tx
+      .select({ id: units.id })
+      .from(units)
+      .where(
+        and(
+          eq(units.organizationId, organizationId),
+          eq(units.publicSlug, slug),
+        ),
+      )
+      .limit(1);
     if (!existing) return slug;
   }
   throw new InventoryError("Could not create a public link for this unit.");
@@ -67,7 +104,12 @@ export async function listProperties(organizationId: string) {
   return db
     .select()
     .from(properties)
-    .where(and(eq(properties.organizationId, organizationId), isNull(properties.deletedAt)))
+    .where(
+      and(
+        eq(properties.organizationId, organizationId),
+        isNull(properties.deletedAt),
+      ),
+    )
     .orderBy(asc(properties.name));
 }
 
@@ -75,7 +117,9 @@ export async function listOrgUnits(organizationId: string) {
   return db
     .select()
     .from(units)
-    .where(and(eq(units.organizationId, organizationId), isNull(units.deletedAt)))
+    .where(
+      and(eq(units.organizationId, organizationId), isNull(units.deletedAt)),
+    )
     .orderBy(asc(units.name));
 }
 
@@ -143,14 +187,24 @@ export async function createProperty(input: {
     if (!property) {
       throw new InventoryError("Failed to create the property.");
     }
-    if (input.amenityIds) await replacePropertyAmenities(tx, input.organizationId, property.id, input.amenityIds);
+    if (input.amenityIds)
+      await replacePropertyAmenities(
+        tx,
+        input.organizationId,
+        property.id,
+        input.amenityIds,
+      );
     await recordAudit(tx, {
       organizationId: input.organizationId,
       actorUserId: input.actorUserId,
       entity: "property",
       entityId: property.id,
       action: "property.created",
-      metadata: { name: property.name, turnoverDurationMinutes: property.turnoverDurationMinutes, amenityCount: input.amenityIds?.length },
+      metadata: {
+        name: property.name,
+        turnoverDurationMinutes: property.turnoverDurationMinutes,
+        amenityCount: input.amenityIds?.length,
+      },
     });
     return property;
   });
@@ -177,7 +231,9 @@ export async function updateProperty(input: {
         checkOutTime: data.checkOutTime,
         turnoverDurationMinutes: data.turnoverDurationMinutes,
         houseRules: data.houseRules || null,
-        ...(data.imageUrl !== undefined ? { imageUrl: data.imageUrl || null } : {}),
+        ...(data.imageUrl !== undefined
+          ? { imageUrl: data.imageUrl || null }
+          : {}),
         updatedAt: new Date(),
       })
       .where(
@@ -193,9 +249,19 @@ export async function updateProperty(input: {
       entity: "property",
       entityId: input.propertyId,
       action: "property.updated",
-      metadata: { name: data.name, turnoverDurationMinutes: data.turnoverDurationMinutes, amenityCount: input.amenityIds?.length },
+      metadata: {
+        name: data.name,
+        turnoverDurationMinutes: data.turnoverDurationMinutes,
+        amenityCount: input.amenityIds?.length,
+      },
     });
-    if (input.amenityIds) await replacePropertyAmenities(tx, input.organizationId, input.propertyId, input.amenityIds);
+    if (input.amenityIds)
+      await replacePropertyAmenities(
+        tx,
+        input.organizationId,
+        input.propertyId,
+        input.amenityIds,
+      );
   });
 }
 
@@ -208,16 +274,21 @@ export async function createUnit(input: {
   amenityIds?: string[];
 }) {
   const data = unitInputSchema.parse(input.data);
-  await assertKnownContactChannels(input.organizationId, data.contactChannelIds);
+  await assertKnownContactChannels(
+    input.organizationId,
+    data.contactChannelIds,
+  );
   return db.transaction(async (tx) => {
     const [property] = await tx
       .select({ id: properties.id })
       .from(properties)
-      .where(and(
-        eq(properties.id, input.propertyId),
-        eq(properties.organizationId, input.organizationId),
-        isNull(properties.deletedAt),
-      ))
+      .where(
+        and(
+          eq(properties.id, input.propertyId),
+          eq(properties.organizationId, input.organizationId),
+          isNull(properties.deletedAt),
+        ),
+      )
       .limit(1)
       .for("key share");
     if (!property) {
@@ -228,7 +299,11 @@ export async function createUnit(input: {
       .values({
         organizationId: input.organizationId,
         propertyId: input.propertyId,
-        publicSlug: await allocateUnitPublicSlug(tx, input.organizationId, data.name),
+        publicSlug: await allocateUnitPublicSlug(
+          tx,
+          input.organizationId,
+          data.name,
+        ),
         ...data,
         imageUrl: data.imageUrl || null,
       })
@@ -236,7 +311,13 @@ export async function createUnit(input: {
     if (!unit) {
       throw new InventoryError("Failed to create the unit.");
     }
-    if (input.amenityIds) await replaceUnitAmenities(tx, input.organizationId, unit.id, input.amenityIds);
+    if (input.amenityIds)
+      await replaceUnitAmenities(
+        tx,
+        input.organizationId,
+        unit.id,
+        input.amenityIds,
+      );
     await recordAudit(tx, {
       organizationId: input.organizationId,
       actorUserId: input.actorUserId,
@@ -276,7 +357,10 @@ export async function updateUnit(input: {
   amenityIds?: string[];
 }) {
   const data = unitInputSchema.parse(input.data);
-  await assertKnownContactChannels(input.organizationId, data.contactChannelIds);
+  await assertKnownContactChannels(
+    input.organizationId,
+    data.contactChannelIds,
+  );
   const existing = await getUnitOrThrow(input.organizationId, input.unitId);
   await db.transaction(async (tx) => {
     await tx
@@ -307,7 +391,13 @@ export async function updateUnit(input: {
       action: "unit.updated",
       metadata: { name: data.name, amenityCount: input.amenityIds?.length },
     });
-    if (input.amenityIds) await replaceUnitAmenities(tx, input.organizationId, input.unitId, input.amenityIds);
+    if (input.amenityIds)
+      await replaceUnitAmenities(
+        tx,
+        input.organizationId,
+        input.unitId,
+        input.amenityIds,
+      );
   });
 }
 
@@ -317,7 +407,10 @@ function activeReservationCondition(organizationId: string, unitIds: string[]) {
     inArray(reservations.unitId, unitIds),
     or(
       inArray(reservations.status, ["confirmed", "checked_in"]),
-      and(eq(reservations.status, "hold"), gt(reservations.expiresAt, new Date())),
+      and(
+        eq(reservations.status, "hold"),
+        gt(reservations.expiresAt, new Date()),
+      ),
     ),
   );
 }
@@ -331,11 +424,13 @@ export async function deleteUnit(input: {
     const [unit] = await tx
       .select({ id: units.id, name: units.name, propertyId: units.propertyId })
       .from(units)
-      .where(and(
-        eq(units.id, input.unitId),
-        eq(units.organizationId, input.organizationId),
-        isNull(units.deletedAt),
-      ))
+      .where(
+        and(
+          eq(units.id, input.unitId),
+          eq(units.organizationId, input.organizationId),
+          isNull(units.deletedAt),
+        ),
+      )
       .limit(1)
       .for("update");
     if (!unit) throw new InventoryError("Unit not found.", "unitId");
@@ -356,7 +451,12 @@ export async function deleteUnit(input: {
     await tx
       .update(units)
       .set({ deletedAt, status: "inactive", updatedAt: deletedAt })
-      .where(and(eq(units.id, unit.id), eq(units.organizationId, input.organizationId)));
+      .where(
+        and(
+          eq(units.id, unit.id),
+          eq(units.organizationId, input.organizationId),
+        ),
+      );
     await recordAudit(tx, {
       organizationId: input.organizationId,
       actorUserId: input.actorUserId,
@@ -377,23 +477,28 @@ export async function deleteProperty(input: {
     const [property] = await tx
       .select({ id: properties.id, name: properties.name })
       .from(properties)
-      .where(and(
-        eq(properties.id, input.propertyId),
-        eq(properties.organizationId, input.organizationId),
-        isNull(properties.deletedAt),
-      ))
+      .where(
+        and(
+          eq(properties.id, input.propertyId),
+          eq(properties.organizationId, input.organizationId),
+          isNull(properties.deletedAt),
+        ),
+      )
       .limit(1)
       .for("update");
-    if (!property) throw new InventoryError("Property not found.", "propertyId");
+    if (!property)
+      throw new InventoryError("Property not found.", "propertyId");
 
     const propertyUnits = await tx
       .select({ id: units.id, name: units.name })
       .from(units)
-      .where(and(
-        eq(units.organizationId, input.organizationId),
-        eq(units.propertyId, property.id),
-        isNull(units.deletedAt),
-      ))
+      .where(
+        and(
+          eq(units.organizationId, input.organizationId),
+          eq(units.propertyId, property.id),
+          isNull(units.deletedAt),
+        ),
+      )
       .for("update");
     const unitIds = propertyUnits.map((unit) => unit.id);
     if (unitIds.length > 0) {
@@ -415,18 +520,22 @@ export async function deleteProperty(input: {
       await tx
         .update(units)
         .set({ deletedAt, status: "inactive", updatedAt: deletedAt })
-        .where(and(
-          eq(units.organizationId, input.organizationId),
-          inArray(units.id, unitIds),
-        ));
+        .where(
+          and(
+            eq(units.organizationId, input.organizationId),
+            inArray(units.id, unitIds),
+          ),
+        );
     }
     await tx
       .update(properties)
       .set({ deletedAt, updatedAt: deletedAt })
-      .where(and(
-        eq(properties.id, property.id),
-        eq(properties.organizationId, input.organizationId),
-      ));
+      .where(
+        and(
+          eq(properties.id, property.id),
+          eq(properties.organizationId, input.organizationId),
+        ),
+      );
     await recordAudit(tx, {
       organizationId: input.organizationId,
       actorUserId: input.actorUserId,
@@ -520,7 +629,11 @@ export async function addUnitBlock(input: {
   });
 }
 
-export async function getUnitBlockOrThrow(organizationId: string, unitId: string, blockId: string) {
+export async function getUnitBlockOrThrow(
+  organizationId: string,
+  unitId: string,
+  blockId: string,
+) {
   const [block] = await db
     .select()
     .from(unitBlocks)
@@ -547,7 +660,11 @@ export async function updateUnitBlock(input: {
   data: UnitBlockInput;
 }) {
   const data = unitBlockInputSchema.parse(input.data);
-  const existing = await getUnitBlockOrThrow(input.organizationId, input.unitId, input.blockId);
+  const existing = await getUnitBlockOrThrow(
+    input.organizationId,
+    input.unitId,
+    input.blockId,
+  );
 
   const overlapping = await db
     .select({ id: unitBlocks.id })
@@ -572,7 +689,11 @@ export async function updateUnitBlock(input: {
   await db.transaction(async (tx) => {
     await tx
       .update(unitBlocks)
-      .set({ startDate: data.startDate, endDate: data.endDate, reason: data.reason })
+      .set({
+        startDate: data.startDate,
+        endDate: data.endDate,
+        reason: data.reason,
+      })
       .where(
         and(
           eq(unitBlocks.id, input.blockId),
@@ -587,7 +708,11 @@ export async function updateUnitBlock(input: {
       action: "unit_block.updated",
       metadata: {
         unitId: input.unitId,
-        from: { startDate: existing.startDate, endDate: existing.endDate, reason: existing.reason },
+        from: {
+          startDate: existing.startDate,
+          endDate: existing.endDate,
+          reason: existing.reason,
+        },
         startDate: data.startDate,
         endDate: data.endDate,
         reason: data.reason,

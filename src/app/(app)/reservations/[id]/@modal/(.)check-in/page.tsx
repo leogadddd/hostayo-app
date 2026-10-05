@@ -4,9 +4,21 @@ import { RouteModal } from "@/components/app/route-modal";
 import { checkInPanel } from "../../stay-actions";
 
 /** Opened from the reservation: the same form, as a modal over it. */
-export default async function CheckInPageModal({ params }: { params: Promise<{ id: string }> }) {
+export default async function CheckInPageModal({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const membership = await requirePermission("stays.update");
-  if (!membership) return <RouteModal title="Not available" description="Your role doesn’t include checking guests in or out."><PermissionDenied /></RouteModal>;
+  if (!membership)
+    return (
+      <RouteModal
+        title="Not available"
+        description="Your role doesn’t include checking guests in or out."
+      >
+        <PermissionDenied />
+      </RouteModal>
+    );
   const { id } = await params;
   const { form, ...panel } = await checkInPanel(membership.organizationId, id);
   return <RouteModal {...panel}>{form}</RouteModal>;

@@ -10,11 +10,15 @@ import { useActionFeedback } from "@/hooks/use-action-feedback";
 import { saveFirstPropertyAction, type OnboardingFormState } from "../actions";
 import { StepNav } from "../step-nav";
 
-export function PropertyForm({ defaults }: { defaults: { name: string; address: string } }) {
-  const [state, formAction, pending] = useActionState<OnboardingFormState, FormData>(
-    saveFirstPropertyAction,
-    {},
-  );
+export function PropertyForm({
+  defaults,
+}: {
+  defaults: { name: string; address: string };
+}) {
+  const [state, formAction, pending] = useActionState<
+    OnboardingFormState,
+    FormData
+  >(saveFirstPropertyAction, {});
   useActionFeedback(state, { errorTitle: "Couldn’t save the property" });
   const router = useRouter();
   useEffect(() => {
@@ -55,7 +59,10 @@ export function PropertyForm({ defaults }: { defaults: { name: string; address: 
       <FieldError message={state.error} />
 
       <StepNav backHref="/onboarding/organization">
-        <Link href="/onboarding/welcome" className={buttonClassName("ghost", "lg")}>
+        <Link
+          href="/onboarding/welcome"
+          className={buttonClassName("ghost", "lg")}
+        >
           Skip for now
         </Link>
         <Button type="submit" variant="clay" size="lg" disabled={pending}>

@@ -20,7 +20,10 @@ export function CardHeader({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn("border-b border-pine/10 px-6 py-4", className)} {...props} />
+    <div
+      className={cn("border-b border-pine/10 px-6 py-4", className)}
+      {...props}
+    />
   );
 }
 

@@ -5,7 +5,13 @@ import { UnitForm } from "./unit-form-fields";
 import type { AmenityOption } from "./amenity-picker";
 import type { ContactChannel } from "@/lib/contact-channels";
 
-export function UnitCreateForm({ propertyId, propertyName, defaults, amenityOptions, contactChannels }: {
+export function UnitCreateForm({
+  propertyId,
+  propertyName,
+  defaults,
+  amenityOptions,
+  contactChannels,
+}: {
   propertyId: string;
   propertyName?: string;
   amenityOptions?: AmenityOption[];
@@ -24,8 +30,17 @@ export function UnitCreateForm({ propertyId, propertyName, defaults, amenityOpti
       editing={false}
       amenityOptions={amenityOptions}
       values={{
-        name: "", capacity: 2, bedrooms: 1, bathrooms: 1, nightlyRate: "", cleaningFee: "", securityDeposit: "", reservationFeeType: "", reservationFeeAmount: "",
-        checkInTime: defaults?.checkInTime ?? "15:00", checkOutTime: defaults?.checkOutTime ?? "11:00",
+        name: "",
+        capacity: 2,
+        bedrooms: 1,
+        bathrooms: 1,
+        nightlyRate: "",
+        cleaningFee: "",
+        securityDeposit: "",
+        reservationFeeType: "",
+        reservationFeeAmount: "",
+        checkInTime: defaults?.checkInTime ?? "15:00",
+        checkOutTime: defaults?.checkOutTime ?? "11:00",
         // New units are bookable straight away; the other statuses are one click away.
         status: "active",
         contactChannelIds: contactChannels?.map((channel) => channel.id) ?? [],

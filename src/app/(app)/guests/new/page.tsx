@@ -12,7 +12,12 @@ export default async function NewGuestPage() {
 
   return (
     <div className="min-w-0 overflow-hidden">
-      <PageHeading title="Add guest" description="Save a guest's details once and pick them on every booking after." backHref="/guests" backLabel="All guests" />
+      <PageHeading
+        title="Add guest"
+        description="Save a guest's details once and pick them on every booking after."
+        backHref="/guests"
+        backLabel="All guests"
+      />
       <GuestForm />
     </div>
   );

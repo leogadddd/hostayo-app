@@ -27,7 +27,9 @@ export const TIMEZONE_OPTIONS = (() => {
   return options;
 })();
 
-const supportedTimezones = new Set(TIMEZONE_OPTIONS.map((option) => option.value));
+const supportedTimezones = new Set(
+  TIMEZONE_OPTIONS.map((option) => option.value),
+);
 
 export function isSupportedTimeZone(value: string): boolean {
   return supportedTimezones.has(value);

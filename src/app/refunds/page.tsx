@@ -20,8 +20,7 @@ const sections: LegalSection[] = [
   },
   {
     title: "3. If you are charged in error",
-    content:
-      `If you believe you were charged for Hostayo by mistake, or charged twice, contact us at ${SUPPORT_EMAIL} within 30 days with the details. We will review it promptly and refund any charge that was made in error.`,
+    content: `If you believe you were charged for Hostayo by mistake, or charged twice, contact us at ${SUPPORT_EMAIL} within 30 days with the details. We will review it promptly and refund any charge that was made in error.`,
   },
   {
     title: "4. Payments between hosts and guests",

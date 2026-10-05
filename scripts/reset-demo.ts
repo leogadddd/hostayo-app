@@ -15,10 +15,7 @@ export async function resetDemoData() {
   const demoOrganizations = await db
     .select({ id: organizations.id })
     .from(organizations)
-    .innerJoin(
-      memberships,
-      eq(memberships.organizationId, organizations.id),
-    )
+    .innerJoin(memberships, eq(memberships.organizationId, organizations.id))
     .innerJoin(user, eq(memberships.userId, user.id))
     .where(eq(user.isDemoAccount, true));
 
@@ -27,7 +24,9 @@ export async function resetDemoData() {
       await tx
         .delete(auditEvents)
         .where(eq(auditEvents.organizationId, organization.id));
-      await tx.delete(organizations).where(eq(organizations.id, organization.id));
+      await tx
+        .delete(organizations)
+        .where(eq(organizations.id, organization.id));
     });
   }
 

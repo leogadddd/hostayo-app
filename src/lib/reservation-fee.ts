@@ -24,7 +24,10 @@ export function reservationFeeRule(row: {
  * The rule a new booking takes: the unit's, when the selected platform uses it.
  */
 export function applicableReservationFee(
-  unit: { reservationFeeType: ReservationFeeType | null; reservationFeeAmount: number | null },
+  unit: {
+    reservationFeeType: ReservationFeeType | null;
+    reservationFeeAmount: number | null;
+  },
   platform: { downPaymentApplies: boolean } | null,
 ): ReservationFeeRule | null {
   if (platform && !platform.downPaymentApplies) return null;
@@ -35,11 +38,15 @@ export function applicableReservationFee(
  * Centavos owed up front for a booking total, never more than the total.
  * Percentages round to the nearest centavo.
  */
-export function reservationFeeCents(rule: ReservationFeeRule, bookingTotalCents: number): number {
+export function reservationFeeCents(
+  rule: ReservationFeeRule,
+  bookingTotalCents: number,
+): number {
   if (bookingTotalCents <= 0) return 0;
-  const cents = rule.type === "fixed"
-    ? rule.amount
-    : Math.round((bookingTotalCents * rule.amount) / 10_000);
+  const cents =
+    rule.type === "fixed"
+      ? rule.amount
+      : Math.round((bookingTotalCents * rule.amount) / 10_000);
   return Math.min(cents, bookingTotalCents);
 }
 

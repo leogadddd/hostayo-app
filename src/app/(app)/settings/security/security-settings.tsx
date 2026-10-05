@@ -1,8 +1,24 @@
 "use client";
 
-import { useOptimistic, useRef, useState, useTransition, type ComponentType, type ReactNode } from "react";
+import {
+  useOptimistic,
+  useRef,
+  useState,
+  useTransition,
+  type ComponentType,
+  type ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
-import { KeyRound, LogIn, RefreshCw, ShieldAlert, ShieldCheck, ShieldOff, Smartphone, X } from "lucide-react";
+import {
+  KeyRound,
+  LogIn,
+  RefreshCw,
+  ShieldAlert,
+  ShieldCheck,
+  ShieldOff,
+  Smartphone,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth/client";
 import { cn } from "@/lib/utils";
@@ -16,7 +32,11 @@ import { setSecurityAlertAction, type SecurityAlert } from "./actions";
 import { PasswordDialog } from "./password-dialog";
 import { RecoveryCodes } from "./recovery-codes";
 
-export function SecuritySettings({ email, twoFactorEnabled, preferences }: {
+export function SecuritySettings({
+  email,
+  twoFactorEnabled,
+  preferences,
+}: {
   email: string;
   twoFactorEnabled: boolean;
   preferences: Record<SecurityAlert, boolean>;
@@ -38,15 +58,23 @@ function TwoFactorCard({ enabled }: { enabled: boolean }) {
     <Card className="overflow-hidden bg-card">
       <CardHeader className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex min-w-0 items-start gap-3.5">
-          <IconTile icon={enabled ? ShieldCheck : ShieldOff} tone={enabled ? "sage" : "clay"} />
+          <IconTile
+            icon={enabled ? ShieldCheck : ShieldOff}
+            tone={enabled ? "sage" : "clay"}
+          />
           <div className="min-w-0">
-            <h2 className="font-display text-xl text-pine">Two-factor authentication</h2>
+            <h2 className="font-display text-xl text-pine">
+              Two-factor authentication
+            </h2>
             <p className="mt-1 max-w-xl text-sm text-ink/60">
-              Ask for a code from your phone as well as your password when you sign in, so a leaked password alone can’t get into your account.
+              Ask for a code from your phone as well as your password when you
+              sign in, so a leaked password alone can’t get into your account.
             </p>
           </div>
         </div>
-        <Badge tone={enabled ? "sage" : "clay"} className="shrink-0">{enabled ? "On" : "Off"}</Badge>
+        <Badge tone={enabled ? "sage" : "clay"} className="shrink-0">
+          {enabled ? "On" : "Off"}
+        </Badge>
       </CardHeader>
 
       {enabled ? (
@@ -63,7 +91,12 @@ function TwoFactorCard({ enabled }: { enabled: boolean }) {
             description="One-time codes for when your phone isn’t with you. Making new ones cancels the old set."
             action={
               <PasswordDialog
-                trigger={<><RefreshCw className="h-4 w-4" aria-hidden />New codes</>}
+                trigger={
+                  <>
+                    <RefreshCw className="h-4 w-4" aria-hidden />
+                    New codes
+                  </>
+                }
                 triggerVariant="outline"
                 triggerSize="sm"
                 icon={KeyRound}
@@ -72,8 +105,14 @@ function TwoFactorCard({ enabled }: { enabled: boolean }) {
                 confirmLabel="Make new codes"
                 pendingLabel="Making codes…"
                 onConfirm={async (password) => {
-                  const { data, error } = await authClient.twoFactor.generateBackupCodes({ password });
-                  if (error || !data) return error?.message ?? "Couldn’t make new codes. Try again.";
+                  const { data, error } =
+                    await authClient.twoFactor.generateBackupCodes({
+                      password,
+                    });
+                  if (error || !data)
+                    return (
+                      error?.message ?? "Couldn’t make new codes. Try again."
+                    );
                   setFreshCodes(data.backupCodes);
                   window.setTimeout(() => codesDialog.current?.showModal(), 0);
                 }}
@@ -84,13 +123,30 @@ function TwoFactorCard({ enabled }: { enabled: boolean }) {
       ) : (
         <CardBody>
           <ol className="grid gap-3 sm:grid-cols-3">
-            <SetupStep number={1} title="Confirm password" description="So only you can change this." />
-            <SetupStep number={2} title="Scan a QR code" description="With Google Authenticator, 1Password, Authy or similar." />
-            <SetupStep number={3} title="Save recovery codes" description="For when your phone isn’t with you." />
+            <SetupStep
+              number={1}
+              title="Confirm password"
+              description="So only you can change this."
+            />
+            <SetupStep
+              number={2}
+              title="Scan a QR code"
+              description="With Google Authenticator, 1Password, Authy or similar."
+            />
+            <SetupStep
+              number={3}
+              title="Save recovery codes"
+              description="For when your phone isn’t with you."
+            />
           </ol>
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <PasswordDialog
-              trigger={<><ShieldCheck className="h-4 w-4" aria-hidden />Set up two-factor</>}
+              trigger={
+                <>
+                  <ShieldCheck className="h-4 w-4" aria-hidden />
+                  Set up two-factor
+                </>
+              }
               triggerVariant="clay"
               icon={ShieldCheck}
               title="Confirm it’s you"
@@ -115,16 +171,29 @@ function TwoFactorCard({ enabled }: { enabled: boolean }) {
       >
         <div className="flex items-start gap-4 p-6">
           <div className="min-w-0 flex-1">
-            <h2 className="font-display text-xl text-pine">Your new recovery codes</h2>
-            <p className="mt-2 text-sm leading-relaxed text-ink/65">Each code works once. Save them now; they won’t be shown again.</p>
-            <div className="mt-4">{freshCodes ? <RecoveryCodes codes={freshCodes} /> : null}</div>
+            <h2 className="font-display text-xl text-pine">
+              Your new recovery codes
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-ink/65">
+              Each code works once. Save them now; they won’t be shown again.
+            </p>
+            <div className="mt-4">
+              {freshCodes ? <RecoveryCodes codes={freshCodes} /> : null}
+            </div>
           </div>
-          <button type="button" onClick={() => codesDialog.current?.close()} aria-label="Close" className="rounded-md p-1.5 text-ink/45 hover:bg-pine-mist hover:text-pine">
+          <button
+            type="button"
+            onClick={() => codesDialog.current?.close()}
+            aria-label="Close"
+            className="rounded-md p-1.5 text-ink/45 hover:bg-pine-mist hover:text-pine"
+          >
             <X className="h-4 w-4" aria-hidden />
           </button>
         </div>
         <div className="flex justify-end border-t border-pine/10 bg-paper/70 px-6 py-4">
-          <Button type="button" onClick={() => codesDialog.current?.close()}>I’ve saved them</Button>
+          <Button type="button" onClick={() => codesDialog.current?.close()}>
+            I’ve saved them
+          </Button>
         </div>
       </dialog>
     </Card>
@@ -149,20 +218,30 @@ function TurnOffTwoFactor({ onDone }: { onDone: () => void }) {
       confirmLabel="Turn off two-factor"
       pendingLabel="Turning off…"
       ready={codeValid}
-      onOpen={() => { setCode(""); setUseRecovery(false); }}
+      onOpen={() => {
+        setCode("");
+        setUseRecovery(false);
+      }}
       onConfirm={async (password) => {
         const verification = useRecovery
           ? await authClient.twoFactor.verifyBackupCode({ code: code.trim() })
           : await authClient.twoFactor.verifyTotp({ code });
-        if (verification.error) return "That code didn’t work. Check it and try again.";
+        if (verification.error)
+          return "That code didn’t work. Check it and try again.";
         const { error } = await authClient.twoFactor.disable({ password });
-        if (error) return error.status === 400 || error.status === 401 ? "That password isn’t right." : (error.message ?? "Couldn’t turn off two-factor.");
+        if (error)
+          return error.status === 400 || error.status === 401
+            ? "That password isn’t right."
+            : (error.message ?? "Couldn’t turn off two-factor.");
         toast.success("Two-factor authentication is off.");
         onDone();
       }}
     >
       <div className="border-t border-pine/10 pt-4">
-        <p id="disable-code-label" className="mb-2 text-sm font-medium text-ink">
+        <p
+          id="disable-code-label"
+          className="mb-2 text-sm font-medium text-ink"
+        >
           {useRecovery ? "Recovery code" : "Code from your authenticator app"}
         </p>
         {useRecovery ? (
@@ -178,35 +257,83 @@ function TurnOffTwoFactor({ onDone }: { onDone: () => void }) {
             className="h-11 font-mono tracking-widest"
           />
         ) : (
-          <CodeInput id="disable-code" label="Code from your authenticator app" value={code} onChange={setCode} size="sm" autoFocus={false} />
+          <CodeInput
+            id="disable-code"
+            label="Code from your authenticator app"
+            value={code}
+            onChange={setCode}
+            size="sm"
+            autoFocus={false}
+          />
         )}
         <button
           type="button"
-          onClick={() => { setUseRecovery(!useRecovery); setCode(""); }}
+          onClick={() => {
+            setUseRecovery(!useRecovery);
+            setCode("");
+          }}
           className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-pine/75 underline-offset-4 hover:text-pine hover:underline"
         >
-          {useRecovery ? <Smartphone className="h-4 w-4" aria-hidden /> : <KeyRound className="h-4 w-4" aria-hidden />}
-          {useRecovery ? "Use your authenticator app instead" : "Use a recovery code instead"}
+          {useRecovery ? (
+            <Smartphone className="h-4 w-4" aria-hidden />
+          ) : (
+            <KeyRound className="h-4 w-4" aria-hidden />
+          )}
+          {useRecovery
+            ? "Use your authenticator app instead"
+            : "Use a recovery code instead"}
         </button>
       </div>
     </PasswordDialog>
   );
 }
 
-const ALERTS: { key: SecurityAlert; icon: ComponentType<{ className?: string }>; title: string; description: string }[] = [
-  { key: "newSignInAlerts", icon: LogIn, title: "New sign-in", description: "When your account is signed in to from a new device or browser." },
-  { key: "twoFactorChangeAlerts", icon: ShieldAlert, title: "Two-factor changes", description: "When two-factor is turned on or off, or new recovery codes are made." },
+const ALERTS: {
+  key: SecurityAlert;
+  icon: ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+}[] = [
+  {
+    key: "newSignInAlerts",
+    icon: LogIn,
+    title: "New sign-in",
+    description:
+      "When your account is signed in to from a new device or browser.",
+  },
+  {
+    key: "twoFactorChangeAlerts",
+    icon: ShieldAlert,
+    title: "Two-factor changes",
+    description:
+      "When two-factor is turned on or off, or new recovery codes are made.",
+  },
 ];
 
-function SecurityAlerts({ email, preferences }: { email: string; preferences: Record<SecurityAlert, boolean> }) {
+function SecurityAlerts({
+  email,
+  preferences,
+}: {
+  email: string;
+  preferences: Record<SecurityAlert, boolean>;
+}) {
   const [, startTransition] = useTransition();
-  const [values, setOptimistic] = useOptimistic(preferences, (state, change: { key: SecurityAlert; enabled: boolean }) => ({ ...state, [change.key]: change.enabled }));
+  const [values, setOptimistic] = useOptimistic(
+    preferences,
+    (state, change: { key: SecurityAlert; enabled: boolean }) => ({
+      ...state,
+      [change.key]: change.enabled,
+    }),
+  );
 
   const toggle = (key: SecurityAlert, enabled: boolean) => {
     startTransition(async () => {
       setOptimistic({ key, enabled });
       const result = await setSecurityAlertAction(key, enabled);
-      if (result.error) toast.error("Alert setting wasn’t saved", { description: result.error });
+      if (result.error)
+        toast.error("Alert setting wasn’t saved", {
+          description: result.error,
+        });
       else toast.success(enabled ? "Alert turned on." : "Alert turned off.");
     });
   };
@@ -216,7 +343,9 @@ function SecurityAlerts({ email, preferences }: { email: string; preferences: Re
       <CardHeader>
         <h2 className="font-display text-xl text-pine">Security alerts</h2>
         <p className="mt-1 max-w-xl text-sm text-ink/60">
-          Choose what we tell you about. Alerts go to <span className="font-medium text-pine">{email}</span> once email alerts are switched on for Hostayo.
+          Choose what we tell you about. Alerts go to{" "}
+          <span className="font-medium text-pine">{email}</span> once email
+          alerts are switched on for Hostayo.
         </p>
       </CardHeader>
       <CardBody className="grid gap-3 sm:grid-cols-2">
@@ -227,15 +356,29 @@ function SecurityAlerts({ email, preferences }: { email: string; preferences: Re
               key={alert.key}
               className={cn(
                 "flex cursor-pointer items-start gap-3.5 rounded-xl border p-4 transition-colors",
-                on ? "border-pine/25 bg-surface" : "border-pine/10 bg-paper/60 hover:border-pine/20",
+                on
+                  ? "border-pine/25 bg-surface"
+                  : "border-pine/10 bg-paper/60 hover:border-pine/20",
               )}
             >
-              <IconTile icon={alert.icon} tone={on ? "sage" : "neutral"} small />
+              <IconTile
+                icon={alert.icon}
+                tone={on ? "sage" : "neutral"}
+                small
+              />
               <span className="min-w-0 flex-1">
-                <span className="block text-sm font-semibold text-pine">{alert.title}</span>
-                <span className="mt-1 block text-sm leading-relaxed text-ink/60">{alert.description}</span>
+                <span className="block text-sm font-semibold text-pine">
+                  {alert.title}
+                </span>
+                <span className="mt-1 block text-sm leading-relaxed text-ink/60">
+                  {alert.description}
+                </span>
               </span>
-              <Switch checked={on} onChange={(next) => toggle(alert.key, next)} label={`${alert.title} alerts`} />
+              <Switch
+                checked={on}
+                onChange={(next) => toggle(alert.key, next)}
+                label={`${alert.title} alerts`}
+              />
             </label>
           );
         })}
@@ -244,7 +387,15 @@ function SecurityAlerts({ email, preferences }: { email: string; preferences: Re
   );
 }
 
-function Switch({ checked, onChange, label }: { checked: boolean; onChange: (checked: boolean) => void; label: string }) {
+function Switch({
+  checked,
+  onChange,
+  label,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  label: string;
+}) {
   return (
     <button
       type="button"
@@ -257,24 +408,53 @@ function Switch({ checked, onChange, label }: { checked: boolean; onChange: (che
         checked ? "bg-primary" : "bg-pine/20",
       )}
     >
-      <span className={cn("inline-block h-5 w-5 rounded-full bg-white shadow transition-transform", checked ? "translate-x-[1.375rem]" : "translate-x-0.5")} />
+      <span
+        className={cn(
+          "inline-block h-5 w-5 rounded-full bg-white shadow transition-transform",
+          checked ? "translate-x-[1.375rem]" : "translate-x-0.5",
+        )}
+      />
     </button>
   );
 }
 
-function IconTile({ icon: Icon, tone, small = false }: { icon: ComponentType<{ className?: string }>; tone: "sage" | "clay" | "neutral"; small?: boolean }) {
+function IconTile({
+  icon: Icon,
+  tone,
+  small = false,
+}: {
+  icon: ComponentType<{ className?: string }>;
+  tone: "sage" | "clay" | "neutral";
+  small?: boolean;
+}) {
   return (
-    <span className={cn(
-      "flex shrink-0 items-center justify-center rounded-xl",
-      small ? "h-9 w-9" : "h-11 w-11",
-      tone === "sage" ? "bg-sage/70 text-pine" : tone === "clay" ? "bg-clay-mist text-clay-deep" : "bg-pine/[0.06] text-pine/55",
-    )}>
+    <span
+      className={cn(
+        "flex shrink-0 items-center justify-center rounded-xl",
+        small ? "h-9 w-9" : "h-11 w-11",
+        tone === "sage"
+          ? "bg-sage/70 text-pine"
+          : tone === "clay"
+            ? "bg-clay-mist text-clay-deep"
+            : "bg-pine/[0.06] text-pine/55",
+      )}
+    >
       <Icon className={small ? "h-4 w-4" : "h-5 w-5"} aria-hidden />
     </span>
   );
 }
 
-function SettingRow({ icon, title, description, action }: { icon: ComponentType<{ className?: string }>; title: string; description: string; action: ReactNode }) {
+function SettingRow({
+  icon,
+  title,
+  description,
+  action,
+}: {
+  icon: ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+  action: ReactNode;
+}) {
   return (
     <div className="flex flex-wrap items-center gap-4 px-6 py-4">
       <IconTile icon={icon} tone="neutral" small />
@@ -287,10 +467,20 @@ function SettingRow({ icon, title, description, action }: { icon: ComponentType<
   );
 }
 
-function SetupStep({ number, title, description }: { number: number; title: string; description: string }) {
+function SetupStep({
+  number,
+  title,
+  description,
+}: {
+  number: number;
+  title: string;
+  description: string;
+}) {
   return (
     <li className="rounded-xl border border-pine/10 bg-paper/60 p-4">
-      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white">{number}</span>
+      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white">
+        {number}
+      </span>
       <p className="mt-3 text-sm font-semibold text-pine">{title}</p>
       <p className="mt-1 text-sm leading-relaxed text-ink/60">{description}</p>
     </li>

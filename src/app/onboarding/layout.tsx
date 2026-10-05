@@ -21,9 +21,13 @@ export default function OnboardingLayout({
         <div className="mx-auto max-w-2xl px-5 pb-4 pt-5 sm:px-6">
           <div className="mb-5 flex items-center justify-between gap-4">
             <Logo className="h-8 w-32" />
-            <Suspense><OnboardingStepCount /></Suspense>
+            <Suspense>
+              <OnboardingStepCount />
+            </Suspense>
           </div>
-          <Suspense><OnboardingProgress /></Suspense>
+          <Suspense>
+            <OnboardingProgress />
+          </Suspense>
         </div>
       </header>
       <main className="mx-auto max-w-2xl px-5 py-10 sm:px-6 sm:py-12">

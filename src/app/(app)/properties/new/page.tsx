@@ -14,12 +14,25 @@ export default async function NewPropertyPage() {
   const membership = await requirePermission("properties.create");
   if (!membership) return <PermissionDenied />;
 
-  const organization = await db.query.organizations.findFirst({ where: eq(organizations.id, membership.organizationId) });
+  const organization = await db.query.organizations.findFirst({
+    where: eq(organizations.id, membership.organizationId),
+  });
 
   return (
     <div className="min-w-0 overflow-hidden">
-      <PageHeading title="Add property" description="A building or place where guests stay. You'll add the units they book next." backHref="/properties" backLabel="All properties" />
-      <PropertyForm defaultTimezone={organization?.defaultTimezone ?? "Asia/Manila"} amenityOptions={await listAmenities(membership.organizationId, "property")} />
+      <PageHeading
+        title="Add property"
+        description="A building or place where guests stay. You'll add the units they book next."
+        backHref="/properties"
+        backLabel="All properties"
+      />
+      <PropertyForm
+        defaultTimezone={organization?.defaultTimezone ?? "Asia/Manila"}
+        amenityOptions={await listAmenities(
+          membership.organizationId,
+          "property",
+        )}
+      />
     </div>
   );
 }

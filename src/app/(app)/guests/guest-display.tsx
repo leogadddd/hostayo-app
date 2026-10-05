@@ -8,24 +8,45 @@ export const GUEST_ACTIVITY_LABELS: Record<GuestActivity, string> = {
   no_stays: "No stays",
 };
 
-export const GUEST_ACTIVITY_STYLES: Record<GuestActivity, { badge: string; dot: string }> = {
+export const GUEST_ACTIVITY_STYLES: Record<
+  GuestActivity,
+  { badge: string; dot: string }
+> = {
   in_house: { badge: "bg-sage/70 text-pine-deep", dot: "bg-primary" },
   upcoming: { badge: "bg-pine-mist text-pine", dot: "bg-stay-booked-line" },
   past: { badge: "bg-sand text-bark", dot: "bg-stay-departed-line" },
   no_stays: { badge: "bg-ink/[0.06] text-ink/60", dot: "bg-ink/30" },
 };
 
-export function GuestActivityBadge({ activity, className }: { activity: GuestActivity; className?: string }) {
+export function GuestActivityBadge({
+  activity,
+  className,
+}: {
+  activity: GuestActivity;
+  className?: string;
+}) {
   const style = GUEST_ACTIVITY_STYLES[activity];
   return (
-    <span className={cn("inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium", style.badge, className)}>
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium",
+        style.badge,
+        className,
+      )}
+    >
       <span className={cn("h-1.5 w-1.5 rounded-full", style.dot)} aria-hidden />
       {GUEST_ACTIVITY_LABELS[activity]}
     </span>
   );
 }
 
-export function GuestAvatar({ name, size = "md" }: { name: string; size?: "md" | "lg" }) {
+export function GuestAvatar({
+  name,
+  size = "md",
+}: {
+  name: string;
+  size?: "md" | "lg";
+}) {
   const initials = name
     .trim()
     .split(/\s+/)
@@ -45,12 +66,23 @@ export function GuestAvatar({ name, size = "md" }: { name: string; size?: "md" |
   );
 }
 
-export function GuestTags({ tags, className }: { tags: readonly string[]; className?: string }) {
+export function GuestTags({
+  tags,
+  className,
+}: {
+  tags: readonly string[];
+  className?: string;
+}) {
   if (!tags.length) return null;
   return (
     <ul className={cn("flex flex-wrap gap-1.5", className)} aria-label="Tags">
       {tags.map((tag) => (
-        <li key={tag} className="rounded-full bg-linen px-2 py-0.5 text-xs text-pine">{tag}</li>
+        <li
+          key={tag}
+          className="rounded-full bg-linen px-2 py-0.5 text-xs text-pine"
+        >
+          {tag}
+        </li>
       ))}
     </ul>
   );

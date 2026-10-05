@@ -134,30 +134,73 @@ export async function getReservationBalances(
         unitAmountCents: reservationCharges.unitAmountCents,
       })
       .from(reservationCharges)
-      .where(and(eq(reservationCharges.organizationId, organizationId), inArray(reservationCharges.reservationId, ids))),
+      .where(
+        and(
+          eq(reservationCharges.organizationId, organizationId),
+          inArray(reservationCharges.reservationId, ids),
+        ),
+      ),
     db
-      .select({ reservationId: paymentEntries.reservationId, allocation: paymentEntries.allocation, amountCents: sql<number>`sum(${paymentEntries.amountCents})`.mapWith(Number) })
+      .select({
+        reservationId: paymentEntries.reservationId,
+        allocation: paymentEntries.allocation,
+        amountCents: sql<number>`sum(${paymentEntries.amountCents})`.mapWith(
+          Number,
+        ),
+      })
       .from(paymentEntries)
-      .where(and(eq(paymentEntries.organizationId, organizationId), inArray(paymentEntries.reservationId, ids)))
+      .where(
+        and(
+          eq(paymentEntries.organizationId, organizationId),
+          inArray(paymentEntries.reservationId, ids),
+        ),
+      )
       .groupBy(paymentEntries.reservationId, paymentEntries.allocation),
     db
-      .select({ reservationId: refundEntries.reservationId, allocation: refundEntries.allocation, amountCents: sql<number>`sum(${refundEntries.amountCents})`.mapWith(Number) })
+      .select({
+        reservationId: refundEntries.reservationId,
+        allocation: refundEntries.allocation,
+        amountCents: sql<number>`sum(${refundEntries.amountCents})`.mapWith(
+          Number,
+        ),
+      })
       .from(refundEntries)
-      .where(and(eq(refundEntries.organizationId, organizationId), inArray(refundEntries.reservationId, ids)))
+      .where(
+        and(
+          eq(refundEntries.organizationId, organizationId),
+          inArray(refundEntries.reservationId, ids),
+        ),
+      )
       .groupBy(refundEntries.reservationId, refundEntries.allocation),
     db
-      .select({ reservationId: depositDeductions.reservationId, amountCents: sql<number>`sum(${depositDeductions.amountCents})`.mapWith(Number) })
+      .select({
+        reservationId: depositDeductions.reservationId,
+        amountCents: sql<number>`sum(${depositDeductions.amountCents})`.mapWith(
+          Number,
+        ),
+      })
       .from(depositDeductions)
-      .where(and(eq(depositDeductions.organizationId, organizationId), inArray(depositDeductions.reservationId, ids)))
+      .where(
+        and(
+          eq(depositDeductions.organizationId, organizationId),
+          inArray(depositDeductions.reservationId, ids),
+        ),
+      )
       .groupBy(depositDeductions.reservationId),
   ]);
-  const of = <T extends { reservationId: string }>(rows: T[], id: string) => rows.filter((row) => row.reservationId === id);
-  return new Map(ids.map((id) => [id, computeBalances({
-    charges: of(charges, id),
-    payments: of(payments, id),
-    refunds: of(refunds, id),
-    deductions: of(deductions, id),
-  })]));
+  const of = <T extends { reservationId: string }>(rows: T[], id: string) =>
+    rows.filter((row) => row.reservationId === id);
+  return new Map(
+    ids.map((id) => [
+      id,
+      computeBalances({
+        charges: of(charges, id),
+        payments: of(payments, id),
+        refunds: of(refunds, id),
+        deductions: of(deductions, id),
+      }),
+    ]),
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -227,7 +270,8 @@ async function propertyTimeZone(
 }
 
 function isUniqueViolation(error: unknown): boolean {
-  if (error instanceof Error && error.cause) return isUniqueViolation(error.cause);
+  if (error instanceof Error && error.cause)
+    return isUniqueViolation(error.cause);
   return (
     typeof error === "object" &&
     error !== null &&
@@ -242,7 +286,10 @@ export async function recordPayment(input: {
   data: unknown;
   /** When recording from a guest proof, mark it recorded in the same tx. */
   proofId?: string;
-}): Promise<{ entry: typeof paymentEntries.$inferSelect; alreadyRecorded: boolean }> {
+}): Promise<{
+  entry: typeof paymentEntries.$inferSelect;
+  alreadyRecorded: boolean;
+}> {
   const data = recordPaymentSchema.parse(input.data);
   const amountCents = parseAmount(data.amountPesos);
 
@@ -262,7 +309,10 @@ export async function recordPayment(input: {
 
   let receivedAt = new Date();
   if (data.receivedAt) {
-    const timeZone = await propertyTimeZone(input.organizationId, input.reservationId);
+    const timeZone = await propertyTimeZone(
+      input.organizationId,
+      input.reservationId,
+    );
     const parsed = localDateTimeToUtc(data.receivedAt, timeZone);
     if (!parsed) {
       throw new PaymentError("Use a valid date and time.", "receivedAt");
@@ -272,7 +322,11 @@ export async function recordPayment(input: {
 
   try {
     return await db.transaction(async (tx) => {
-      await assertReservationInOrg(tx, input.organizationId, input.reservationId);
+      await assertReservationInOrg(
+        tx,
+        input.organizationId,
+        input.reservationId,
+      );
       const [entry] = await tx
         .insert(paymentEntries)
         .values({
@@ -384,7 +438,11 @@ export async function recordRefund(input: {
 
   return db.transaction(async (tx) => {
     await assertReservationInOrg(tx, input.organizationId, input.reservationId);
-    const balances = await ledgerCaps(tx, input.organizationId, input.reservationId);
+    const balances = await ledgerCaps(
+      tx,
+      input.organizationId,
+      input.reservationId,
+    );
 
     if (data.allocation === "security_deposit") {
       const settleable = depositSettleableCents({
@@ -489,7 +547,11 @@ export async function addDeduction(input: {
       damageReportId = report.id;
     }
 
-    const balances = await ledgerCaps(tx, input.organizationId, input.reservationId);
+    const balances = await ledgerCaps(
+      tx,
+      input.organizationId,
+      input.reservationId,
+    );
     const settleable = depositSettleableCents({
       paidDepositCents: balances.paidDepositCents,
       refundedDepositCents: balances.refundedDepositCents,

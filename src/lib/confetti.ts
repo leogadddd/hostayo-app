@@ -3,7 +3,15 @@
  * nothing for people who prefer reduced motion.
  */
 
-const COLORS = ["#a64e37", "#cfddd3", "#6f927e", "#c49a6c", "#f1ddb9", "#203a35", "#f3e4de"];
+const COLORS = [
+  "#a64e37",
+  "#cfddd3",
+  "#6f927e",
+  "#c49a6c",
+  "#f1ddb9",
+  "#203a35",
+  "#f3e4de",
+];
 
 interface Particle {
   x: number;
@@ -40,7 +48,12 @@ export function fireConfetti({
   canvas.height = window.innerHeight * ratio;
   canvas.setAttribute("aria-hidden", "true");
   Object.assign(canvas.style, {
-    position: "fixed", inset: "0", width: "100vw", height: "100vh", pointerEvents: "none", zIndex: "2147483000",
+    position: "fixed",
+    inset: "0",
+    width: "100vw",
+    height: "100vh",
+    pointerEvents: "none",
+    zIndex: "2147483000",
   });
   document.body.appendChild(canvas);
   const context = canvas.getContext("2d");
@@ -88,7 +101,12 @@ export function fireConfetti({
       context.translate(particle.x, particle.y);
       context.rotate(particle.rotation);
       context.fillStyle = particle.color;
-      context.fillRect(-particle.size / 2, -particle.size / 4, particle.size, particle.size / 2);
+      context.fillRect(
+        -particle.size / 2,
+        -particle.size / 4,
+        particle.size,
+        particle.size / 2,
+      );
       context.restore();
     }
     if (alive > 0) requestAnimationFrame(frame);
@@ -99,7 +117,26 @@ export function fireConfetti({
 
 /** A bigger celebration: bursts from both sides and the middle. */
 export function fireCelebration() {
-  fireConfetti({ particleCount: 120, origin: { x: 0.15, y: 0.75 }, spread: 45, velocity: 15 });
-  fireConfetti({ particleCount: 120, origin: { x: 0.85, y: 0.75 }, spread: 45, velocity: 15 });
-  setTimeout(() => fireConfetti({ particleCount: 160, origin: { x: 0.5, y: 0.45 }, spread: 120, velocity: 13 }), 250);
+  fireConfetti({
+    particleCount: 120,
+    origin: { x: 0.15, y: 0.75 },
+    spread: 45,
+    velocity: 15,
+  });
+  fireConfetti({
+    particleCount: 120,
+    origin: { x: 0.85, y: 0.75 },
+    spread: 45,
+    velocity: 15,
+  });
+  setTimeout(
+    () =>
+      fireConfetti({
+        particleCount: 160,
+        origin: { x: 0.5, y: 0.45 },
+        spread: 120,
+        velocity: 13,
+      }),
+    250,
+  );
 }

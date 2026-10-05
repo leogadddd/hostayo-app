@@ -39,7 +39,10 @@ export function MarkReadyForm({
 
   if (state.success) {
     return (
-      <p className="inline-flex items-center gap-1.5 text-sm text-pine" role="status">
+      <p
+        className="inline-flex items-center gap-1.5 text-sm text-pine"
+        role="status"
+      >
         <CheckCircle2 className="h-4 w-4" aria-hidden />
         Unit marked ready for the next guest.
       </p>
@@ -87,9 +90,18 @@ export function MarkReadyForm({
           variant="clay"
           disabled={pending || (!canMarkReady && !canOverrideDamage)}
         >
-          {pending ? "Marking ready…" : canMarkReady ? "Mark unit ready" : "Mark ready anyway"}
+          {pending
+            ? "Marking ready…"
+            : canMarkReady
+              ? "Mark unit ready"
+              : "Mark ready anyway"}
         </Button>
-        <Link href={`/tasks/${taskId}`} className="text-sm text-pine hover:underline">Cancel</Link>
+        <Link
+          href={`/tasks/${taskId}`}
+          className="text-sm text-pine hover:underline"
+        >
+          Cancel
+        </Link>
       </div>
     </form>
   );

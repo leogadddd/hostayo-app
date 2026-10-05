@@ -29,7 +29,13 @@ describe("action toast feedback", () => {
   it("supports informational and warning results", () => {
     showActionFeedback(
       { error: undefined, result: "conflict" },
-      { getInformation: () => ({ type: "warning", message: "Unit is not available", description: "Overlaps a confirmed stay" }) },
+      {
+        getInformation: () => ({
+          type: "warning",
+          message: "Unit is not available",
+          description: "Overlaps a confirmed stay",
+        }),
+      },
     );
     expect(toast.warning).toHaveBeenCalledWith("Unit is not available", {
       description: "Overlaps a confirmed stay",

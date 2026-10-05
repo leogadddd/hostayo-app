@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
-import { AlertTriangle, Hammer, PackageSearch, SearchX, ShoppingCart } from "lucide-react";
+import {
+  AlertTriangle,
+  Hammer,
+  PackageSearch,
+  SearchX,
+  ShoppingCart,
+} from "lucide-react";
 import { UnderConstruction } from "@/components/app/under-construction";
 import { PermissionDenied } from "@/components/app/permission-denied";
 import { requirePermission } from "@/lib/auth/session";
@@ -25,7 +31,10 @@ export default async function InventoryPage() {
     >
       <ul className="mt-5 flex max-w-lg flex-wrap justify-center gap-2">
         {PLANNED.map(({ icon: Icon, label }) => (
-          <li key={label} className="inline-flex items-center gap-1.5 rounded-full border border-pine/15 bg-surface px-3 py-1 text-xs text-pine/80">
+          <li
+            key={label}
+            className="inline-flex items-center gap-1.5 rounded-full border border-pine/15 bg-surface px-3 py-1 text-xs text-pine/80"
+          >
             <Icon className="h-3.5 w-3.5" aria-hidden />
             {label}
           </li>

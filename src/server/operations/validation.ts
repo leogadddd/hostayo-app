@@ -27,7 +27,10 @@ export const checkOutSchema = z.object({
   actualCheckoutAt: z
     .string()
     .trim()
-    .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, "Enter the actual check-out date and time.")
+    .regex(
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/,
+      "Enter the actual check-out date and time.",
+    )
     .optional(),
 });
 

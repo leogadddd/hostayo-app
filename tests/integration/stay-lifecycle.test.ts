@@ -56,10 +56,21 @@ describe("stay lifecycle (hold → payment → confirm → stay → turnover)", 
       organizationId: org.id,
       actorUserId: owner.id,
       guest: {
-        newGuest: { name: "E2E Guest", email: "e2e@example.com", phone: "0917 000 0000" },
+        newGuest: {
+          name: "E2E Guest",
+          email: "e2e@example.com",
+          phone: "0917 000 0000",
+        },
       },
       idempotencyKey: "e2e-hold-1",
-      data: { unitId: unit.id, checkIn: inDate, checkOut: outDate, guestCount: 2, holdMinutes: 30, charges: CHARGES },
+      data: {
+        unitId: unit.id,
+        checkIn: inDate,
+        checkOut: outDate,
+        guestCount: 2,
+        holdMinutes: 30,
+        charges: CHARGES,
+      },
     });
     expect(hold.status).toBe("hold");
 
@@ -131,10 +142,14 @@ describe("stay lifecycle (hold → payment → confirm → stay → turnover)", 
       data: {},
     });
     expect(ready.status).toBe("ready");
-    const notesEvent = (await listAuditEvents(org.id, 100))
-      .find((event) => event.action === "task.notes_updated");
+    const notesEvent = (await listAuditEvents(org.id, 100)).find(
+      (event) => event.action === "task.notes_updated",
+    );
     expect(notesEvent?.entityId).toBe(task.id);
-    expect(notesEvent?.metadata).toMatchObject({ hasNotes: true, characterCount: 35 });
+    expect(notesEvent?.metadata).toMatchObject({
+      hasNotes: true,
+      characterCount: 35,
+    });
 
     // Money ledger: partial booking payment collected, deposit untouched.
     const ledger = await getReservationLedger(org.id, hold.id);
@@ -157,25 +172,57 @@ describe("stay lifecycle (hold → payment → confirm → stay → turnover)", 
     const { org, owner } = await createTestOrg("report-timezone");
     await createTestProperty(org.id, owner.id);
     const sydney = await createProperty({
-      organizationId: org.id, actorUserId: owner.id,
-      data: { name: "Test Sydney", timezone: "Australia/Sydney", checkInTime: "15:00", checkOutTime: "11:00" },
+      organizationId: org.id,
+      actorUserId: owner.id,
+      data: {
+        name: "Test Sydney",
+        timezone: "Australia/Sydney",
+        checkInTime: "15:00",
+        checkOutTime: "11:00",
+      },
     });
     const unit = await createActiveUnit(org.id, owner.id, sydney.id);
     const { checkIn, checkOut } = stayDates(80);
     const hold = await createHold({
-      organizationId: org.id, actorUserId: owner.id,
-      guest: { newGuest: { name: "Timezone Test Guest", email: "timezone@example.com" } },
-      data: { unitId: unit.id, checkIn, checkOut, guestCount: 1, holdMinutes: 30, charges: CHARGES },
+      organizationId: org.id,
+      actorUserId: owner.id,
+      guest: {
+        newGuest: {
+          name: "Timezone Test Guest",
+          email: "timezone@example.com",
+        },
+      },
+      data: {
+        unitId: unit.id,
+        checkIn,
+        checkOut,
+        guestCount: 1,
+        holdMinutes: 30,
+        charges: CHARGES,
+      },
     });
     await recordPayment({
-      organizationId: org.id, actorUserId: owner.id, reservationId: hold.id,
-      data: { amountPesos: "100", allocation: "booking", method: "cash", receivedAt: `${checkIn}T00:30` },
+      organizationId: org.id,
+      actorUserId: owner.id,
+      reservationId: hold.id,
+      data: {
+        amountPesos: "100",
+        allocation: "booking",
+        method: "cash",
+        receivedAt: `${checkIn}T00:30`,
+      },
     });
     const all = await getReport(org.id, { from: checkIn, to: checkOut });
-    const filtered = await getReport(org.id, { from: checkIn, to: checkOut, propertyId: sydney.id });
+    const filtered = await getReport(org.id, {
+      from: checkIn,
+      to: checkOut,
+      propertyId: sydney.id,
+    });
     expect(all.timezone).toBe("Asia/Manila");
     expect(filtered.timezone).toBe(all.timezone);
     expect(all.summary.bookingCollectedCents).toBe(0);
-    expect(filtered.summary.bookingCollectedCents).toBe(all.summary.bookingCollectedCents);
+    expect(filtered.summary.bookingCollectedCents).toBe(
+      all.summary.bookingCollectedCents,
+    );
   });
 });

@@ -10,5 +10,7 @@ export function setTwoFactorChallengeHandler(handler: (() => void) | null) {
 }
 
 export const authClient = createAuthClient({
-  plugins: [twoFactorClient({ onTwoFactorRedirect: () => onTwoFactorChallenge?.() })],
+  plugins: [
+    twoFactorClient({ onTwoFactorRedirect: () => onTwoFactorChallenge?.() }),
+  ],
 });

@@ -2,7 +2,10 @@ import { eq } from "drizzle-orm";
 import { requireMembership } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { organizations } from "@/lib/db/schema";
-import { createObjectStorageFromEnvironment, StorageError } from "@/server/storage/service";
+import {
+  createObjectStorageFromEnvironment,
+  StorageError,
+} from "@/server/storage/service";
 
 export const runtime = "nodejs";
 
@@ -26,7 +29,9 @@ export async function GET(
   }
 
   try {
-    const logo = await createObjectStorageFromEnvironment().get(organization.logoUrl);
+    const logo = await createObjectStorageFromEnvironment().get(
+      organization.logoUrl,
+    );
     // Copy into an ArrayBuffer-backed view: Response's browser-facing type
     // does not accept Node's ArrayBufferLike-backed Uint8Array directly.
     const bytes = new Uint8Array(logo.body.byteLength);

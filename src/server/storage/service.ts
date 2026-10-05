@@ -11,7 +11,10 @@ import {
 } from "@aws-sdk/client-s3";
 
 export class StorageError extends Error {
-  constructor(message: string, readonly cause?: unknown) {
+  constructor(
+    message: string,
+    readonly cause?: unknown,
+  ) {
     super(message);
     this.name = "StorageError";
   }
@@ -76,13 +79,20 @@ export class S3ObjectStorage implements ObjectStorage {
   async put({ key, body, contentType }: Parameters<ObjectStorage["put"]>[0]) {
     const objectKey = validateKey(key);
     try {
-      const result = await this.client.send(new PutObjectCommand({
-        Bucket: this.bucket,
-        Key: objectKey,
-        Body: body,
-        ContentType: contentType,
-      })) as { ETag?: string };
-      return { key: objectKey, contentType, contentLength: body.byteLength, eTag: result.ETag };
+      const result = (await this.client.send(
+        new PutObjectCommand({
+          Bucket: this.bucket,
+          Key: objectKey,
+          Body: body,
+          ContentType: contentType,
+        }),
+      )) as { ETag?: string };
+      return {
+        key: objectKey,
+        contentType,
+        contentLength: body.byteLength,
+        eTag: result.ETag,
+      };
     } catch (error) {
       throw storageFailure("upload", objectKey, error);
     }
@@ -91,14 +101,19 @@ export class S3ObjectStorage implements ObjectStorage {
   async get(key: string): Promise<StoredObjectContent> {
     const objectKey = validateKey(key);
     try {
-      const result = await this.client.send(new GetObjectCommand({ Bucket: this.bucket, Key: objectKey })) as {
+      const result = (await this.client.send(
+        new GetObjectCommand({ Bucket: this.bucket, Key: objectKey }),
+      )) as {
         Body?: { transformToByteArray?: () => Promise<Uint8Array> };
         ContentType?: string;
         ContentLength?: number;
         ETag?: string;
         LastModified?: Date;
       };
-      if (!result.Body?.transformToByteArray) throw new StorageError("Storage response did not include object content.");
+      if (!result.Body?.transformToByteArray)
+        throw new StorageError(
+          "Storage response did not include object content.",
+        );
       return {
         key: objectKey,
         body: await result.Body.transformToByteArray(),
@@ -108,14 +123,18 @@ export class S3ObjectStorage implements ObjectStorage {
         lastModified: result.LastModified,
       };
     } catch (error) {
-      throw error instanceof StorageError ? error : storageFailure("read", objectKey, error);
+      throw error instanceof StorageError
+        ? error
+        : storageFailure("read", objectKey, error);
     }
   }
 
   async head(key: string): Promise<StoredObject> {
     const objectKey = validateKey(key);
     try {
-      const result = await this.client.send(new HeadObjectCommand({ Bucket: this.bucket, Key: objectKey })) as {
+      const result = (await this.client.send(
+        new HeadObjectCommand({ Bucket: this.bucket, Key: objectKey }),
+      )) as {
         ContentType?: string;
         ContentLength?: number;
         ETag?: string;
@@ -133,28 +152,48 @@ export class S3ObjectStorage implements ObjectStorage {
     }
   }
 
-  async list(input: Parameters<ObjectStorage["list"]>[0] = {}): Promise<ObjectList> {
+  async list(
+    input: Parameters<ObjectStorage["list"]>[0] = {},
+  ): Promise<ObjectList> {
     if (input.prefix !== undefined) validatePrefix(input.prefix);
-    if (input.maxKeys !== undefined && (!Number.isInteger(input.maxKeys) || input.maxKeys < 1 || input.maxKeys > 1_000)) {
+    if (
+      input.maxKeys !== undefined &&
+      (!Number.isInteger(input.maxKeys) ||
+        input.maxKeys < 1 ||
+        input.maxKeys > 1_000)
+    ) {
       throw new StorageError("maxKeys must be an integer between 1 and 1000.");
     }
     try {
-      const result = await this.client.send(new ListObjectsV2Command({
-        Bucket: this.bucket,
-        Prefix: input.prefix,
-        ContinuationToken: input.continuationToken,
-        MaxKeys: input.maxKeys,
-      })) as {
-        Contents?: Array<{ Key?: string; Size?: number; ETag?: string; LastModified?: Date }>;
+      const result = (await this.client.send(
+        new ListObjectsV2Command({
+          Bucket: this.bucket,
+          Prefix: input.prefix,
+          ContinuationToken: input.continuationToken,
+          MaxKeys: input.maxKeys,
+        }),
+      )) as {
+        Contents?: Array<{
+          Key?: string;
+          Size?: number;
+          ETag?: string;
+          LastModified?: Date;
+        }>;
         NextContinuationToken?: string;
       };
       return {
-        objects: (result.Contents ?? []).flatMap((object) => object.Key ? [{
-          key: object.Key,
-          contentLength: object.Size,
-          eTag: object.ETag,
-          lastModified: object.LastModified,
-        }] : []),
+        objects: (result.Contents ?? []).flatMap((object) =>
+          object.Key
+            ? [
+                {
+                  key: object.Key,
+                  contentLength: object.Size,
+                  eTag: object.ETag,
+                  lastModified: object.LastModified,
+                },
+              ]
+            : [],
+        ),
         nextContinuationToken: result.NextContinuationToken,
       };
     } catch (error) {
@@ -165,7 +204,9 @@ export class S3ObjectStorage implements ObjectStorage {
   async delete(key: string): Promise<void> {
     const objectKey = validateKey(key);
     try {
-      await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: objectKey }));
+      await this.client.send(
+        new DeleteObjectCommand({ Bucket: this.bucket, Key: objectKey }),
+      );
     } catch (error) {
       throw storageFailure("delete", objectKey, error);
     }
@@ -173,20 +214,34 @@ export class S3ObjectStorage implements ObjectStorage {
 }
 
 function validateKey(key: string): string {
-  if (!key || key.startsWith("/") || key.split("/").some((part) => !part || part === "." || part === "..")) {
-    throw new StorageError("Object keys must be non-empty relative paths without '.' or '..' segments.");
+  if (
+    !key ||
+    key.startsWith("/") ||
+    key.split("/").some((part) => !part || part === "." || part === "..")
+  ) {
+    throw new StorageError(
+      "Object keys must be non-empty relative paths without '.' or '..' segments.",
+    );
   }
   return key;
 }
 
 function validatePrefix(prefix: string) {
-  if (prefix.startsWith("/") || prefix.split("/").some((part) => part === "." || part === "..")) {
-    throw new StorageError("Object prefixes must be relative paths without '.' or '..' segments.");
+  if (
+    prefix.startsWith("/") ||
+    prefix.split("/").some((part) => part === "." || part === "..")
+  ) {
+    throw new StorageError(
+      "Object prefixes must be relative paths without '.' or '..' segments.",
+    );
   }
 }
 
 function storageFailure(operation: string, key: string, cause: unknown) {
-  return new StorageError(`Could not ${operation} storage object '${key}'.`, cause);
+  return new StorageError(
+    `Could not ${operation} storage object '${key}'.`,
+    cause,
+  );
 }
 
 /** Creates the application storage service from Neon S3 environment variables. */
@@ -199,7 +254,9 @@ export function createObjectStorageFromEnvironment(
   const region = env.AWS_REGION?.trim();
   const bucket = env.S3_BUCKET?.trim();
   if (!endpoint || !accessKeyId || !secretAccessKey || !region || !bucket) {
-    throw new StorageError("AWS_ENDPOINT_URL_S3, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, and S3_BUCKET must be configured.");
+    throw new StorageError(
+      "AWS_ENDPOINT_URL_S3, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, and S3_BUCKET must be configured.",
+    );
   }
   const config: S3ClientConfig = {
     endpoint,

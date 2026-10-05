@@ -3,7 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth/session";
 import { selectActiveOrganization } from "@/app/(app)/organization-actions";
-import { OrgError, acceptInvitation, getInvitationForUser, requestOrganizationAccess } from "@/server/orgs/service";
+import {
+  OrgError,
+  acceptInvitation,
+  getInvitationForUser,
+  requestOrganizationAccess,
+} from "@/server/orgs/service";
 
 export type InvitationActionState = {
   error?: string;
@@ -14,7 +19,12 @@ export type InvitationActionState = {
 };
 
 function message(error: unknown): InvitationActionState {
-  return { error: error instanceof OrgError ? error.message : "We could not process that invitation. Please try again." };
+  return {
+    error:
+      error instanceof OrgError
+        ? error.message
+        : "We could not process that invitation. Please try again.",
+  };
 }
 
 /** Looks up an email-bound invite for the signed-in account. */
@@ -25,17 +35,30 @@ export async function inspectInvitationAction(
   const currentUser = await requireUser();
   const code = String(formData.get("code") ?? "");
   try {
-    const invitation = await getInvitationForUser({ code, email: currentUser.email });
-    return { organizationName: invitation.organization.name, roleName: invitation.role.name, invitationCode: code };
+    const invitation = await getInvitationForUser({
+      code,
+      email: currentUser.email,
+    });
+    return {
+      organizationName: invitation.organization.name,
+      roleName: invitation.role.name,
+      invitationCode: code,
+    };
   } catch (error) {
     return message(error);
   }
 }
 
-export async function acceptInvitationAction(code: string): Promise<InvitationActionState> {
+export async function acceptInvitationAction(
+  code: string,
+): Promise<InvitationActionState> {
   const currentUser = await requireUser();
   try {
-    const { organizationId } = await acceptInvitation({ code, userId: currentUser.id, email: currentUser.email });
+    const { organizationId } = await acceptInvitation({
+      code,
+      userId: currentUser.id,
+      email: currentUser.email,
+    });
     // Open the organization they just joined, even if they already belong to another.
     await selectActiveOrganization(organizationId);
     revalidatePath("/", "layout");
@@ -52,7 +75,10 @@ export async function requestOrganizationAccessAction(
 ): Promise<InvitationActionState> {
   const currentUser = await requireUser();
   try {
-    await requestOrganizationAccess({ code: String(formData.get("code") ?? ""), userId: currentUser.id });
+    await requestOrganizationAccess({
+      code: String(formData.get("code") ?? ""),
+      userId: currentUser.id,
+    });
     return { success: true };
   } catch (error) {
     return message(error);

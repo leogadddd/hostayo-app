@@ -1,5 +1,9 @@
 import type { ExpenseClassification, PaymentAllocation } from "@/lib/db/schema";
-import type { ChargeType, ReservationStatus, UnitStatus } from "@/lib/db/schema";
+import type {
+  ChargeType,
+  ReservationStatus,
+  UnitStatus,
+} from "@/lib/db/schema";
 import { addDaysLocal, isLocalDate, rangesOverlap } from "@/lib/dates";
 import { assertIntegerCentavos } from "@/lib/money";
 
@@ -135,11 +139,7 @@ export function computeReport(input: ReportComputationInput): ReportSummary {
     }
     const start = block.startDate > from ? block.startDate : from;
     const end = block.endDate < to ? block.endDate : to;
-    for (
-      let night = start;
-      night < end;
-      night = addDaysLocal(night, 1)
-    ) {
+    for (let night = start; night < end; night = addDaysLocal(night, 1)) {
       nights.add(night);
     }
   }
@@ -149,11 +149,7 @@ export function computeReport(input: ReportComputationInput): ReportSummary {
   for (const unit of bookableUnits) {
     const blocked = blockedNightsByUnit.get(unit.id);
     let available = 0;
-    for (
-      let night = from;
-      night < to;
-      night = addDaysLocal(night, 1)
-    ) {
+    for (let night = from; night < to; night = addDaysLocal(night, 1)) {
       if (!blocked?.has(night)) available += 1;
     }
     bookableNights += available;
@@ -203,7 +199,8 @@ export function computeReport(input: ReportComputationInput): ReportSummary {
     const stay = stayById.get(charge.reservationId);
     if (!stay || !OCCUPANCY_STATUSES.includes(stay.status)) continue;
     if (charge.type === "accommodation") {
-      if (!rangesOverlap(stay.checkInDate, stay.checkOutDate, from, to)) continue;
+      if (!rangesOverlap(stay.checkInDate, stay.checkOutDate, from, to))
+        continue;
       const start = stay.checkInDate > from ? stay.checkInDate : from;
       const end = stay.checkOutDate < to ? stay.checkOutDate : to;
       const stayNights = countNights(stay.checkInDate, stay.checkOutDate);
@@ -214,8 +211,10 @@ export function computeReport(input: ReportComputationInput): ReportSummary {
       const startOffset = countNights(stay.checkInDate, start);
       const endOffset = countNights(stay.checkInDate, end);
       // Put leftover centavos on the first nights so adjacent periods add up exactly.
-      const amount = nightly * (endOffset - startOffset) +
-        Math.min(endOffset, remainder) - Math.min(startOffset, remainder);
+      const amount =
+        nightly * (endOffset - startOffset) +
+        Math.min(endOffset, remainder) -
+        Math.min(startOffset, remainder);
       assertIntegerCentavos(amount);
       accommodationBookedCents += amount;
       accommodationByProperty.set(
@@ -293,7 +292,8 @@ export function computeReport(input: ReportComputationInput): ReportSummary {
     oneTimeBookedCents,
     occupiedNights,
     bookableNights,
-    occupancyRate: bookableNights === 0 ? null : occupiedNights / bookableNights,
+    occupancyRate:
+      bookableNights === 0 ? null : occupiedNights / bookableNights,
     avgAccommodationRateCents:
       totalStayNights === 0
         ? null

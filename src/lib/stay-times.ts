@@ -15,11 +15,14 @@ export function fromMinutes(total: number): string {
 }
 
 /** Hours from check-in to check-out the next day; equal times mean a full 24 hours. */
-export function stayLengthHours(checkIn: string, checkOut: string): number | null {
+export function stayLengthHours(
+  checkIn: string,
+  checkOut: string,
+): number | null {
   const start = toMinutes(checkIn);
   const end = toMinutes(checkOut);
   if (start === null || end === null) return null;
-  return (((end - start + 1440) % 1440) || 1440) / 60;
+  return ((end - start + 1440) % 1440 || 1440) / 60;
 }
 
 export function stayLengthLabel(hours: number | null): string {

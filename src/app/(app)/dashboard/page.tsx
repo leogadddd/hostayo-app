@@ -40,7 +40,10 @@ import {
   type OccupancySegment,
 } from "@/server/inventory/availability";
 import { extendedCheckoutTime } from "@/lib/extensions";
-import { getExtensionHours, getPendingExtensionHours } from "@/server/reservations/extensions";
+import {
+  getExtensionHours,
+  getPendingExtensionHours,
+} from "@/server/reservations/extensions";
 import { listOrgUnits, listProperties } from "@/server/inventory/service";
 import { listTasks } from "@/server/operations/service";
 import {
@@ -585,7 +588,12 @@ export default async function DashboardPage() {
                         const baseTime = property?.checkOutTime ?? null;
                         // An extension counts from the unit's own check-out time.
                         const time = lateHours
-                          ? extendedCheckoutTime(unitById.get(stay.unitId)?.checkOutTime ?? baseTime ?? "11:00", lateHours)
+                          ? extendedCheckoutTime(
+                              unitById.get(stay.unitId)?.checkOutTime ??
+                                baseTime ??
+                                "11:00",
+                              lateHours,
+                            )
                           : baseTime;
                         const done = stay.status === "checked_out";
                         const late =

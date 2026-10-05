@@ -15,13 +15,26 @@ export default async function EditPaymentInstructionsPage() {
   const membership = await requirePermission("organization.update");
   if (!membership) return <PermissionDenied />;
 
-  const org = await db.query.organizations.findFirst({ where: eq(organizations.id, membership.organizationId) });
+  const org = await db.query.organizations.findFirst({
+    where: eq(organizations.id, membership.organizationId),
+  });
   if (!org) notFound();
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeading title="Edit payment instructions" description="Tell guests how to pay on their private booking page." backHref="/settings" backLabel="Settings" />
-      <Card className="bg-card"><CardBody><PaymentInstructionsForm defaultValue={org.paymentInstructions ?? ""} /></CardBody></Card>
+      <PageHeading
+        title="Edit payment instructions"
+        description="Tell guests how to pay on their private booking page."
+        backHref="/settings"
+        backLabel="Settings"
+      />
+      <Card className="bg-card">
+        <CardBody>
+          <PaymentInstructionsForm
+            defaultValue={org.paymentInstructions ?? ""}
+          />
+        </CardBody>
+      </Card>
     </div>
   );
 }

@@ -10,10 +10,10 @@ import { saveOrganizationAction, type OnboardingFormState } from "../actions";
 import { StepNav } from "../step-nav";
 
 export function OrganizationForm({ defaultName }: { defaultName: string }) {
-  const [state, formAction, pending] = useActionState<OnboardingFormState, FormData>(
-    saveOrganizationAction,
-    {},
-  );
+  const [state, formAction, pending] = useActionState<
+    OnboardingFormState,
+    FormData
+  >(saveOrganizationAction, {});
   useActionFeedback(state, { errorTitle: "Couldn’t save your business name" });
   const router = useRouter();
   useEffect(() => {

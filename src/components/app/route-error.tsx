@@ -37,7 +37,9 @@ export function RouteError({
 
   return (
     <div className="mx-auto flex max-w-xl flex-col items-center rounded-2xl border border-dashed border-pine/25 bg-surface/60 px-6 py-16 text-center">
-      <h2 className="font-display text-2xl text-pine">This page couldn’t load</h2>
+      <h2 className="font-display text-2xl text-pine">
+        This page couldn’t load
+      </h2>
       <p className="mt-2 max-w-md text-sm leading-relaxed text-ink/60">
         Something went wrong while loading your data. Your work is safe — try
         again in a moment.
@@ -64,7 +66,11 @@ export function RouteError({
           {retrying ? "Retrying…" : "Try again"}
         </Button>
         {showDashboardLink && (
-          <Button type="button" variant="ghost" onClick={() => router.push("/dashboard")}>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => router.push("/dashboard")}
+          >
             Go to dashboard
           </Button>
         )}

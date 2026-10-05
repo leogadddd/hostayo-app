@@ -90,11 +90,29 @@ export async function getExtensionState(
   const [row] = await executor
     .select({ reservation: reservations, unit: units, property: properties })
     .from(reservations)
-    .innerJoin(units, and(eq(reservations.unitId, units.id), eq(reservations.organizationId, units.organizationId)))
-    .innerJoin(properties, and(eq(units.propertyId, properties.id), eq(units.organizationId, properties.organizationId)))
-    .where(and(eq(reservations.id, reservationId), eq(reservations.organizationId, organizationId)))
+    .innerJoin(
+      units,
+      and(
+        eq(reservations.unitId, units.id),
+        eq(reservations.organizationId, units.organizationId),
+      ),
+    )
+    .innerJoin(
+      properties,
+      and(
+        eq(units.propertyId, properties.id),
+        eq(units.organizationId, properties.organizationId),
+      ),
+    )
+    .where(
+      and(
+        eq(reservations.id, reservationId),
+        eq(reservations.organizationId, organizationId),
+      ),
+    )
     .limit(1);
-  if (!row) throw new ReservationError("Reservation not found.", "reservationId");
+  if (!row)
+    throw new ReservationError("Reservation not found.", "reservationId");
   const { reservation, unit, property } = row;
   const timezone = property.timezone;
   const checkOutDate = reservation.checkOutDate;
@@ -116,53 +134,78 @@ export async function getExtensionState(
       .from(reservationExtensions)
       .leftJoin(requester, eq(reservationExtensions.createdBy, requester.id))
       .leftJoin(decider, eq(reservationExtensions.decidedBy, decider.id))
-      .where(and(eq(reservationExtensions.reservationId, reservation.id), eq(reservationExtensions.organizationId, organizationId)))
+      .where(
+        and(
+          eq(reservationExtensions.reservationId, reservation.id),
+          eq(reservationExtensions.organizationId, organizationId),
+        ),
+      )
       .orderBy(asc(reservationExtensions.createdAt)),
     executor
       .select({ amountCents: reservationCharges.amountCents })
       .from(reservationCharges)
-      .where(and(
-        eq(reservationCharges.reservationId, reservation.id),
-        eq(reservationCharges.organizationId, organizationId),
-        eq(reservationCharges.type, "accommodation"),
-      )),
+      .where(
+        and(
+          eq(reservationCharges.reservationId, reservation.id),
+          eq(reservationCharges.organizationId, organizationId),
+          eq(reservationCharges.type, "accommodation"),
+        ),
+      ),
     // Only a same-day arrival matters: extensions never run past midnight.
     executor
       .select({ id: reservations.id })
       .from(reservations)
-      .where(and(
-        eq(reservations.organizationId, organizationId),
-        eq(reservations.unitId, unit.id),
-        eq(reservations.checkInDate, checkOutDate),
-        ne(reservations.id, reservation.id),
-        or(
-          inArray(reservations.status, ["confirmed", "checked_in"]),
-          and(eq(reservations.status, "hold"), gt(reservations.expiresAt, new Date())),
+      .where(
+        and(
+          eq(reservations.organizationId, organizationId),
+          eq(reservations.unitId, unit.id),
+          eq(reservations.checkInDate, checkOutDate),
+          ne(reservations.id, reservation.id),
+          or(
+            inArray(reservations.status, ["confirmed", "checked_in"]),
+            and(
+              eq(reservations.status, "hold"),
+              gt(reservations.expiresAt, new Date()),
+            ),
+          ),
         ),
-      ))
+      )
       .limit(1),
     executor
       .select({ reason: unitBlocks.reason })
       .from(unitBlocks)
-      .where(and(
-        eq(unitBlocks.organizationId, organizationId),
-        eq(unitBlocks.unitId, unit.id),
-        eq(unitBlocks.startDate, checkOutDate),
-      ))
+      .where(
+        and(
+          eq(unitBlocks.organizationId, organizationId),
+          eq(unitBlocks.unitId, unit.id),
+          eq(unitBlocks.startDate, checkOutDate),
+        ),
+      )
       .limit(1),
   ]);
 
-  const checkoutAt = localDateTimeToUtc(`${checkOutDate}T${unit.checkOutTime}`, timezone);
-  const dayEndsAt = localDateTimeToUtc(`${addDaysLocal(checkOutDate, 1)}T00:00`, timezone);
-  const arrivalAt = localDateTimeToUtc(`${checkOutDate}T${unit.checkInTime}`, timezone);
-  if (!checkoutAt || !dayEndsAt || !arrivalAt) throw new ReservationError("This unit's check-out time couldn't be read.");
+  const checkoutAt = localDateTimeToUtc(
+    `${checkOutDate}T${unit.checkOutTime}`,
+    timezone,
+  );
+  const dayEndsAt = localDateTimeToUtc(
+    `${addDaysLocal(checkOutDate, 1)}T00:00`,
+    timezone,
+  );
+  const arrivalAt = localDateTimeToUtc(
+    `${checkOutDate}T${unit.checkInTime}`,
+    timezone,
+  );
+  if (!checkoutAt || !dayEndsAt || !arrivalAt)
+    throw new ReservationError("This unit's check-out time couldn't be read.");
 
   // A block starting that day takes the unit from the usual check-in time.
-  const nextArrival = nextStays.length > 0
-    ? { at: arrivalAt, label: "Next guest arrives" }
-    : blocks[0]
-      ? { at: arrivalAt, label: `Blocked (${blocks[0].reason})` }
-      : null;
+  const nextArrival =
+    nextStays.length > 0
+      ? { at: arrivalAt, label: "Next guest arrives" }
+      : blocks[0]
+        ? { at: arrivalAt, label: `Blocked (${blocks[0].reason})` }
+        : null;
   const extendedHours = extensionRows
     .filter((extension) => extension.status === "approved")
     .reduce((total, extension) => total + extension.hours, 0);
@@ -174,14 +217,30 @@ export async function getExtensionState(
     nextArrivalAt: nextArrival?.at ?? null,
     dayEndsAt,
   });
-  const accommodationCents = accommodation.reduce((total, line) => total + line.amountCents, 0);
-  const hours = stayHours(nightsBetween(reservation.checkInDate, checkOutDate), unit.checkInTime, unit.checkOutTime);
-  const openRequest = extensionRows.find((extension) => extension.status === "requested") ?? null;
-  const time = new Intl.DateTimeFormat("en-PH", { hour: "numeric", minute: "2-digit", timeZone: timezone });
+  const accommodationCents = accommodation.reduce(
+    (total, line) => total + line.amountCents,
+    0,
+  );
+  const hours = stayHours(
+    nightsBetween(reservation.checkInDate, checkOutDate),
+    unit.checkInTime,
+    unit.checkOutTime,
+  );
+  const openRequest =
+    extensionRows.find((extension) => extension.status === "requested") ?? null;
+  const time = new Intl.DateTimeFormat("en-PH", {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: timezone,
+  });
 
   let requestBlockedReason: string | null = null;
-  if (reservation.status !== "confirmed" && reservation.status !== "checked_in") {
-    requestBlockedReason = "Only a confirmed or checked-in stay can request late check-out.";
+  if (
+    reservation.status !== "confirmed" &&
+    reservation.status !== "checked_in"
+  ) {
+    requestBlockedReason =
+      "Only a confirmed or checked-in stay can request late check-out.";
   } else if (!unit.extensionsEnabled) {
     requestBlockedReason = "Late check-out is turned off for this unit.";
   } else if (Date.now() >= window.departureAt.getTime()) {
@@ -189,11 +248,12 @@ export async function getExtensionState(
   } else if (openRequest) {
     requestBlockedReason = "A request is already waiting for approval.";
   } else if (window.availableHours === 0) {
-    requestBlockedReason = window.limitedBy === "next_arrival"
-      ? "The next arrival leaves no room for turnover after extra hours."
-      : window.limitedBy === "unit_limit"
-        ? `This stay already has the unit's maximum of ${unit.maxExtensionHours} extra hours.`
-        : "The stay already runs to the end of the check-out day.";
+    requestBlockedReason =
+      window.limitedBy === "next_arrival"
+        ? "The next arrival leaves no room for turnover after extra hours."
+        : window.limitedBy === "unit_limit"
+          ? `This stay already has the unit's maximum of ${unit.maxExtensionHours} extra hours.`
+          : "The stay already runs to the end of the check-out day.";
   }
 
   return {
@@ -204,7 +264,11 @@ export async function getExtensionState(
     departureAt: window.departureAt,
     extendedHours,
     window,
-    hourlyRateCents: extensionHourlyRateCents(unit.extensionHourlyRateCents, accommodationCents, hours),
+    hourlyRateCents: extensionHourlyRateCents(
+      unit.extensionHourlyRateCents,
+      accommodationCents,
+      hours,
+    ),
     unitRate: unit.extensionHourlyRateCents !== null,
     nextArrival,
     turnoverMinutes: property.turnoverDurationMinutes,
@@ -222,10 +286,12 @@ export async function getExtensionState(
 export function approvalBlockedReason(state: ExtensionState): string | null {
   const request = state.openRequest;
   if (!request) return "There's no request waiting for approval.";
-  if (state.status !== "confirmed" && state.status !== "checked_in") return "Only a confirmed or checked-in stay can be extended.";
+  if (state.status !== "confirmed" && state.status !== "checked_in")
+    return "Only a confirmed or checked-in stay can be extended.";
   if (!state.enabled) return "Late check-out is turned off for this unit.";
   const until = new Date(state.departureAt.getTime() + request.hours * HOUR_MS);
-  if (Date.now() >= until.getTime()) return "The requested time has already passed. Decline the request.";
+  if (Date.now() >= until.getTime())
+    return "The requested time has already passed. Decline the request.";
   if (request.hours > state.window.availableHours) {
     return state.window.availableHours === 0
       ? "It no longer fits: there's no room left before the next arrival's turnover or the unit's limit."
@@ -234,16 +300,34 @@ export function approvalBlockedReason(state: ExtensionState): string | null {
   return null;
 }
 
-async function lockReservation(tx: Tx, organizationId: string, reservationId: string) {
+async function lockReservation(
+  tx: Tx,
+  organizationId: string,
+  reservationId: string,
+) {
   // Serialize requests and decisions on this stay.
   await tx
     .select({ id: reservations.id })
     .from(reservations)
-    .where(and(eq(reservations.id, reservationId), eq(reservations.organizationId, organizationId)))
+    .where(
+      and(
+        eq(reservations.id, reservationId),
+        eq(reservations.organizationId, organizationId),
+      ),
+    )
     .for("update");
 }
 
-async function audit(tx: Tx, input: { organizationId: string; actorUserId: string; reservationId: string; action: string; metadata: Record<string, unknown> }) {
+async function audit(
+  tx: Tx,
+  input: {
+    organizationId: string;
+    actorUserId: string;
+    reservationId: string;
+    action: string;
+    metadata: Record<string, unknown>;
+  },
+) {
   await tx.insert(auditEvents).values({
     organizationId: input.organizationId,
     actorUserId: input.actorUserId,
@@ -255,8 +339,16 @@ async function audit(tx: Tx, input: { organizationId: string; actorUserId: strin
 }
 
 const requestSchema = z.object({
-  hours: z.number().int("Request whole hours.").min(1, "Request at least 1 hour.").max(12, "Request at most 12 hours."),
-  note: z.string().trim().max(300, "Keep the note under 300 characters.").optional(),
+  hours: z
+    .number()
+    .int("Request whole hours.")
+    .min(1, "Request at least 1 hour.")
+    .max(12, "Request at most 12 hours."),
+  note: z
+    .string()
+    .trim()
+    .max(300, "Keep the note under 300 characters.")
+    .optional(),
 });
 
 /** Logs the guest's request. It fits when made; nothing changes until it's approved. */
@@ -269,10 +361,18 @@ export async function requestExtension(input: {
   const data = requestSchema.parse(input.data);
   return db.transaction(async (tx) => {
     await lockReservation(tx, input.organizationId, input.reservationId);
-    const state = await getExtensionState(input.organizationId, input.reservationId, tx);
-    if (state.requestBlockedReason) throw new ReservationError(state.requestBlockedReason);
+    const state = await getExtensionState(
+      input.organizationId,
+      input.reservationId,
+      tx,
+    );
+    if (state.requestBlockedReason)
+      throw new ReservationError(state.requestBlockedReason);
     if (data.hours > state.window.availableHours) {
-      throw new ReservationError(`Only ${state.window.availableHours} hour${state.window.availableHours === 1 ? "" : "s"} fit before ${state.window.limitedBy === "next_arrival" ? "the next arrival's turnover" : state.window.limitedBy === "unit_limit" ? "the unit's limit" : "midnight"}.`, "hours");
+      throw new ReservationError(
+        `Only ${state.window.availableHours} hour${state.window.availableHours === 1 ? "" : "s"} fit before ${state.window.limitedBy === "next_arrival" ? "the next arrival's turnover" : state.window.limitedBy === "unit_limit" ? "the unit's limit" : "midnight"}.`,
+        "hours",
+      );
     }
     const [request] = await tx
       .insert(reservationExtensions)
@@ -290,7 +390,11 @@ export async function requestExtension(input: {
     await audit(tx, {
       ...input,
       action: "reservation.extension_requested",
-      metadata: { extensionId: request.id, hours: data.hours, quotedHourlyRateCents: state.hourlyRateCents },
+      metadata: {
+        extensionId: request.id,
+        hours: data.hours,
+        quotedHourlyRateCents: state.hourlyRateCents,
+      },
     });
     return request;
   });
@@ -299,11 +403,19 @@ export async function requestExtension(input: {
 const approveSchema = z.object({
   /** Pesos; empty keeps the quoted rate. Only honoured for people who set prices. */
   hourlyRatePesos: z.string().trim().max(20).optional(),
-  note: z.string().trim().max(300, "Keep the note under 300 characters.").optional(),
+  note: z
+    .string()
+    .trim()
+    .max(300, "Keep the note under 300 characters.")
+    .optional(),
 });
 
 function formatTime(value: Date, timeZone: string) {
-  return new Intl.DateTimeFormat("en-PH", { hour: "numeric", minute: "2-digit", timeZone }).format(value);
+  return new Intl.DateTimeFormat("en-PH", {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone,
+  }).format(value);
 }
 
 /** Approves the open request: re-checks it fits, adds the charge, moves the departure. */
@@ -319,23 +431,36 @@ export async function approveExtension(input: {
   let customRateCents: number | null = null;
   if (input.canSetRate && data.hourlyRatePesos) {
     try {
-      customRateCents = pesosToCentavos(data.hourlyRatePesos, { allowZero: true });
+      customRateCents = pesosToCentavos(data.hourlyRatePesos, {
+        allowZero: true,
+      });
     } catch (error) {
-      if (error instanceof MoneyParseError) throw new ReservationError("Enter the hourly rate like 250 or 250.50.", "hourlyRatePesos");
+      if (error instanceof MoneyParseError)
+        throw new ReservationError(
+          "Enter the hourly rate like 250 or 250.50.",
+          "hourlyRatePesos",
+        );
       throw error;
     }
   }
 
   return db.transaction(async (tx) => {
     await lockReservation(tx, input.organizationId, input.reservationId);
-    const state = await getExtensionState(input.organizationId, input.reservationId, tx);
+    const state = await getExtensionState(
+      input.organizationId,
+      input.reservationId,
+      tx,
+    );
     const request = state.openRequest;
-    if (!request || request.id !== input.extensionId) throw new ReservationError("This request was already decided.");
+    if (!request || request.id !== input.extensionId)
+      throw new ReservationError("This request was already decided.");
     const blocked = approvalBlockedReason(state);
     if (blocked) throw new ReservationError(blocked);
 
     const rateCents = customRateCents ?? request.hourlyRateCents;
-    const until = new Date(state.departureAt.getTime() + request.hours * HOUR_MS);
+    const until = new Date(
+      state.departureAt.getTime() + request.hours * HOUR_MS,
+    );
     const [charge] = await tx
       .insert(reservationCharges)
       .values({
@@ -349,7 +474,8 @@ export async function approveExtension(input: {
         isRefundableDeposit: false,
       })
       .returning({ id: reservationCharges.id });
-    if (!charge) throw new ReservationError("Failed to add the late check-out charge.");
+    if (!charge)
+      throw new ReservationError("Failed to add the late check-out charge.");
     await tx
       .update(reservationExtensions)
       .set({
@@ -360,18 +486,35 @@ export async function approveExtension(input: {
         decidedAt: new Date(),
         decisionNote: data.note || null,
       })
-      .where(and(eq(reservationExtensions.id, request.id), eq(reservationExtensions.status, "requested")));
-    await tx.update(reservations).set({ updatedAt: new Date() }).where(eq(reservations.id, input.reservationId));
+      .where(
+        and(
+          eq(reservationExtensions.id, request.id),
+          eq(reservationExtensions.status, "requested"),
+        ),
+      );
+    await tx
+      .update(reservations)
+      .set({ updatedAt: new Date() })
+      .where(eq(reservations.id, input.reservationId));
     await audit(tx, {
       ...input,
       action: "reservation.extension_approved",
-      metadata: { extensionId: request.id, hours: request.hours, hourlyRateCents: rateCents, departureAt: until.toISOString() },
+      metadata: {
+        extensionId: request.id,
+        hours: request.hours,
+        hourlyRateCents: rateCents,
+        departureAt: until.toISOString(),
+      },
     });
   });
 }
 
 const declineSchema = z.object({
-  note: z.string().trim().min(2, "Say why it was declined.").max(300, "Keep the note under 300 characters."),
+  note: z
+    .string()
+    .trim()
+    .min(2, "Say why it was declined.")
+    .max(300, "Keep the note under 300 characters."),
 });
 
 /** Declines the open request, keeping it with the reason. */
@@ -387,19 +530,31 @@ export async function declineExtension(input: {
     await lockReservation(tx, input.organizationId, input.reservationId);
     const [declined] = await tx
       .update(reservationExtensions)
-      .set({ status: "declined", decidedBy: input.actorUserId, decidedAt: new Date(), decisionNote: data.note })
-      .where(and(
-        eq(reservationExtensions.id, input.extensionId),
-        eq(reservationExtensions.reservationId, input.reservationId),
-        eq(reservationExtensions.organizationId, input.organizationId),
-        eq(reservationExtensions.status, "requested"),
-      ))
+      .set({
+        status: "declined",
+        decidedBy: input.actorUserId,
+        decidedAt: new Date(),
+        decisionNote: data.note,
+      })
+      .where(
+        and(
+          eq(reservationExtensions.id, input.extensionId),
+          eq(reservationExtensions.reservationId, input.reservationId),
+          eq(reservationExtensions.organizationId, input.organizationId),
+          eq(reservationExtensions.status, "requested"),
+        ),
+      )
       .returning();
-    if (!declined) throw new ReservationError("This request was already decided.");
+    if (!declined)
+      throw new ReservationError("This request was already decided.");
     await audit(tx, {
       ...input,
       action: "reservation.extension_declined",
-      metadata: { extensionId: declined.id, hours: declined.hours, reason: data.note },
+      metadata: {
+        extensionId: declined.id,
+        hours: declined.hours,
+        reason: data.note,
+      },
     });
   });
 }
@@ -415,14 +570,17 @@ export async function cancelExtensionRequest(input: {
     await lockReservation(tx, input.organizationId, input.reservationId);
     const [removed] = await tx
       .delete(reservationExtensions)
-      .where(and(
-        eq(reservationExtensions.id, input.extensionId),
-        eq(reservationExtensions.reservationId, input.reservationId),
-        eq(reservationExtensions.organizationId, input.organizationId),
-        eq(reservationExtensions.status, "requested"),
-      ))
+      .where(
+        and(
+          eq(reservationExtensions.id, input.extensionId),
+          eq(reservationExtensions.reservationId, input.reservationId),
+          eq(reservationExtensions.organizationId, input.organizationId),
+          eq(reservationExtensions.status, "requested"),
+        ),
+      )
       .returning();
-    if (!removed) throw new ReservationError("This request was already decided.");
+    if (!removed)
+      throw new ReservationError("This request was already decided.");
     await audit(tx, {
       ...input,
       action: "reservation.extension_request_cancelled",
@@ -442,59 +600,107 @@ export async function removeExtension(input: {
     const [reservation] = await tx
       .select({ status: reservations.status })
       .from(reservations)
-      .where(and(eq(reservations.id, input.reservationId), eq(reservations.organizationId, input.organizationId)))
+      .where(
+        and(
+          eq(reservations.id, input.reservationId),
+          eq(reservations.organizationId, input.organizationId),
+        ),
+      )
       .for("update");
-    if (!reservation) throw new ReservationError("Reservation not found.", "reservationId");
-    if (reservation.status !== "confirmed" && reservation.status !== "checked_in") {
-      throw new ReservationError("Late check-out can only be removed before check-out.");
+    if (!reservation)
+      throw new ReservationError("Reservation not found.", "reservationId");
+    if (
+      reservation.status !== "confirmed" &&
+      reservation.status !== "checked_in"
+    ) {
+      throw new ReservationError(
+        "Late check-out can only be removed before check-out.",
+      );
     }
     const [extension] = await tx
       .select()
       .from(reservationExtensions)
-      .where(and(
-        eq(reservationExtensions.id, input.extensionId),
-        eq(reservationExtensions.reservationId, input.reservationId),
-        eq(reservationExtensions.organizationId, input.organizationId),
-        eq(reservationExtensions.status, "approved"),
-      ))
+      .where(
+        and(
+          eq(reservationExtensions.id, input.extensionId),
+          eq(reservationExtensions.reservationId, input.reservationId),
+          eq(reservationExtensions.organizationId, input.organizationId),
+          eq(reservationExtensions.status, "approved"),
+        ),
+      )
       .limit(1);
-    if (!extension?.chargeId) throw new ReservationError("That late check-out was already removed.");
+    if (!extension?.chargeId)
+      throw new ReservationError("That late check-out was already removed.");
     // Deleting the charge cascades to the extension.
-    await tx.delete(reservationCharges).where(and(eq(reservationCharges.id, extension.chargeId), eq(reservationCharges.organizationId, input.organizationId)));
-    await tx.update(reservations).set({ updatedAt: new Date() }).where(eq(reservations.id, input.reservationId));
+    await tx
+      .delete(reservationCharges)
+      .where(
+        and(
+          eq(reservationCharges.id, extension.chargeId),
+          eq(reservationCharges.organizationId, input.organizationId),
+        ),
+      );
+    await tx
+      .update(reservations)
+      .set({ updatedAt: new Date() })
+      .where(eq(reservations.id, input.reservationId));
     await audit(tx, {
       ...input,
       action: "reservation.extension_removed",
-      metadata: { extensionId: extension.id, hours: extension.hours, hourlyRateCents: extension.hourlyRateCents },
+      metadata: {
+        extensionId: extension.id,
+        hours: extension.hours,
+        hourlyRateCents: extension.hourlyRateCents,
+      },
     });
   });
 }
 
 /** Approved late check-out hours per reservation, for lists and calendars. Reservations without any are left out. */
-export async function getExtensionHours(organizationId: string, reservationIds: string[]): Promise<Map<string, number>> {
+export async function getExtensionHours(
+  organizationId: string,
+  reservationIds: string[],
+): Promise<Map<string, number>> {
   if (reservationIds.length === 0) return new Map();
   const rows = await db
-    .select({ reservationId: reservationExtensions.reservationId, hours: sum(reservationExtensions.hours).mapWith(Number) })
+    .select({
+      reservationId: reservationExtensions.reservationId,
+      hours: sum(reservationExtensions.hours).mapWith(Number),
+    })
     .from(reservationExtensions)
-    .where(and(
-      eq(reservationExtensions.organizationId, organizationId),
-      eq(reservationExtensions.status, "approved"),
-      inArray(reservationExtensions.reservationId, [...new Set(reservationIds)]),
-    ))
+    .where(
+      and(
+        eq(reservationExtensions.organizationId, organizationId),
+        eq(reservationExtensions.status, "approved"),
+        inArray(reservationExtensions.reservationId, [
+          ...new Set(reservationIds),
+        ]),
+      ),
+    )
     .groupBy(reservationExtensions.reservationId);
   return new Map(rows.map((row) => [row.reservationId, row.hours]));
 }
 
 /** Open late check-out requests per reservation (hours asked for), for the dashboard and calendar. */
-export async function getPendingExtensionHours(organizationId: string, reservationIds: string[]): Promise<Map<string, number>> {
+export async function getPendingExtensionHours(
+  organizationId: string,
+  reservationIds: string[],
+): Promise<Map<string, number>> {
   if (reservationIds.length === 0) return new Map();
   const rows = await db
-    .select({ reservationId: reservationExtensions.reservationId, hours: reservationExtensions.hours })
+    .select({
+      reservationId: reservationExtensions.reservationId,
+      hours: reservationExtensions.hours,
+    })
     .from(reservationExtensions)
-    .where(and(
-      eq(reservationExtensions.organizationId, organizationId),
-      eq(reservationExtensions.status, "requested"),
-      inArray(reservationExtensions.reservationId, [...new Set(reservationIds)]),
-    ));
+    .where(
+      and(
+        eq(reservationExtensions.organizationId, organizationId),
+        eq(reservationExtensions.status, "requested"),
+        inArray(reservationExtensions.reservationId, [
+          ...new Set(reservationIds),
+        ]),
+      ),
+    );
   return new Map(rows.map((row) => [row.reservationId, row.hours]));
 }

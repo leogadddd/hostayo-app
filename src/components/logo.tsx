@@ -5,7 +5,9 @@ export function LogoMark({ className }: { className?: string }) {
     <span
       aria-hidden="true"
       className={cn("inline-block h-10 w-8 shrink-0 bg-current", className)}
-      style={{ mask: "url('/brand/hostayo-mark.png') center / contain no-repeat" }}
+      style={{
+        mask: "url('/brand/hostayo-mark.png') center / contain no-repeat",
+      }}
     />
   );
 }
@@ -15,8 +17,13 @@ export function Logo({ className }: { className?: string }) {
     <span
       role="img"
       aria-label="Hostayo"
-      className={cn("inline-block h-11 w-44 shrink-0 bg-current text-pine", className)}
-      style={{ mask: "url('/brand/hostayo-logo.png') center / contain no-repeat" }}
+      className={cn(
+        "inline-block h-11 w-44 shrink-0 bg-current text-pine",
+        className,
+      )}
+      style={{
+        mask: "url('/brand/hostayo-logo.png') center / contain no-repeat",
+      }}
     />
   );
 }

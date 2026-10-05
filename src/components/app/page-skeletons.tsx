@@ -6,14 +6,35 @@ import { cn } from "@/lib/utils";
  * in step when a page's layout changes.
  */
 
-export function Bone({ className, style }: { className?: string; style?: React.CSSProperties }) {
-  return <div aria-hidden className={cn("animate-pulse rounded-md bg-pine/10", className)} style={style} />;
+export function Bone({
+  className,
+  style,
+}: {
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <div
+      aria-hidden
+      className={cn("animate-pulse rounded-md bg-pine/10", className)}
+      style={style}
+    />
+  );
 }
 
-const panel = "rounded-2xl border border-pine/10 bg-surface shadow-[0_1px_2px_rgba(32,58,53,0.06)]";
+const panel =
+  "rounded-2xl border border-pine/10 bg-surface shadow-[0_1px_2px_rgba(32,58,53,0.06)]";
 
 /** Mirrors `PageHeading`. */
-function Heading({ back = false, action = false, description = true }: { back?: boolean; action?: boolean; description?: boolean }) {
+function Heading({
+  back = false,
+  action = false,
+  description = true,
+}: {
+  back?: boolean;
+  action?: boolean;
+  description?: boolean;
+}) {
   return (
     <div className="mb-6">
       {back ? <Bone className="mb-4 h-5 w-32" /> : null}
@@ -28,11 +49,20 @@ function Heading({ back = false, action = false, description = true }: { back?: 
   );
 }
 
-function FilterBar({ fields = 2, className }: { fields?: number; className?: string }) {
+function FilterBar({
+  fields = 2,
+  className,
+}: {
+  fields?: number;
+  className?: string;
+}) {
   return (
     <div className={cn("flex flex-wrap items-end gap-3 p-4", panel, className)}>
       {Array.from({ length: fields }, (_, index) => (
-        <div key={index} className={index === 0 ? "min-w-48 flex-1" : "w-full sm:w-48"}>
+        <div
+          key={index}
+          className={index === 0 ? "min-w-48 flex-1" : "w-full sm:w-48"}
+        >
           <Bone className="h-4 w-20" />
           <Bone className="mt-1.5 h-10 w-full rounded-lg" />
         </div>
@@ -42,11 +72,23 @@ function FilterBar({ fields = 2, className }: { fields?: number; className?: str
   );
 }
 
-function TableRows({ rows = 8, className }: { rows?: number; className?: string }) {
+function TableRows({
+  rows = 8,
+  className,
+}: {
+  rows?: number;
+  className?: string;
+}) {
   return (
     <div className={cn("overflow-hidden", panel, className)}>
       <div className="flex gap-6 border-b border-pine/10 px-4 py-3">
-        {[16, 24, 20, 16, 20].map((width, index) => <Bone key={index} className="h-3" style={{ width: `${width * 4}px` }} />)}
+        {[16, 24, 20, 16, 20].map((width, index) => (
+          <Bone
+            key={index}
+            className="h-3"
+            style={{ width: `${width * 4}px` }}
+          />
+        ))}
       </div>
       <div className="divide-y divide-pine/8">
         {Array.from({ length: rows }, (_, index) => (
@@ -62,9 +104,19 @@ function TableRows({ rows = 8, className }: { rows?: number; className?: string 
   );
 }
 
-function Frame({ className, children }: { className?: string; children: React.ReactNode }) {
+function Frame({
+  className,
+  children,
+}: {
+  className?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className={cn("min-w-0 overflow-hidden", className)} aria-busy="true" aria-label="Loading page">
+    <div
+      className={cn("min-w-0 overflow-hidden", className)}
+      aria-busy="true"
+      aria-label="Loading page"
+    >
       {children}
       <p className="sr-only">Loading page content</p>
     </div>
@@ -86,7 +138,10 @@ export function DashboardSkeleton() {
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {Array.from({ length: 5 }, (_, index) => (
-          <div key={index} className="rounded-xl border border-pine/12 bg-linen p-4 sm:p-5">
+          <div
+            key={index}
+            className="rounded-xl border border-pine/12 bg-linen p-4 sm:p-5"
+          >
             <div className="flex items-center gap-4">
               <Bone className="h-11 w-11 shrink-0 rounded-full" />
               <div className="flex-1">
@@ -100,13 +155,18 @@ export function DashboardSkeleton() {
       </div>
       <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-5 xl:grid-cols-[minmax(20rem,0.75fr)_minmax(0,1.25fr)]">
         {[4, 6].map((rows, index) => (
-          <div key={index} className="rounded-xl border border-pine/12 bg-linen">
+          <div
+            key={index}
+            className="rounded-xl border border-pine/12 bg-linen"
+          >
             <div className="border-b border-pine/10 px-6 py-4">
               <Bone className="h-6 w-40" />
               <Bone className="mt-2 h-3 w-56" />
             </div>
             <div className="space-y-4 px-6 py-5">
-              {Array.from({ length: rows }, (_, row) => <Bone key={row} className="h-10 w-full" />)}
+              {Array.from({ length: rows }, (_, row) => (
+                <Bone key={row} className="h-10 w-full" />
+              ))}
             </div>
           </div>
         ))}
@@ -120,7 +180,9 @@ export function CalendarSkeleton() {
     <Frame className="mx-auto max-w-[1600px]">
       <Heading action description={false} />
       <div className="mb-5 flex gap-3 overflow-hidden">
-        {Array.from({ length: 5 }, (_, index) => <Bone key={index} className="h-14 w-48 shrink-0 rounded-xl" />)}
+        {Array.from({ length: 5 }, (_, index) => (
+          <Bone key={index} className="h-14 w-48 shrink-0 rounded-xl" />
+        ))}
       </div>
       <div className="grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_19rem] 2xl:grid-cols-[minmax(0,1fr)_21rem]">
         <div className={cn("p-4", panel)}>
@@ -129,12 +191,16 @@ export function CalendarSkeleton() {
             <Bone className="h-9 w-48 rounded-lg" />
           </div>
           <div className="grid grid-cols-7 gap-px">
-            {Array.from({ length: 35 }, (_, index) => <Bone key={index} className="h-20 rounded-none sm:h-24" />)}
+            {Array.from({ length: 35 }, (_, index) => (
+              <Bone key={index} className="h-20 rounded-none sm:h-24" />
+            ))}
           </div>
         </div>
         <div className={cn("space-y-3 p-5", panel)}>
           <Bone className="h-5 w-32" />
-          {Array.from({ length: 4 }, (_, index) => <Bone key={index} className="h-14 w-full" />)}
+          {Array.from({ length: 4 }, (_, index) => (
+            <Bone key={index} className="h-14 w-full" />
+          ))}
         </div>
       </div>
     </Frame>
@@ -159,13 +225,23 @@ export function AvailabilitySkeleton() {
 }
 
 /** Heading, filters, then a table: reservations, guests, expenses, tasks, audit logs. */
-export function TableListSkeleton({ className, pills = false, filters = 2 }: { className?: string; pills?: boolean; filters?: number }) {
+export function TableListSkeleton({
+  className,
+  pills = false,
+  filters = 2,
+}: {
+  className?: string;
+  pills?: boolean;
+  filters?: number;
+}) {
   return (
     <Frame className={className}>
       <Heading action />
       {pills ? (
         <div className="mb-4 flex flex-wrap gap-2">
-          {Array.from({ length: 6 }, (_, index) => <Bone key={index} className="h-8 w-24 rounded-full" />)}
+          {Array.from({ length: 6 }, (_, index) => (
+            <Bone key={index} className="h-8 w-24 rounded-full" />
+          ))}
         </div>
       ) : null}
       <FilterBar fields={filters} />
@@ -186,7 +262,9 @@ export function CardGridSkeleton() {
               <Bone className="h-6 w-40" />
               <Bone className="mt-2 h-4 w-56 max-w-full" />
               <div className="mt-5 grid grid-cols-3 gap-3">
-                {[0, 1, 2].map((stat) => <Bone key={stat} className="h-10" />)}
+                {[0, 1, 2].map((stat) => (
+                  <Bone key={stat} className="h-10" />
+                ))}
               </div>
             </div>
           </div>
@@ -217,7 +295,9 @@ export function DetailSkeleton() {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-              {Array.from({ length: 3 }, (_, index) => <Bone key={index} className="h-16 rounded-xl" />)}
+              {Array.from({ length: 3 }, (_, index) => (
+                <Bone key={index} className="h-16 rounded-xl" />
+              ))}
             </div>
           </div>
         </div>
@@ -228,14 +308,18 @@ export function DetailSkeleton() {
             <div key={index} className={cn("p-5 sm:p-6", panel)}>
               <Bone className="h-6 w-36" />
               <div className="mt-5 space-y-3">
-                {Array.from({ length: rows }, (_, row) => <Bone key={row} className="h-10 w-full" />)}
+                {Array.from({ length: rows }, (_, row) => (
+                  <Bone key={row} className="h-10 w-full" />
+                ))}
               </div>
             </div>
           ))}
         </div>
         <div className={cn("space-y-3 p-5", panel)}>
           <Bone className="h-6 w-28" />
-          {Array.from({ length: 4 }, (_, index) => <Bone key={index} className="h-5 w-full" />)}
+          {Array.from({ length: 4 }, (_, index) => (
+            <Bone key={index} className="h-5 w-full" />
+          ))}
         </div>
       </div>
     </Frame>
@@ -305,13 +389,19 @@ export function ReportsSkeleton() {
         {[44, 56, 56].map((width, index) => (
           <div key={index}>
             <Bone className="h-4 w-16" />
-            <Bone className="mt-1.5 h-10 rounded-lg" style={{ width: `${width * 4}px` }} />
+            <Bone
+              className="mt-1.5 h-10 rounded-lg"
+              style={{ width: `${width * 4}px` }}
+            />
           </div>
         ))}
       </div>
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }, (_, index) => (
-          <div key={index} className="rounded-xl border border-pine/12 bg-linen p-5">
+          <div
+            key={index}
+            className="rounded-xl border border-pine/12 bg-linen p-5"
+          >
             <Bone className="h-3 w-24" />
             <Bone className="mt-3 h-7 w-20" />
           </div>
@@ -329,7 +419,9 @@ export function SettingsSkeleton() {
       <Heading />
       <div className="lg:grid lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-8">
         <div className="mb-6 space-y-2 lg:mb-0 lg:pr-5">
-          {Array.from({ length: 6 }, (_, index) => <Bone key={index} className="h-10 w-full rounded-lg" />)}
+          {Array.from({ length: 6 }, (_, index) => (
+            <Bone key={index} className="h-10 w-full rounded-lg" />
+          ))}
         </div>
         <div className="rounded-xl border border-pine/12 bg-linen px-6 py-5">
           <Bone className="h-6 w-40" />
@@ -355,7 +447,9 @@ export function GenericPageSkeleton() {
       <div className="rounded-xl border border-pine/12 bg-linen p-5">
         <Bone className="h-4 w-32" />
         <div className="mt-5 space-y-4">
-          {Array.from({ length: 4 }, (_, index) => <Bone key={index} className="h-10 w-full" />)}
+          {Array.from({ length: 4 }, (_, index) => (
+            <Bone key={index} className="h-10 w-full" />
+          ))}
         </div>
       </div>
     </Frame>

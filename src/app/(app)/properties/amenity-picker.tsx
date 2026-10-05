@@ -14,7 +14,6 @@ export interface AmenityOption {
   icon: string | null;
 }
 
-
 const SEARCH_DEBOUNCE_MS = 200;
 
 /**
@@ -22,7 +21,11 @@ const SEARCH_DEBOUNCE_MS = 200;
  * matches, Enter adds the typed name to the organization's catalog and
  * selects it. Selected IDs submit as repeated `amenityId` fields.
  */
-export function AmenityPicker({ scope, options, defaultSelected = [] }: {
+export function AmenityPicker({
+  scope,
+  options,
+  defaultSelected = [],
+}: {
   scope: AmenityScope;
   options: AmenityOption[];
   defaultSelected?: string[];
@@ -34,24 +37,32 @@ export function AmenityPicker({ scope, options, defaultSelected = [] }: {
   const [creating, startCreate] = useTransition();
 
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedQuery(query), SEARCH_DEBOUNCE_MS);
+    const timer = setTimeout(
+      () => setDebouncedQuery(query),
+      SEARCH_DEBOUNCE_MS,
+    );
     return () => clearTimeout(timer);
   }, [query]);
 
   const matchesFor = (text: string) => {
     const needle = text.trim().toLowerCase();
-    return needle ? items.filter((item) => item.name.toLowerCase().includes(needle)) : items;
+    return needle
+      ? items.filter((item) => item.name.toLowerCase().includes(needle))
+      : items;
   };
   const visible = matchesFor(debouncedQuery);
   const newName = normalizeAmenityName(query);
-  const exactMatch = newName ? items.some((item) => item.name.toLowerCase() === newName.toLowerCase()) : false;
+  const exactMatch = newName
+    ? items.some((item) => item.name.toLowerCase() === newName.toLowerCase())
+    : false;
 
-  const toggle = (id: string) => setSelected((current) => {
-    const next = new Set(current);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    return next;
-  });
+  const toggle = (id: string) =>
+    setSelected((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
 
   const create = () => {
     if (!newName || creating) return;
@@ -62,7 +73,11 @@ export function AmenityPicker({ scope, options, defaultSelected = [] }: {
         return;
       }
       const amenity = result.amenity;
-      setItems((current) => current.some((item) => item.id === amenity.id) ? current : [...current, amenity]);
+      setItems((current) =>
+        current.some((item) => item.id === amenity.id)
+          ? current
+          : [...current, amenity],
+      );
       setSelected((current) => new Set(current).add(amenity.id));
       setQuery("");
       setDebouncedQuery("");
@@ -93,11 +108,19 @@ export function AmenityPicker({ scope, options, defaultSelected = [] }: {
   const searchId = `amenity-search-${scope}`;
   return (
     <div className="space-y-3">
-      {[...selected].map((id) => <input key={id} type="hidden" name="amenityId" value={id} />)}
+      {[...selected].map((id) => (
+        <input key={id} type="hidden" name="amenityId" value={id} />
+      ))}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <label htmlFor={searchId} className="relative block min-w-0 flex-1 sm:max-w-sm">
+        <label
+          htmlFor={searchId}
+          className="relative block min-w-0 flex-1 sm:max-w-sm"
+        >
           <span className="sr-only">Search amenities</span>
-          <Search aria-hidden className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40" />
+          <Search
+            aria-hidden
+            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40"
+          />
           <input
             id={searchId}
             type="search"
@@ -110,7 +133,9 @@ export function AmenityPicker({ scope, options, defaultSelected = [] }: {
             className="h-10 w-full rounded-lg border border-pine/20 bg-surface pl-9 pr-3 text-sm outline-none placeholder:text-ink/40 focus:border-pine/40 focus:ring-2 focus:ring-sage"
           />
         </label>
-        <span className="text-xs text-ink/55" aria-live="polite">{selected.size} selected</span>
+        <span className="text-xs text-ink/55" aria-live="polite">
+          {selected.size} selected
+        </span>
       </div>
 
       {visible.length ? (
@@ -126,9 +151,19 @@ export function AmenityPicker({ scope, options, defaultSelected = [] }: {
                   onClick={() => toggle(item.id)}
                   className={`relative flex h-full w-full items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors ${on ? "border-pine bg-sage/45 text-pine" : "border-pine/15 bg-surface text-ink/80 hover:border-pine/35 hover:bg-pine-mist/40"}`}
                 >
-                  <Icon aria-hidden className={`h-4 w-4 shrink-0 ${on ? "text-pine" : "text-ink/45"}`} />
-                  <span className="min-w-0 flex-1 break-words leading-tight">{item.name}</span>
-                  {on ? <Check aria-hidden className="h-3.5 w-3.5 shrink-0 text-pine" /> : null}
+                  <Icon
+                    aria-hidden
+                    className={`h-4 w-4 shrink-0 ${on ? "text-pine" : "text-ink/45"}`}
+                  />
+                  <span className="min-w-0 flex-1 break-words leading-tight">
+                    {item.name}
+                  </span>
+                  {on ? (
+                    <Check
+                      aria-hidden
+                      className="h-3.5 w-3.5 shrink-0 text-pine"
+                    />
+                  ) : null}
                 </button>
               </li>
             );
@@ -137,13 +172,27 @@ export function AmenityPicker({ scope, options, defaultSelected = [] }: {
       ) : null}
 
       {newName && !exactMatch && debouncedQuery === query ? (
-        <div className={`flex flex-wrap items-center justify-between gap-2 rounded-lg border border-dashed border-pine/25 px-3 py-2.5 text-sm ${visible.length ? "" : "bg-paper"}`}>
+        <div
+          className={`flex flex-wrap items-center justify-between gap-2 rounded-lg border border-dashed border-pine/25 px-3 py-2.5 text-sm ${visible.length ? "" : "bg-paper"}`}
+        >
           <span className="text-ink/65">
-            {visible.length ? "Not listed?" : <>No amenities match “{newName}”.</>}{" "}
-            {visible.length ? null : <span className="text-ink/45">Press Enter to add it.</span>}
+            {visible.length ? (
+              "Not listed?"
+            ) : (
+              <>No amenities match “{newName}”.</>
+            )}{" "}
+            {visible.length ? null : (
+              <span className="text-ink/45">Press Enter to add it.</span>
+            )}
           </span>
-          <button type="button" onClick={create} disabled={creating} className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-medium text-pine hover:bg-pine-mist disabled:opacity-50">
-            <Plus aria-hidden className="h-4 w-4" />{creating ? "Adding…" : `Add “${newName}”`}
+          <button
+            type="button"
+            onClick={create}
+            disabled={creating}
+            className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-medium text-pine hover:bg-pine-mist disabled:opacity-50"
+          >
+            <Plus aria-hidden className="h-4 w-4" />
+            {creating ? "Adding…" : `Add “${newName}”`}
           </button>
         </div>
       ) : null}

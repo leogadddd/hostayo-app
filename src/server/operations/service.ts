@@ -172,19 +172,37 @@ export async function checkOut(input: {
     const [unit] = await tx
       .select()
       .from(units)
-      .where(and(eq(units.id, reservation.unitId), eq(units.organizationId, input.organizationId)))
+      .where(
+        and(
+          eq(units.id, reservation.unitId),
+          eq(units.organizationId, input.organizationId),
+        ),
+      )
       .limit(1);
     if (!unit) throw new ReservationError("Unit not found.", "unitId");
     const [property] = await tx
-      .select({ timezone: properties.timezone, turnoverDurationMinutes: properties.turnoverDurationMinutes })
+      .select({
+        timezone: properties.timezone,
+        turnoverDurationMinutes: properties.turnoverDurationMinutes,
+      })
       .from(properties)
-      .where(and(eq(properties.id, unit.propertyId), eq(properties.organizationId, input.organizationId)))
+      .where(
+        and(
+          eq(properties.id, unit.propertyId),
+          eq(properties.organizationId, input.organizationId),
+        ),
+      )
       .limit(1);
-    if (!property) throw new OperationsError("Property not found for this unit.");
+    if (!property)
+      throw new OperationsError("Property not found for this unit.");
     const actualCheckoutAt = data.actualCheckoutAt
       ? localDateTimeToUtc(data.actualCheckoutAt, property.timezone)
       : new Date();
-    if (!actualCheckoutAt) throw new OperationsError("Use a valid actual check-out date and time.", "actualCheckoutAt");
+    if (!actualCheckoutAt)
+      throw new OperationsError(
+        "Use a valid actual check-out date and time.",
+        "actualCheckoutAt",
+      );
     const [updated] = await tx
       .update(reservations)
       .set({ status: "checked_out", actualCheckoutAt, updatedAt: new Date() })
@@ -195,10 +213,15 @@ export async function checkOut(input: {
     }
     // The guest link stays usable for a short grace period after check-out
     // (receipts, final balance), then expires. Never extends a sooner expiry.
-    const linkCutoff = new Date(Math.max(actualCheckoutAt.getTime(), Date.now()) + GUEST_LINK_CHECKOUT_GRACE_MS);
+    const linkCutoff = new Date(
+      Math.max(actualCheckoutAt.getTime(), Date.now()) +
+        GUEST_LINK_CHECKOUT_GRACE_MS,
+    );
     await tx
       .update(accessTokens)
-      .set({ expiresAt: sql`least(${accessTokens.expiresAt}, ${linkCutoff.toISOString()}::timestamptz)` })
+      .set({
+        expiresAt: sql`least(${accessTokens.expiresAt}, ${linkCutoff.toISOString()}::timestamptz)`,
+      })
       .where(
         and(
           eq(accessTokens.reservationId, reservation.id),
@@ -245,16 +268,21 @@ export async function checkOut(input: {
     }
 
     const startsAt = actualCheckoutAt;
-    const endsAt = new Date(startsAt.getTime() + property.turnoverDurationMinutes * 60_000);
-    const [turnover] = await tx.insert(turnoverBlocks).values({
-      organizationId: input.organizationId,
-      unitId: unit.id,
-      reservationId: reservation.id,
-      taskId: task.id,
-      startsAt,
-      endsAt,
-      durationMinutes: property.turnoverDurationMinutes,
-    }).returning();
+    const endsAt = new Date(
+      startsAt.getTime() + property.turnoverDurationMinutes * 60_000,
+    );
+    const [turnover] = await tx
+      .insert(turnoverBlocks)
+      .values({
+        organizationId: input.organizationId,
+        unitId: unit.id,
+        reservationId: reservation.id,
+        taskId: task.id,
+        startsAt,
+        endsAt,
+        durationMinutes: property.turnoverDurationMinutes,
+      })
+      .returning();
     if (!turnover) {
       throw new OperationsError("Failed to create the turnover block.");
     }
@@ -315,25 +343,33 @@ export async function listTasks(
       createdAt: tasks.createdAt,
       markedReadyAt: tasks.markedReadyAt,
       totalItems: count(taskItems.id),
-      doneItems: sql<number>`count(*) filter (where ${taskItems.completedAt} is not null)`.mapWith(
-        Number,
-      ),
-      requiredLeft: sql<number>`count(*) filter (where ${taskItems.required} and ${taskItems.completedAt} is null)`.mapWith(
-        Number,
-      ),
-      lastActivityAt: sql<Date | null>`max(${taskItems.completedAt})`.mapWith((value) =>
-        value ? new Date(value) : null,
+      doneItems:
+        sql<number>`count(*) filter (where ${taskItems.completedAt} is not null)`.mapWith(
+          Number,
+        ),
+      requiredLeft:
+        sql<number>`count(*) filter (where ${taskItems.required} and ${taskItems.completedAt} is null)`.mapWith(
+          Number,
+        ),
+      lastActivityAt: sql<Date | null>`max(${taskItems.completedAt})`.mapWith(
+        (value) => (value ? new Date(value) : null),
       ),
     })
     .from(tasks)
     .innerJoin(
       units,
-      and(eq(tasks.unitId, units.id), eq(tasks.organizationId, units.organizationId)),
+      and(
+        eq(tasks.unitId, units.id),
+        eq(tasks.organizationId, units.organizationId),
+      ),
     )
     .innerJoin(properties, eq(units.propertyId, properties.id))
     .leftJoin(
       taskItems,
-      and(eq(taskItems.taskId, tasks.id), eq(taskItems.organizationId, organizationId)),
+      and(
+        eq(taskItems.taskId, tasks.id),
+        eq(taskItems.organizationId, organizationId),
+      ),
     )
     .where(and(...conditions))
     .groupBy(tasks.id, units.id, properties.id)
@@ -351,17 +387,24 @@ export async function getTaskForReservation(
       createdAt: tasks.createdAt,
       markedReadyAt: tasks.markedReadyAt,
       totalItems: count(taskItems.id),
-      doneItems: sql<number>`count(*) filter (where ${taskItems.completedAt} is not null)`.mapWith(
-        Number,
-      ),
+      doneItems:
+        sql<number>`count(*) filter (where ${taskItems.completedAt} is not null)`.mapWith(
+          Number,
+        ),
     })
     .from(tasks)
     .leftJoin(
       taskItems,
-      and(eq(taskItems.taskId, tasks.id), eq(taskItems.organizationId, organizationId)),
+      and(
+        eq(taskItems.taskId, tasks.id),
+        eq(taskItems.organizationId, organizationId),
+      ),
     )
     .where(
-      and(eq(tasks.reservationId, reservationId), eq(tasks.organizationId, organizationId)),
+      and(
+        eq(tasks.reservationId, reservationId),
+        eq(tasks.organizationId, organizationId),
+      ),
     )
     .groupBy(tasks.id)
     .orderBy(desc(tasks.createdAt))
@@ -382,7 +425,10 @@ export async function getTaskDetail(organizationId: string, taskId: string) {
     .from(tasks)
     .innerJoin(
       units,
-      and(eq(tasks.unitId, units.id), eq(tasks.organizationId, units.organizationId)),
+      and(
+        eq(tasks.unitId, units.id),
+        eq(tasks.organizationId, units.organizationId),
+      ),
     )
     .innerJoin(properties, eq(units.propertyId, properties.id))
     .leftJoin(
@@ -410,7 +456,10 @@ export async function getTaskDetail(organizationId: string, taskId: string) {
       .select()
       .from(taskItems)
       .where(
-        and(eq(taskItems.taskId, taskId), eq(taskItems.organizationId, organizationId)),
+        and(
+          eq(taskItems.taskId, taskId),
+          eq(taskItems.organizationId, organizationId),
+        ),
       )
       .orderBy(asc(taskItems.position), asc(taskItems.createdAt)),
     db
@@ -492,7 +541,10 @@ export async function setTaskItemCompleted(input: {
       .select({ id: tasks.id, status: tasks.status, unitId: tasks.unitId })
       .from(tasks)
       .where(
-        and(eq(tasks.id, input.taskId), eq(tasks.organizationId, input.organizationId)),
+        and(
+          eq(tasks.id, input.taskId),
+          eq(tasks.organizationId, input.organizationId),
+        ),
       )
       .limit(1);
     if (!task) {
@@ -547,7 +599,10 @@ export async function updateTaskNotes(input: {
       .select({ id: tasks.id, unitId: tasks.unitId })
       .from(tasks)
       .where(
-        and(eq(tasks.id, input.taskId), eq(tasks.organizationId, input.organizationId)),
+        and(
+          eq(tasks.id, input.taskId),
+          eq(tasks.organizationId, input.organizationId),
+        ),
       )
       .limit(1);
     if (!task) {
@@ -587,7 +642,10 @@ export async function markTaskReady(input: {
       .select()
       .from(tasks)
       .where(
-        and(eq(tasks.id, input.taskId), eq(tasks.organizationId, input.organizationId)),
+        and(
+          eq(tasks.id, input.taskId),
+          eq(tasks.organizationId, input.organizationId),
+        ),
       )
       .limit(1);
     if (!task) {
@@ -600,7 +658,10 @@ export async function markTaskReady(input: {
       .select()
       .from(taskItems)
       .where(
-        and(eq(taskItems.taskId, task.id), eq(taskItems.organizationId, input.organizationId)),
+        and(
+          eq(taskItems.taskId, task.id),
+          eq(taskItems.organizationId, input.organizationId),
+        ),
       );
     const openDamage = await tx
       .select({ id: damageReports.id })
@@ -698,7 +759,10 @@ export async function updateChecklistTemplate(input: {
       .select({ id: units.id, name: units.name })
       .from(units)
       .where(
-        and(eq(units.id, input.unitId), eq(units.organizationId, input.organizationId)),
+        and(
+          eq(units.id, input.unitId),
+          eq(units.organizationId, input.organizationId),
+        ),
       )
       .limit(1);
     if (!unit) {
@@ -757,7 +821,10 @@ export async function createDamageReport(input: {
       .select({ id: units.id })
       .from(units)
       .where(
-        and(eq(units.id, data.unitId), eq(units.organizationId, input.organizationId)),
+        and(
+          eq(units.id, data.unitId),
+          eq(units.organizationId, input.organizationId),
+        ),
       )
       .limit(1);
     if (!unit) {
@@ -846,10 +913,7 @@ export async function resolveDamageReport(input: {
         actualAmountCents,
       })
       .where(
-        and(
-          eq(damageReports.id, report.id),
-          eq(damageReports.status, "open"),
-        ),
+        and(eq(damageReports.id, report.id), eq(damageReports.status, "open")),
       )
       .returning();
     if (!updated) {
@@ -872,7 +936,10 @@ export async function resolveDamageReport(input: {
   });
 }
 
-export async function listDamageReports(organizationId: string, unitId: string) {
+export async function listDamageReports(
+  organizationId: string,
+  unitId: string,
+) {
   return db
     .select()
     .from(damageReports)
@@ -886,7 +953,10 @@ export async function listDamageReports(organizationId: string, unitId: string) 
 }
 
 /** Damage reported against one reservation, newest first. */
-export async function listReservationDamageReports(organizationId: string, reservationId: string) {
+export async function listReservationDamageReports(
+  organizationId: string,
+  reservationId: string,
+) {
   return db
     .select()
     .from(damageReports)
@@ -899,7 +969,10 @@ export async function listReservationDamageReports(organizationId: string, reser
     .orderBy(desc(damageReports.createdAt));
 }
 
-export async function listOpenDamageReports(organizationId: string, unitId: string) {
+export async function listOpenDamageReports(
+  organizationId: string,
+  unitId: string,
+) {
   return db
     .select()
     .from(damageReports)

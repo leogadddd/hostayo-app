@@ -56,7 +56,10 @@ export function ConfirmationDialog({
       }
       dialog.current?.close();
     } catch (cause) {
-      const message = cause instanceof Error ? cause.message : "That action could not be completed.";
+      const message =
+        cause instanceof Error
+          ? cause.message
+          : "That action could not be completed.";
       setError(message);
       toast.error("That didn’t work", { description: message });
     } finally {
@@ -97,22 +100,56 @@ export function ConfirmationDialog({
             <AlertTriangle className="h-5 w-5" aria-hidden />
           </span>
           <div className="min-w-0 flex-1">
-            <h2 id={titleId} className="font-display text-xl text-pine">{title}</h2>
-            <p id={descriptionId} className="mt-2 text-sm leading-relaxed text-ink/65">{description}</p>
-            {error ? <p className="mt-3 rounded-lg bg-clay-mist px-3 py-2 text-sm text-clay-deep" role="alert">{error}</p> : null}
+            <h2 id={titleId} className="font-display text-xl text-pine">
+              {title}
+            </h2>
+            <p
+              id={descriptionId}
+              className="mt-2 text-sm leading-relaxed text-ink/65"
+            >
+              {description}
+            </p>
+            {error ? (
+              <p
+                className="mt-3 rounded-lg bg-clay-mist px-3 py-2 text-sm text-clay-deep"
+                role="alert"
+              >
+                {error}
+              </p>
+            ) : null}
           </div>
-          <button type="button" onClick={close} disabled={pending} aria-label="Close confirmation" className="rounded-md p-1.5 text-ink/45 hover:bg-pine-mist hover:text-pine disabled:opacity-50">
+          <button
+            type="button"
+            onClick={close}
+            disabled={pending}
+            aria-label="Close confirmation"
+            className="rounded-md p-1.5 text-ink/45 hover:bg-pine-mist hover:text-pine disabled:opacity-50"
+          >
             <X className="h-4 w-4" aria-hidden />
           </button>
         </div>
         <div className="flex flex-col-reverse gap-2 border-t border-pine/10 bg-paper/70 px-6 py-4 sm:flex-row sm:justify-end">
-          <Button type="button" variant="ghost" onClick={close} disabled={pending}>{cancelLabel}</Button>
-          <Button type="button" variant="clay" onClick={confirm} disabled={pending}>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={close}
+            disabled={pending}
+          >
+            {cancelLabel}
+          </Button>
+          <Button
+            type="button"
+            variant="clay"
+            onClick={confirm}
+            disabled={pending}
+          >
             {pending ? "Working…" : confirmLabel}
           </Button>
         </div>
       </dialog>
-      {pending && loadingLabel ? <AuthLoadingOverlay label={loadingLabel} tone="dark" /> : null}
+      {pending && loadingLabel ? (
+        <AuthLoadingOverlay label={loadingLabel} tone="dark" />
+      ) : null}
     </>
   );
 }

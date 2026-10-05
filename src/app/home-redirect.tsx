@@ -20,11 +20,30 @@ export function HomeRedirect({
     router.replace(href);
   }, [href, router]);
   return (
-    <main className="grid min-h-screen place-items-center px-6" role="status" aria-live="polite">
+    <main
+      className="grid min-h-screen place-items-center px-6"
+      role="status"
+      aria-live="polite"
+    >
       <div className="animate-fade-in flex flex-col items-center text-center">
         {/* Same loader as sign-in: green on light, white on dark. */}
-        <Image src={greenLoader} alt="" width={112} height={112} unoptimized priority className="dark:hidden" />
-        <Image src={whiteLoader} alt="" width={112} height={112} unoptimized className="hidden dark:block" />
+        <Image
+          src={greenLoader}
+          alt=""
+          width={112}
+          height={112}
+          unoptimized
+          priority
+          className="dark:hidden"
+        />
+        <Image
+          src={whiteLoader}
+          alt=""
+          width={112}
+          height={112}
+          unoptimized
+          className="hidden dark:block"
+        />
         <p className="mt-4 text-sm font-medium text-pine">Opening Hostayo…</p>
       </div>
     </main>

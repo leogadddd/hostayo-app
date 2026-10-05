@@ -5,9 +5,14 @@
  */
 export type PhotoKind = "property" | "unit";
 
-export function isStoredPhotoKey(value: string | null | undefined, organizationId?: string): value is string {
+export function isStoredPhotoKey(
+  value: string | null | undefined,
+  organizationId?: string,
+): value is string {
   if (!value || value.startsWith("data:")) return false;
-  return organizationId ? value.startsWith(`org/${organizationId}/photos/`) : value.startsWith("org/");
+  return organizationId
+    ? value.startsWith(`org/${organizationId}/photos/`)
+    : value.startsWith("org/");
 }
 
 /** A browser-ready src for a property or unit cover photo, or null for none. */
@@ -19,7 +24,10 @@ export function photoSrc(
   if (!entity || !value) return null;
   if (!isStoredPhotoKey(value)) return value;
   // The key changes with every upload, so it doubles as a cache buster.
-  const version = value.slice(value.lastIndexOf("/") + 1, value.lastIndexOf("/") + 9);
+  const version = value.slice(
+    value.lastIndexOf("/") + 1,
+    value.lastIndexOf("/") + 9,
+  );
   return `/api/${kind === "property" ? "properties" : "units"}/${entity.id}/photo?v=${version}`;
 }
 

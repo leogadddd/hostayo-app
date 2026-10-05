@@ -18,7 +18,10 @@ export async function storeInventoryPhoto(
  * Remove a replaced photo. Best effort: the record already points at the new
  * photo, so a leftover object is only wasted space.
  */
-export async function discardInventoryPhoto(organizationId: string, imageUrl: string | null | undefined) {
+export async function discardInventoryPhoto(
+  organizationId: string,
+  imageUrl: string | null | undefined,
+) {
   if (!isStoredPhotoKey(imageUrl, organizationId)) return;
   try {
     await createObjectStorageFromEnvironment().delete(imageUrl);

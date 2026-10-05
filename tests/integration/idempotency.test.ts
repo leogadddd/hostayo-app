@@ -32,7 +32,14 @@ describe("idempotent retries", () => {
       actorUserId: owner.id,
       guest: { newGuest: { name: "Retry Guest", email: "retry@example.com" } },
       idempotencyKey: "hold-retry-1",
-      data: { unitId: unit.id, checkIn, checkOut, guestCount: 2, holdMinutes: 30, charges: CHARGES },
+      data: {
+        unitId: unit.id,
+        checkIn,
+        checkOut,
+        guestCount: 2,
+        holdMinutes: 30,
+        charges: CHARGES,
+      },
     };
     const first = await createHold(args);
     const second = await createHold(args);
@@ -68,7 +75,14 @@ describe("idempotent retries", () => {
       actorUserId: owner.id,
       guest: { newGuest: { name: "Pay Guest", email: "pay@example.com" } },
       idempotencyKey: "hold-pay-1",
-      data: { unitId: unit.id, checkIn, checkOut, guestCount: 1, holdMinutes: 30, charges: CHARGES },
+      data: {
+        unitId: unit.id,
+        checkIn,
+        checkOut,
+        guestCount: 1,
+        holdMinutes: 30,
+        charges: CHARGES,
+      },
     });
 
     const pay = () =>
@@ -96,7 +110,9 @@ describe("idempotent retries", () => {
       .where(eq(paymentEntries.id, sequential.entry.id));
     const [concurrentA, concurrentB] = await Promise.all([pay(), pay()]);
     expect(concurrentA.entry.id).toBe(concurrentB.entry.id);
-    expect(concurrentA.alreadyRecorded || concurrentB.alreadyRecorded).toBe(true);
+    expect(concurrentA.alreadyRecorded || concurrentB.alreadyRecorded).toBe(
+      true,
+    );
 
     const rows = await db
       .select({ id: paymentEntries.id })

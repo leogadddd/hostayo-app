@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  computeReport,
-  type ReportComputationInput,
-} from "@/lib/reporting";
+import { computeReport, type ReportComputationInput } from "@/lib/reporting";
 
 const PROPERTY_A = "11111111-1111-1111-1111-111111111111";
 const PROPERTY_B = "22222222-2222-2222-2222-222222222222";
@@ -123,18 +120,27 @@ describe("computeReport occupancy", () => {
   });
 
   it("uses the same eligible nights for both occupancy counts", () => {
-    const summary = computeReport(baseInput({
-      from: "2026-09-01", to: "2026-09-03",
-      units: [
-        { id: UNIT_1, propertyId: PROPERTY_A, status: "active" },
-        { id: UNIT_2, propertyId: PROPERTY_A, status: "maintenance" },
-      ],
-      blocks: [{ unitId: UNIT_1, startDate: "2026-09-01", endDate: "2026-09-02" }],
-      stays: [UNIT_1, UNIT_2].map((unitId, index) => ({
-        id: index === 0 ? STAY_1 : STAY_2, unitId, propertyId: PROPERTY_A,
-        checkInDate: "2026-09-01", checkOutDate: "2026-09-03", status: "checked_out",
-      })),
-    }));
+    const summary = computeReport(
+      baseInput({
+        from: "2026-09-01",
+        to: "2026-09-03",
+        units: [
+          { id: UNIT_1, propertyId: PROPERTY_A, status: "active" },
+          { id: UNIT_2, propertyId: PROPERTY_A, status: "maintenance" },
+        ],
+        blocks: [
+          { unitId: UNIT_1, startDate: "2026-09-01", endDate: "2026-09-02" },
+        ],
+        stays: [UNIT_1, UNIT_2].map((unitId, index) => ({
+          id: index === 0 ? STAY_1 : STAY_2,
+          unitId,
+          propertyId: PROPERTY_A,
+          checkInDate: "2026-09-01",
+          checkOutDate: "2026-09-03",
+          status: "checked_out",
+        })),
+      }),
+    );
     expect(summary.bookableNights).toBe(1);
     expect(summary.occupiedNights).toBe(1);
     expect(summary.occupancyRate).toBe(1);
@@ -143,9 +149,7 @@ describe("computeReport occupancy", () => {
   it("returns a null rate when there are no bookable nights", () => {
     const summary = computeReport(
       baseInput({
-        units: [
-          { id: UNIT_1, propertyId: PROPERTY_A, status: "renovating" },
-        ],
+        units: [{ id: UNIT_1, propertyId: PROPERTY_A, status: "renovating" }],
       }),
     );
     expect(summary.bookableNights).toBe(0);
@@ -186,15 +190,27 @@ describe("computeReport booked value", () => {
 
   it("allocates edited charge totals over actual nights without losing centavos", () => {
     const input = baseInput({
-      from: "2026-09-29", to: "2026-10-03",
-      stays: [{
-        id: STAY_1, unitId: UNIT_1, propertyId: PROPERTY_A,
-        checkInDate: "2026-09-29", checkOutDate: "2026-10-02", status: "checked_out",
-      }],
-      charges: [{
-        reservationId: STAY_1, type: "accommodation", quantity: 4,
-        unitAmountCents: 25_001, isRefundableDeposit: false,
-      }],
+      from: "2026-09-29",
+      to: "2026-10-03",
+      stays: [
+        {
+          id: STAY_1,
+          unitId: UNIT_1,
+          propertyId: PROPERTY_A,
+          checkInDate: "2026-09-29",
+          checkOutDate: "2026-10-02",
+          status: "checked_out",
+        },
+      ],
+      charges: [
+        {
+          reservationId: STAY_1,
+          type: "accommodation",
+          quantity: 4,
+          unitAmountCents: 25_001,
+          isRefundableDeposit: false,
+        },
+      ],
     });
     const whole = computeReport(input);
     const september = computeReport({ ...input, to: "2026-10-01" });
@@ -203,8 +219,9 @@ describe("computeReport booked value", () => {
     expect(whole.accommodationBookedCents).toBe(100_004);
     expect(september.accommodationBookedCents).toBe(66_670);
     expect(october.accommodationBookedCents).toBe(33_334);
-    expect(september.accommodationBookedCents + october.accommodationBookedCents)
-      .toBe(whole.accommodationBookedCents);
+    expect(
+      september.accommodationBookedCents + october.accommodationBookedCents,
+    ).toBe(whole.accommodationBookedCents);
     expect(afterCheckout.accommodationBookedCents).toBe(0);
   });
 

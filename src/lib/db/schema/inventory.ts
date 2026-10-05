@@ -43,7 +43,10 @@ export const RESERVATION_FEE_TYPES = ["fixed", "percent"] as const;
 
 export type ReservationFeeType = (typeof RESERVATION_FEE_TYPES)[number];
 
-export const reservationFeeType = pgEnum("reservation_fee_type", RESERVATION_FEE_TYPES);
+export const reservationFeeType = pgEnum(
+  "reservation_fee_type",
+  RESERVATION_FEE_TYPES,
+);
 
 export const properties = pgTable(
   "properties",
@@ -78,7 +81,10 @@ export const properties = pgTable(
       table.organizationId,
       table.id,
     ),
-    index("properties_org_active_idx").on(table.organizationId, table.deletedAt),
+    index("properties_org_active_idx").on(
+      table.organizationId,
+      table.deletedAt,
+    ),
     check(
       "properties_turnover_duration_positive",
       sql`${table.turnoverDurationMinutes} >= 1 AND ${table.turnoverDurationMinutes} <= 1440`,
@@ -139,13 +145,28 @@ export const units = pgTable(
     // Guest-facing listing and stay-guide content. These intentionally live on
     // the unit: sibling units at one property can have different guidance.
     description: text("description"),
-    imageGallery: jsonb("image_gallery").$type<string[]>().notNull().default([]),
-    guestHouseRules: jsonb("guest_house_rules").$type<string[]>().notNull().default([]),
+    imageGallery: jsonb("image_gallery")
+      .$type<string[]>()
+      .notNull()
+      .default([]),
+    guestHouseRules: jsonb("guest_house_rules")
+      .$type<string[]>()
+      .notNull()
+      .default([]),
     wifiName: text("wifi_name"),
     wifiPassword: text("wifi_password"),
-    arrivalNotes: jsonb("arrival_notes").$type<string[]>().notNull().default([]),
-    areaTips: jsonb("area_tips").$type<{ title: string; detail: string }[]>().notNull().default([]),
-    checkoutSteps: jsonb("checkout_steps").$type<string[]>().notNull().default([]),
+    arrivalNotes: jsonb("arrival_notes")
+      .$type<string[]>()
+      .notNull()
+      .default([]),
+    areaTips: jsonb("area_tips")
+      .$type<{ title: string; detail: string }[]>()
+      .notNull()
+      .default([]),
+    checkoutSteps: jsonb("checkout_steps")
+      .$type<string[]>()
+      .notNull()
+      .default([]),
     // Null uses all enabled organization channels; [] deliberately shows none.
     contactChannelIds: jsonb("contact_channel_ids").$type<string[] | null>(),
     // Turnover template snapshot source; checkout copies it onto the task.
@@ -168,7 +189,10 @@ export const units = pgTable(
     ),
     index("units_org_active_idx").on(table.organizationId, table.deletedAt),
     index("units_property_active_idx").on(table.propertyId, table.deletedAt),
-    uniqueIndex("units_org_public_slug_unique").on(table.organizationId, table.publicSlug),
+    uniqueIndex("units_org_public_slug_unique").on(
+      table.organizationId,
+      table.publicSlug,
+    ),
     foreignKey({
       columns: [table.organizationId, table.propertyId],
       foreignColumns: [properties.organizationId, properties.id],
@@ -257,9 +281,19 @@ export const amenities = pgTable(
       .defaultNow(),
   },
   (table) => [
-    uniqueIndex("amenities_organization_id_unique").on(table.organizationId, table.id),
-    uniqueIndex("amenities_org_scope_name_unique").on(table.organizationId, table.scope, sql`lower(${table.name})`),
-    check("amenities_name_length", sql`char_length(trim(${table.name})) BETWEEN 2 AND 60`),
+    uniqueIndex("amenities_organization_id_unique").on(
+      table.organizationId,
+      table.id,
+    ),
+    uniqueIndex("amenities_org_scope_name_unique").on(
+      table.organizationId,
+      table.scope,
+      sql`lower(${table.name})`,
+    ),
+    check(
+      "amenities_name_length",
+      sql`char_length(trim(${table.name})) BETWEEN 2 AND 60`,
+    ),
   ],
 );
 

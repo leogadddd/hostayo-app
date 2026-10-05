@@ -9,14 +9,28 @@
  * The global `role_permissions` table seeded by an earlier migration predates
  * this catalogue and is not read.
  */
-export const ROLE_KEYS = ["owner", "admin", "operations_manager", "staff"] as const;
+export const ROLE_KEYS = [
+  "owner",
+  "admin",
+  "operations_manager",
+  "staff",
+] as const;
 export type RoleKey = (typeof ROLE_KEYS)[number];
 
 /** Roles an owner can hand out; ownership is never granted by invitation. */
-export const INVITABLE_ROLE_KEYS = ["admin", "operations_manager", "staff"] as const satisfies readonly RoleKey[];
+export const INVITABLE_ROLE_KEYS = [
+  "admin",
+  "operations_manager",
+  "staff",
+] as const satisfies readonly RoleKey[];
 export type InvitableRoleKey = (typeof INVITABLE_ROLE_KEYS)[number];
 
-export const PERMISSION_ACTIONS = ["view", "create", "update", "delete"] as const;
+export const PERMISSION_ACTIONS = [
+  "view",
+  "create",
+  "update",
+  "delete",
+] as const;
 export type PermissionAction = (typeof PERMISSION_ACTIONS)[number];
 
 export const ACTION_LABELS: Record<PermissionAction, string> = {
@@ -60,7 +74,8 @@ export const PERMISSION_AREAS = [
     label: "Rates & payments",
     actions: {
       view: "See rates, totals, balances and payment history",
-      create: "Record payments, refunds and deposit deductions, and set custom charges",
+      create:
+        "Record payments, refunds and deposit deductions, and set custom charges",
       update: "Review guest payment proofs",
     },
   },
@@ -128,7 +143,10 @@ export const PERMISSION_AREAS = [
   {
     area: "organization",
     label: "Organization settings",
-    actions: { update: "Edit the organization profile, region and guest payment instructions" },
+    actions: {
+      update:
+        "Edit the organization profile, region and guest payment instructions",
+    },
   },
   {
     area: "team",
@@ -149,11 +167,16 @@ export const PERMISSION_AREAS = [
 type Area = (typeof PERMISSION_AREAS)[number];
 export type PermissionArea = Area["area"];
 export type Permission = {
-  [A in Area as A["area"]]: `${A["area"]}.${Extract<keyof A["actions"], PermissionAction>}`;
+  [
+    A in Area as A["area"]
+  ]: `${A["area"]}.${Extract<keyof A["actions"], PermissionAction>}`;
 }[PermissionArea];
 
-export const PERMISSIONS: readonly Permission[] = PERMISSION_AREAS.flatMap((group) =>
-  PERMISSION_ACTIONS.filter((action) => action in group.actions).map((action) => `${group.area}.${action}` as Permission),
+export const PERMISSIONS: readonly Permission[] = PERMISSION_AREAS.flatMap(
+  (group) =>
+    PERMISSION_ACTIONS.filter((action) => action in group.actions).map(
+      (action) => `${group.area}.${action}` as Permission,
+    ),
 );
 
 export function isPermission(value: string): value is Permission {
@@ -161,38 +184,66 @@ export function isPermission(value: string): value is Permission {
 }
 
 export function permissionDescription(permission: Permission): string {
-  const [area, action] = permission.split(".") as [PermissionArea, PermissionAction];
+  const [area, action] = permission.split(".") as [
+    PermissionArea,
+    PermissionAction,
+  ];
   const group = PERMISSION_AREAS.find((candidate) => candidate.area === area)!;
-  return (group.actions as Partial<Record<PermissionAction, string>>)[action] ?? permission;
+  return (
+    (group.actions as Partial<Record<PermissionAction, string>>)[action] ??
+    permission
+  );
 }
 
 /** Defaults that match how Hostayo behaved before roles were configurable. */
-export const DEFAULT_ROLE_PERMISSIONS: Record<RoleKey, readonly Permission[]> = {
-  owner: PERMISSIONS,
-  admin: PERMISSIONS,
-  operations_manager: PERMISSIONS.filter(
-    (permission) => !permission.startsWith("team.") && !permission.startsWith("organization.")
-      && (!permission.startsWith("platforms.") || permission === "platforms.view")
-      && permission !== "reports.view" && permission !== "audit_logs.view",
-  ),
-  staff: [
-    "reservations.view",
-    "reservations.create",
-    "stays.update",
-    "extensions.create",
-    "guests.view",
-    "guests.create",
-    "tasks.view",
-    "tasks.update",
-    "damage.create",
-  ],
-};
+export const DEFAULT_ROLE_PERMISSIONS: Record<RoleKey, readonly Permission[]> =
+  {
+    owner: PERMISSIONS,
+    admin: PERMISSIONS,
+    operations_manager: PERMISSIONS.filter(
+      (permission) =>
+        !permission.startsWith("team.") &&
+        !permission.startsWith("organization.") &&
+        (!permission.startsWith("platforms.") ||
+          permission === "platforms.view") &&
+        permission !== "reports.view" &&
+        permission !== "audit_logs.view",
+    ),
+    staff: [
+      "reservations.view",
+      "reservations.create",
+      "stays.update",
+      "extensions.create",
+      "guests.view",
+      "guests.create",
+      "tasks.view",
+      "tasks.update",
+      "damage.create",
+    ],
+  };
 
-export const ROLE_DETAILS: Record<RoleKey, { name: string; description: string }> = {
-  owner: { name: "Owner", description: "Full control of the organization. Can’t be restricted." },
-  admin: { name: "Admin", description: "Runs the organization and team, and can adjust these permissions." },
-  operations_manager: { name: "Operations Manager", description: "Manages properties, stays, payments, inventory, tasks and expenses." },
-  staff: { name: "Staff", description: "Handles day-to-day tasks and operational updates." },
+export const ROLE_DETAILS: Record<
+  RoleKey,
+  { name: string; description: string }
+> = {
+  owner: {
+    name: "Owner",
+    description: "Full control of the organization. Can’t be restricted.",
+  },
+  admin: {
+    name: "Admin",
+    description:
+      "Runs the organization and team, and can adjust these permissions.",
+  },
+  operations_manager: {
+    name: "Operations Manager",
+    description:
+      "Manages properties, stays, payments, inventory, tasks and expenses.",
+  },
+  staff: {
+    name: "Staff",
+    description: "Handles day-to-day tasks and operational updates.",
+  },
 };
 
 export function roleLabel(role: RoleKey): string {
@@ -203,7 +254,9 @@ export function roleLabel(role: RoleKey): string {
  * Seeing an area is required for anything else in it, so granting an action
  * grants `view` and removing `view` removes the rest.
  */
-export function normalizePermissions(granted: Iterable<Permission>): Permission[] {
+export function normalizePermissions(
+  granted: Iterable<Permission>,
+): Permission[] {
   const set = new Set(granted);
   for (const permission of [...set]) {
     const [area, action] = permission.split(".");
@@ -237,8 +290,13 @@ export function resolvePermissions(
  * Whether a member holds `permission`. `permissions` is what the session
  * loaded for their organization; without it the role's defaults apply.
  */
-export function can(member: { role: RoleKey; permissions?: readonly Permission[] }, permission: Permission): boolean {
-  return (member.permissions ?? resolvePermissions(member.role)).includes(permission);
+export function can(
+  member: { role: RoleKey; permissions?: readonly Permission[] },
+  permission: Permission,
+): boolean {
+  return (member.permissions ?? resolvePermissions(member.role)).includes(
+    permission,
+  );
 }
 
 /** Who may open and change the permission matrix. Fixed, so nobody can lock it away. */

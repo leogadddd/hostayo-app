@@ -21,7 +21,9 @@ export type OrganizationOption = {
 };
 
 /** "Owner", or "L1 access" in an organization the user isn't a member of. */
-function accessLabel(organization: Pick<OrganizationOption, "role" | "viaL1">): string {
+function accessLabel(
+  organization: Pick<OrganizationOption, "role" | "viaL1">,
+): string {
   return organization.viaL1 ? "L1 access" : roleLabel(organization.role);
 }
 
@@ -263,7 +265,9 @@ export function OrganizationSelector({
                 >
                   <OrganizationMark
                     name={organization.name}
-                    imageSrc={organization.imageSrc ?? (selected ? imageSrc : null)}
+                    imageSrc={
+                      organization.imageSrc ?? (selected ? imageSrc : null)
+                    }
                     size="sm"
                   />
                   <span className="min-w-0 flex-1">

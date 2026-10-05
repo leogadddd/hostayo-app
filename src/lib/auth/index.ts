@@ -2,9 +2,16 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { twoFactor } from "better-auth/plugins";
 import { db } from "@/lib/db";
-import { account, session, twoFactor as twoFactorTable, user, verification } from "@/lib/db/schema";
+import {
+  account,
+  session,
+  twoFactor as twoFactorTable,
+  user,
+  verification,
+} from "@/lib/db/schema";
 
-const configuredBaseUrl = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
+const configuredBaseUrl =
+  process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
 const configuredHost = new URL(configuredBaseUrl).host;
 
 export const auth = betterAuth({
@@ -37,9 +44,19 @@ export const auth = betterAuth({
     minPasswordLength: 8,
     maxPasswordLength: 128,
   },
-  plugins: [twoFactor({
-    issuer: "Hostayo",
-    backupCodeOptions: { amount: 10, length: 10, storeBackupCodes: "encrypted" },
-    accountLockout: { enabled: true, maxFailedAttempts: 10, durationSeconds: 900 },
-  })],
+  plugins: [
+    twoFactor({
+      issuer: "Hostayo",
+      backupCodeOptions: {
+        amount: 10,
+        length: 10,
+        storeBackupCodes: "encrypted",
+      },
+      accountLockout: {
+        enabled: true,
+        maxFailedAttempts: 10,
+        durationSeconds: 900,
+      },
+    }),
+  ],
 });

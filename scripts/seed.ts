@@ -2,7 +2,13 @@ import "dotenv/config";
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { expenses, memberships, organizations, tasks, user } from "@/lib/db/schema";
+import {
+  expenses,
+  memberships,
+  organizations,
+  tasks,
+  user,
+} from "@/lib/db/schema";
 import { addDaysLocal } from "@/lib/dates";
 import { createOrganization } from "@/server/orgs/service";
 import {
@@ -73,7 +79,9 @@ async function resolveSeedUserId(): Promise<string> {
     .limit(1);
   const existingId = existingUser[0]?.id;
   if (!existingId) {
-    throw new Error("Demo user exists in auth but was not found in the user table.");
+    throw new Error(
+      "Demo user exists in auth but was not found in the user table.",
+    );
   }
   console.log(`seed: user already registered (${SEED_USER.email})`);
   return existingId;
@@ -83,7 +91,10 @@ export async function seedDemoData() {
   const userId = await resolveSeedUserId();
   // Do not infer demo mode from an email address at runtime. The persisted
   // marker lets server-side code safely distinguish this shared account.
-  await db.update(user).set({ isDemoAccount: true, updatedAt: new Date() }).where(eq(user.id, userId));
+  await db
+    .update(user)
+    .set({ isDemoAccount: true, updatedAt: new Date() })
+    .where(eq(user.id, userId));
   console.log(`seed: user ready (${SEED_USER.email})`);
 
   let organizationId: string;
@@ -136,7 +147,8 @@ export async function seedDemoData() {
         defaultNightlyRateCents: 5500 * 100,
         cleaningFeeCents: 500 * 100,
         securityDepositCents: 2000 * 100,
-        checkInTime: "15:00", checkOutTime: "11:00",
+        checkInTime: "15:00",
+        checkOutTime: "11:00",
         status: "active",
       },
     });
@@ -153,7 +165,8 @@ export async function seedDemoData() {
         defaultNightlyRateCents: 7200 * 100,
         cleaningFeeCents: 600 * 100,
         securityDepositCents: 3000 * 100,
-        checkInTime: "15:00", checkOutTime: "11:00",
+        checkInTime: "15:00",
+        checkOutTime: "11:00",
         status: "renovating",
       },
     });
@@ -276,7 +289,9 @@ export async function seedDemoData() {
         actorUserId: userId,
         reservationId: confirmed.id,
       });
-      console.log(`seed: guest status link for the confirmed stay → /g/${link.token}`);
+      console.log(
+        `seed: guest status link for the confirmed stay → /g/${link.token}`,
+      );
     }
   }
 
@@ -333,7 +348,8 @@ export async function seedDemoData() {
         category: "maintenance",
         classification: "capital",
         paidDate: today,
-        description: "Seeded demo expense: hallway repainting, capital improvement (fake).",
+        description:
+          "Seeded demo expense: hallway repainting, capital improvement (fake).",
       },
     ] as const;
     const existingDescriptions = new Set(

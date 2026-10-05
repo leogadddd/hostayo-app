@@ -20,12 +20,16 @@ export default async function EditOrganizationPage() {
 
   return (
     <div className="min-w-0">
-      <OrganizationProfileForm values={{
-        ...org,
-        logoUrl: org.logoUrl?.startsWith("data:")
-          ? org.logoUrl
-          : org.logoUrl ? `/api/orgs/${org.id}/logo` : null,
-      }} />
+      <OrganizationProfileForm
+        values={{
+          ...org,
+          logoUrl: org.logoUrl?.startsWith("data:")
+            ? org.logoUrl
+            : org.logoUrl
+              ? `/api/orgs/${org.id}/logo`
+              : null,
+        }}
+      />
     </div>
   );
 }

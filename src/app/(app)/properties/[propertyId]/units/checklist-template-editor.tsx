@@ -30,7 +30,10 @@ export function ChecklistTemplateEditor({
     `/properties/${propertyId}/units/${unitId}`,
     "Turnover checklist updated.",
   );
-  const [state, formAction, pending] = useActionState<InventoryFormState, FormData>(save, {});
+  const [state, formAction, pending] = useActionState<
+    InventoryFormState,
+    FormData
+  >(save, {});
   useActionFeedback(state);
   const [rows, setRows] = useState<TemplateRow[]>(items);
 
@@ -53,7 +56,9 @@ export function ChecklistTemplateEditor({
             <Input
               aria-label={`Checklist item ${index + 1}`}
               value={row.label}
-              onChange={(event) => updateRow(index, { label: event.target.value })}
+              onChange={(event) =>
+                updateRow(index, { label: event.target.value })
+              }
               maxLength={120}
               className="flex-1"
             />
@@ -84,14 +89,22 @@ export function ChecklistTemplateEditor({
         type="button"
         variant="outline"
         size="sm"
-        onClick={() => setRows((current) => [...current, { label: "", required: true }])}
+        onClick={() =>
+          setRows((current) => [...current, { label: "", required: true }])
+        }
         disabled={rows.length >= 30}
       >
         <Plus className="h-4 w-4" aria-hidden />
         Add item
       </Button>
       <FieldError message={state.error} />
-      <Button type="submit" variant="clay" size="lg" className="mt-2 w-full" disabled={pending}>
+      <Button
+        type="submit"
+        variant="clay"
+        size="lg"
+        className="mt-2 w-full"
+        disabled={pending}
+      >
         {pending ? "Saving…" : "Save checklist"}
       </Button>
     </form>

@@ -57,7 +57,10 @@ export function TaskNotesForm({
       </div>
       <FieldError message={state.error} />
       {state.success ? (
-        <p className="inline-flex items-center gap-1.5 text-sm text-pine" role="status">
+        <p
+          className="inline-flex items-center gap-1.5 text-sm text-pine"
+          role="status"
+        >
           <CheckCircle2 className="h-4 w-4" aria-hidden />
           Notes saved.
         </p>
@@ -66,7 +69,12 @@ export function TaskNotesForm({
           <Button type="submit" variant="clay" disabled={pending}>
             {pending ? "Saving…" : "Save notes"}
           </Button>
-          <Link href={`/tasks/${taskId}`} className="text-sm text-pine hover:underline">Cancel</Link>
+          <Link
+            href={`/tasks/${taskId}`}
+            className="text-sm text-pine hover:underline"
+          >
+            Cancel
+          </Link>
         </div>
       )}
     </form>

@@ -2,7 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { ZodError } from "zod";
-import { requireMembership, assertCan, PermissionError } from "@/lib/auth/session";
+import {
+  requireMembership,
+  assertCan,
+  PermissionError,
+} from "@/lib/auth/session";
 import {
   addDeduction,
   dismissProof,

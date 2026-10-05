@@ -34,10 +34,20 @@ describe("concurrent hold creation", () => {
           newGuest: { name: "Race Guest", email: `${key}@example.com` },
         },
         idempotencyKey: key,
-        data: { unitId: unit.id, checkIn, checkOut, guestCount: 2, holdMinutes: 30, charges: CHARGES },
+        data: {
+          unitId: unit.id,
+          checkIn,
+          checkOut,
+          guestCount: 2,
+          holdMinutes: 30,
+          charges: CHARGES,
+        },
       });
 
-    const results = await Promise.allSettled([attempt("race-a"), attempt("race-b")]);
+    const results = await Promise.allSettled([
+      attempt("race-a"),
+      attempt("race-b"),
+    ]);
 
     const fulfilled = results.filter((r) => r.status === "fulfilled");
     const rejected = results.filter(

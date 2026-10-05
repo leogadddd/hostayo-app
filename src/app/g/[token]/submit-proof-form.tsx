@@ -5,27 +5,33 @@ import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { Button, buttonClassName } from "@/components/ui/button";
 import { FieldError, Input, Label, Textarea } from "@/components/ui/input";
-import {
-  submitPaymentProofAction,
-  type GuestProofFormState,
-} from "./actions";
+import { submitPaymentProofAction, type GuestProofFormState } from "./actions";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
 
 export function SubmitProofForm({ token }: { token: string }) {
-  const [state, formAction, pending] = useActionState<GuestProofFormState, FormData>(
-    submitPaymentProofAction.bind(null, token),
-    {},
-  );
+  const [state, formAction, pending] = useActionState<
+    GuestProofFormState,
+    FormData
+  >(submitPaymentProofAction.bind(null, token), {});
   useActionFeedback(state, { success: "Payment reference sent to your host." });
 
   if (state.success) {
     return (
       <div className="space-y-4">
-        <p className="flex items-start gap-2 rounded-lg bg-sage/40 p-4 text-sm text-pine" role="status">
+        <p
+          className="flex items-start gap-2 rounded-lg bg-sage/40 p-4 text-sm text-pine"
+          role="status"
+        >
           <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
           Reference sent — your host will verify it against their account.
         </p>
-        <Link href={`/g/${encodeURIComponent(token)}`} prefetch={false} className={buttonClassName("clay", "md", "w-full")}>Back to your booking</Link>
+        <Link
+          href={`/g/${encodeURIComponent(token)}`}
+          prefetch={false}
+          className={buttonClassName("clay", "md", "w-full")}
+        >
+          Back to your booking
+        </Link>
       </div>
     );
   }
@@ -58,7 +64,13 @@ export function SubmitProofForm({ token }: { token: string }) {
         <Button type="submit" variant="clay" disabled={pending}>
           {pending ? "Sending…" : "Send reference"}
         </Button>
-        <Link href={`/g/${encodeURIComponent(token)}`} prefetch={false} className="text-sm text-pine hover:underline">Cancel</Link>
+        <Link
+          href={`/g/${encodeURIComponent(token)}`}
+          prefetch={false}
+          className="text-sm text-pine hover:underline"
+        >
+          Cancel
+        </Link>
       </div>
     </form>
   );

@@ -9,7 +9,11 @@ export const metadata: Metadata = { title: "Security settings" };
 
 export default async function SecuritySettingsPage() {
   const currentUser = await requireUser();
-  const [preferences] = await db.select().from(userSecurityPreferences).where(eq(userSecurityPreferences.userId, currentUser.id)).limit(1);
+  const [preferences] = await db
+    .select()
+    .from(userSecurityPreferences)
+    .where(eq(userSecurityPreferences.userId, currentUser.id))
+    .limit(1);
   return (
     <SecuritySettings
       email={currentUser.email}

@@ -64,7 +64,13 @@ export function TimeInput({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const close = useCallback(() => setOpen(false), []);
-  useAnchoredPopover({ open, onClose: close, wrapperRef, triggerRef, popoverRef });
+  useAnchoredPopover({
+    open,
+    onClose: close,
+    wrapperRef,
+    triggerRef,
+    popoverRef,
+  });
 
   const set = (next: string) => {
     if (value === undefined) setInternal(next);
@@ -74,33 +80,65 @@ export function TimeInput({
   const hour = parts?.hour ?? 12;
   const minute = parts?.minute ?? 0;
   const pm = hour >= 12;
-  const stepped = Array.from({ length: Math.ceil(60 / step) }, (_, index) => index * step);
-  const minutes = stepped.includes(minute) ? stepped : [...stepped, minute].sort((a, b) => a - b);
+  const stepped = Array.from(
+    { length: Math.ceil(60 / step) },
+    (_, index) => index * step,
+  );
+  const minutes = stepped.includes(minute)
+    ? stepped
+    : [...stepped, minute].sort((a, b) => a - b);
 
   // Bring each column's chosen value into view, and focus the hour.
   useEffect(() => {
     if (!open) return;
-    popoverRef.current?.querySelectorAll<HTMLElement>("[aria-selected='true']").forEach((node) => {
-      const column = node.parentElement!;
-      column.scrollTop = node.offsetTop - column.offsetTop - (column.clientHeight - node.offsetHeight) / 2;
-    });
-    popoverRef.current?.querySelector<HTMLElement>("[data-column='0'] [aria-selected='true']")?.focus({ preventScroll: true });
+    popoverRef.current
+      ?.querySelectorAll<HTMLElement>("[aria-selected='true']")
+      .forEach((node) => {
+        const column = node.parentElement!;
+        column.scrollTop =
+          node.offsetTop -
+          column.offsetTop -
+          (column.clientHeight - node.offsetHeight) / 2;
+      });
+    popoverRef.current
+      ?.querySelector<HTMLElement>("[data-column='0'] [aria-selected='true']")
+      ?.focus({ preventScroll: true });
   }, [open]);
 
   const columns = [
     {
       label: "Hour",
-      options: HOURS.map((h) => ({ key: h, text: String(h), selected: (hour % 12 || 12) === h, pick: () => set(format((h % 12) + (pm ? 12 : 0), minute)) })),
+      options: HOURS.map((h) => ({
+        key: h,
+        text: String(h),
+        selected: (hour % 12 || 12) === h,
+        pick: () => set(format((h % 12) + (pm ? 12 : 0), minute)),
+      })),
     },
     {
       label: "Minute",
-      options: minutes.map((m) => ({ key: m, text: pad(m), selected: minute === m, pick: () => set(format(hour, m)) })),
+      options: minutes.map((m) => ({
+        key: m,
+        text: pad(m),
+        selected: minute === m,
+        pick: () => set(format(hour, m)),
+      })),
     },
     {
       label: "AM or PM",
       options: [
-        { key: "AM", text: "AM", selected: !pm, pick: () => set(format(hour % 12, minute)) },
-        { key: "PM", text: "PM", selected: pm, pick: () => set(format((hour % 12) + 12, minute)) },
+        {
+          key: "AM",
+          text: "AM",
+          selected: !pm,
+          pick: () => set(format(hour % 12, minute)),
+        },
+        {
+          key: "PM",
+          text: "PM",
+          selected: pm,
+          pick: () => set(format((hour % 12) + 12, minute)),
+        },
       ],
     },
   ];
@@ -120,7 +158,9 @@ export function TimeInput({
           return;
         }
         const target = event.target as HTMLElement;
-        const column = Number(target.closest<HTMLElement>("[data-column]")?.dataset.column);
+        const column = Number(
+          target.closest<HTMLElement>("[data-column]")?.dataset.column,
+        );
         const index = Number(target.dataset.index);
         if (Number.isNaN(column) || Number.isNaN(index)) return;
         const vertical = { ArrowDown: 1, ArrowUp: -1 }[event.key];
@@ -128,13 +168,26 @@ export function TimeInput({
         if (vertical !== undefined) {
           event.preventDefault();
           const options = columns[column]!.options;
-          const next = Math.min(options.length - 1, Math.max(0, index + vertical));
+          const next = Math.min(
+            options.length - 1,
+            Math.max(0, index + vertical),
+          );
           options[next]!.pick();
-          requestAnimationFrame(() => popoverRef.current?.querySelector<HTMLElement>(`[data-column='${column}'] [data-index='${next}']`)?.focus());
+          requestAnimationFrame(() =>
+            popoverRef.current
+              ?.querySelector<HTMLElement>(
+                `[data-column='${column}'] [data-index='${next}']`,
+              )
+              ?.focus(),
+          );
         } else if (horizontal !== undefined) {
           event.preventDefault();
           const nextColumn = Math.min(2, Math.max(0, column + horizontal));
-          popoverRef.current?.querySelector<HTMLElement>(`[data-column='${nextColumn}'] [aria-selected='true']`)?.focus();
+          popoverRef.current
+            ?.querySelector<HTMLElement>(
+              `[data-column='${nextColumn}'] [aria-selected='true']`,
+            )
+            ?.focus();
         }
       }}
     >
@@ -162,12 +215,21 @@ export function TimeInput({
         className={cn(
           "relative flex w-full min-w-0 items-center gap-2.5 border bg-surface px-3 text-left text-sm text-ink transition-colors",
           "focus:border-pine focus:outline-none focus:ring-2 focus:ring-sage disabled:cursor-not-allowed disabled:opacity-60",
-          open ? "border-pine ring-2 ring-sage" : "border-pine/20 hover:border-pine/40",
+          open
+            ? "border-pine ring-2 ring-sage"
+            : "border-pine/20 hover:border-pine/40",
           size === "lg" ? "h-12 rounded-xl" : "h-10 rounded-lg",
         )}
       >
         <Clock className="h-4 w-4 shrink-0 text-pine/50" aria-hidden />
-        <span className={cn("min-w-0 truncate tabular-nums", !parts && "text-ink/40")}>{parts ? readableTime(current) : placeholder}</span>
+        <span
+          className={cn(
+            "min-w-0 truncate tabular-nums",
+            !parts && "text-ink/40",
+          )}
+        >
+          {parts ? readableTime(current) : placeholder}
+        </span>
       </button>
 
       {open ? (
@@ -198,7 +260,9 @@ export function TimeInput({
                     onClick={option.pick}
                     className={cn(
                       "flex h-9 shrink-0 items-center justify-center rounded-lg text-sm tabular-nums transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-clay",
-                      option.selected ? "bg-primary font-semibold text-white" : "text-pine hover:bg-pine-mist",
+                      option.selected
+                        ? "bg-primary font-semibold text-white"
+                        : "text-pine hover:bg-pine-mist",
                     )}
                   >
                     {option.text}

@@ -9,7 +9,14 @@ import { PlatformLogo } from "@/components/app/platform-badge";
 import { Badge } from "@/components/ui/badge";
 import { buttonClassName } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { PlatformRowActions, RestorePlatformButton } from "./platform-forms";
 
 export const metadata: Metadata = { title: "Booking platforms" };
@@ -23,21 +30,30 @@ export default async function PlatformSettingsPage() {
   const canCreate = can(membership, "platforms.create");
   const canUpdate = can(membership, "platforms.update");
   const canDelete = can(membership, "platforms.delete");
-  const bookings = (count: number) => `${count} ${count === 1 ? "booking" : "bookings"}`;
-  const isRequired = (key: string | null) => key === "direct" || key === "walk_in" || key === "referral";
+  const bookings = (count: number) =>
+    `${count} ${count === 1 ? "booking" : "bookings"}`;
+  const isRequired = (key: string | null) =>
+    key === "direct" || key === "walk_in" || key === "referral";
 
   return (
     <div className="min-w-0 space-y-6">
       <Card className="overflow-hidden bg-card">
         <CardHeader className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="font-display text-xl text-pine">Booking platforms</h2>
+            <h2 className="font-display text-xl text-pine">
+              Booking platforms
+            </h2>
             <p className="mt-1 max-w-xl text-sm text-ink/60">
-              Where {membership.organizationName}&apos;s bookings come from. New reservations offer these, in this order; remove the ones you don&apos;t use.
+              Where {membership.organizationName}&apos;s bookings come from. New
+              reservations offer these, in this order; remove the ones you
+              don&apos;t use.
             </p>
           </div>
           {canCreate ? (
-            <Link href="/settings/platforms/new" className={buttonClassName("clay", "sm")}>
+            <Link
+              href="/settings/platforms/new"
+              className={buttonClassName("clay", "sm")}
+            >
               <Plus className="h-4 w-4" aria-hidden />
               Add platform
             </Link>
@@ -57,17 +73,26 @@ export default async function PlatformSettingsPage() {
               <TableRow key={platform.id}>
                 <TableCell>
                   <span className="flex min-w-0 items-center gap-2.5">
-                    <PlatformLogo platform={platform} className="h-7 w-7 rounded-lg text-xs" />
-                    <span className="truncate font-medium text-pine">{platform.name}</span>
+                    <PlatformLogo
+                      platform={platform}
+                      className="h-7 w-7 rounded-lg text-xs"
+                    />
+                    <span className="truncate font-medium text-pine">
+                      {platform.name}
+                    </span>
                     {platform.key === null ? <Badge>Custom</Badge> : null}
                   </span>
                 </TableCell>
                 <TableCell>
-                  {platform.downPaymentApplies
-                    ? <Badge tone="sage">Applies</Badge>
-                    : <Badge tone="neutral">Doesn&apos;t apply</Badge>}
+                  {platform.downPaymentApplies ? (
+                    <Badge tone="sage">Applies</Badge>
+                  ) : (
+                    <Badge tone="neutral">Doesn&apos;t apply</Badge>
+                  )}
                 </TableCell>
-                <TableCell className="text-right tabular-nums text-ink/65">{bookings(platform.reservationCount)}</TableCell>
+                <TableCell className="text-right tabular-nums text-ink/65">
+                  {bookings(platform.reservationCount)}
+                </TableCell>
                 <TableCell>
                   {canUpdate || canDelete ? (
                     <PlatformRowActions
@@ -75,9 +100,15 @@ export default async function PlatformSettingsPage() {
                       isFirst={index === 0}
                       isLast={index === active.length - 1}
                       canUpdate={canUpdate}
-                      canDelete={canDelete && active.length > 1 && !isRequired(platform.key)}
+                      canDelete={
+                        canDelete &&
+                        active.length > 1 &&
+                        !isRequired(platform.key)
+                      }
                     />
-                  ) : <span className="block text-right text-ink/40">—</span>}
+                  ) : (
+                    <span className="block text-right text-ink/40">—</span>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
@@ -88,8 +119,13 @@ export default async function PlatformSettingsPage() {
       {removed.length ? (
         <Card className="overflow-hidden bg-card">
           <CardHeader>
-            <h2 className="font-display text-xl text-pine">Removed platforms</h2>
-            <p className="mt-1 max-w-xl text-sm text-ink/60">Not offered for new reservations. Past bookings still show where they came from.</p>
+            <h2 className="font-display text-xl text-pine">
+              Removed platforms
+            </h2>
+            <p className="mt-1 max-w-xl text-sm text-ink/60">
+              Not offered for new reservations. Past bookings still show where
+              they came from.
+            </p>
           </CardHeader>
           <Table aria-label="Removed platforms">
             <TableBody>
@@ -97,13 +133,25 @@ export default async function PlatformSettingsPage() {
                 <TableRow key={platform.id}>
                   <TableCell>
                     <span className="flex min-w-0 items-center gap-2.5 opacity-70">
-                      <PlatformLogo platform={platform} className="h-7 w-7 rounded-lg text-xs" />
-                      <span className="truncate font-medium text-pine">{platform.name}</span>
+                      <PlatformLogo
+                        platform={platform}
+                        className="h-7 w-7 rounded-lg text-xs"
+                      />
+                      <span className="truncate font-medium text-pine">
+                        {platform.name}
+                      </span>
                     </span>
                   </TableCell>
-                  <TableCell className="text-right tabular-nums text-ink/65">{bookings(platform.reservationCount)}</TableCell>
+                  <TableCell className="text-right tabular-nums text-ink/65">
+                    {bookings(platform.reservationCount)}
+                  </TableCell>
                   <TableCell className="w-px text-right">
-                    {canUpdate ? <RestorePlatformButton platformId={platform.id} name={platform.name} /> : null}
+                    {canUpdate ? (
+                      <RestorePlatformButton
+                        platformId={platform.id}
+                        name={platform.name}
+                      />
+                    ) : null}
                   </TableCell>
                 </TableRow>
               ))}
@@ -114,7 +162,11 @@ export default async function PlatformSettingsPage() {
 
       <Card className="bg-card">
         <CardBody className="text-sm text-ink/65">
-          <p>This setting matters only when the selected unit has a required down payment. It decides whether that unit&apos;s down payment is required before bookings from this platform are confirmed.</p>
+          <p>
+            This setting matters only when the selected unit has a required down
+            payment. It decides whether that unit&apos;s down payment is
+            required before bookings from this platform are confirmed.
+          </p>
         </CardBody>
       </Card>
     </div>

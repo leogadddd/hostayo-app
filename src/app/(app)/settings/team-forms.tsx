@@ -1,9 +1,28 @@
 "use client";
 
-import { Fragment, useActionState, useEffect, useId, useRef, useState, type ReactNode } from "react";
+import {
+  Fragment,
+  useActionState,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, ClipboardList, Info, KeyRound, MailPlus, Minus, ShieldCheck, UserCog, UserRound, X } from "lucide-react";
+import {
+  Check,
+  ClipboardList,
+  Info,
+  KeyRound,
+  MailPlus,
+  Minus,
+  ShieldCheck,
+  UserCog,
+  UserRound,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button, buttonClassName } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
@@ -35,7 +54,11 @@ import {
 } from "./actions";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
 
-const ROLE_ICONS = { admin: ShieldCheck, operations_manager: ClipboardList, staff: UserRound } as const;
+const ROLE_ICONS = {
+  admin: ShieldCheck,
+  operations_manager: ClipboardList,
+  staff: UserRound,
+} as const;
 
 const ROLE_OPTIONS = INVITABLE_ROLE_KEYS.map((key) => ({
   value: key,
@@ -45,7 +68,10 @@ const ROLE_OPTIONS = INVITABLE_ROLE_KEYS.map((key) => ({
 }));
 
 function formatExpiry(iso: string): string {
-  return new Intl.DateTimeFormat(undefined, { dateStyle: "long", timeStyle: "short" }).format(new Date(iso));
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "long",
+    timeStyle: "short",
+  }).format(new Date(iso));
 }
 
 function invitationLink(code: string): string {
@@ -56,11 +82,23 @@ function invitationLink(code: string): string {
 /** Remounting the form clears the one-time link from the previous invite. */
 export function InviteTeamMemberForm() {
   const [round, setRound] = useState(0);
-  return <InviteTeamMemberRound key={round} onInviteAnother={() => setRound((value) => value + 1)} />;
+  return (
+    <InviteTeamMemberRound
+      key={round}
+      onInviteAnother={() => setRound((value) => value + 1)}
+    />
+  );
 }
 
-function InviteTeamMemberRound({ onInviteAnother }: { onInviteAnother: () => void }) {
-  const [state, formAction, pending] = useActionState<OrgFormState, FormData>(inviteStaffAction, {});
+function InviteTeamMemberRound({
+  onInviteAnother,
+}: {
+  onInviteAnother: () => void;
+}) {
+  const [state, formAction, pending] = useActionState<OrgFormState, FormData>(
+    inviteStaffAction,
+    {},
+  );
   const [role, setRole] = useState<InvitableRoleKey>("staff");
   const [email, setEmail] = useState("");
   useActionFeedback(state, { success: "Invitation created." });
@@ -72,10 +110,14 @@ function InviteTeamMemberRound({ onInviteAnother }: { onInviteAnother: () => voi
   if (state.success && state.invitationCode && state.invitationExpiresAt) {
     return (
       <div className="space-y-5">
-        <div role="status" className="flex items-start gap-3 rounded-xl bg-sage/40 p-4 text-sm text-pine">
+        <div
+          role="status"
+          className="flex items-start gap-3 rounded-xl bg-sage/40 p-4 text-sm text-pine"
+        >
           <Check className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
           <p>
-            Invitation created for <strong className="font-semibold">{email}</strong> as{" "}
+            Invitation created for{" "}
+            <strong className="font-semibold">{email}</strong> as{" "}
             <strong className="font-semibold">{roleLabel(role)}</strong>.
           </p>
         </div>
@@ -87,8 +129,9 @@ function InviteTeamMemberRound({ onInviteAnother }: { onInviteAnother: () => voi
         <div className="rounded-xl border border-clay/25 bg-clay-mist/50 p-4 text-sm leading-relaxed text-clay-deep">
           <p className="font-medium">This link is shown only once.</p>
           <p className="mt-1">
-            Copy it now and send it to the recipient privately, for example by direct message. Anyone who sees it
-            could use it if they also control that email address. If it’s lost, create a new invitation; the
+            Copy it now and send it to the recipient privately, for example by
+            direct message. Anyone who sees it could use it if they also control
+            that email address. If it’s lost, create a new invitation; the
             previous one stops working.
           </p>
         </div>
@@ -117,13 +160,22 @@ function InviteTeamMemberRound({ onInviteAnother }: { onInviteAnother: () => voi
           aria-describedby="invite-email-hint"
         />
         <p id="invite-email-hint" className="mt-1.5 text-xs text-ink/55">
-          The invitation only works for an account signed in with this exact email address.
+          The invitation only works for an account signed in with this exact
+          email address.
         </p>
       </div>
       <div>
         <Label htmlFor="invite-role">Role</Label>
-        <SelectMenu id="invite-role" name="role" value={role} onChange={setRole} options={ROLE_OPTIONS} />
-        <p className="mt-1.5 text-xs text-ink/55">{ROLE_DETAILS[role].description}</p>
+        <SelectMenu
+          id="invite-role"
+          name="role"
+          value={role}
+          onChange={setRole}
+          options={ROLE_OPTIONS}
+        />
+        <p className="mt-1.5 text-xs text-ink/55">
+          {ROLE_DETAILS[role].description}
+        </p>
       </div>
       <FieldError message={state.error} />
       <Button type="submit" variant="clay" disabled={pending}>
@@ -169,23 +221,44 @@ function TeamDialog({
       ref={dialogRef}
       aria-labelledby={titleId}
       aria-describedby={descriptionId}
-      onCancel={(event) => { if (pending) event.preventDefault(); }}
+      onCancel={(event) => {
+        if (pending) event.preventDefault();
+      }}
       onClose={onClose}
-      onClick={(event) => { if (event.target === event.currentTarget) close(); }}
+      onClick={(event) => {
+        if (event.target === event.currentTarget) close();
+      }}
       className={`fixed left-1/2 top-1/2 m-0 max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border border-pine/15 bg-linen p-0 text-left text-ink shadow-2xl backdrop:bg-scrim/55 ${size === "lg" ? "max-w-3xl" : "max-w-lg"}`}
     >
       <div className="flex items-start gap-4 p-6">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-sage/60 text-pine">{icon}</span>
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-sage/60 text-pine">
+          {icon}
+        </span>
         <div className="min-w-0 flex-1">
-          <h2 id={titleId} className="font-display text-xl text-pine">{title}</h2>
-          <div id={descriptionId} className="mt-2 text-sm leading-relaxed text-ink/65">{description}</div>
+          <h2 id={titleId} className="font-display text-xl text-pine">
+            {title}
+          </h2>
+          <div
+            id={descriptionId}
+            className="mt-2 text-sm leading-relaxed text-ink/65"
+          >
+            {description}
+          </div>
           {children}
         </div>
-        <button type="button" onClick={close} disabled={pending} aria-label={`Close ${title.toLowerCase()} dialog`} className="rounded-md p-1.5 text-ink/45 hover:bg-pine-mist hover:text-pine disabled:opacity-50">
+        <button
+          type="button"
+          onClick={close}
+          disabled={pending}
+          aria-label={`Close ${title.toLowerCase()} dialog`}
+          className="rounded-md p-1.5 text-ink/45 hover:bg-pine-mist hover:text-pine disabled:opacity-50"
+        >
           <X className="h-4 w-4" aria-hidden />
         </button>
       </div>
-      <div className="flex flex-col-reverse gap-2 border-t border-pine/10 bg-paper/70 px-6 py-4 sm:flex-row sm:justify-end">{footer}</div>
+      <div className="flex flex-col-reverse gap-2 border-t border-pine/10 bg-paper/70 px-6 py-4 sm:flex-row sm:justify-end">
+        {footer}
+      </div>
     </dialog>
   );
 }
@@ -222,7 +295,10 @@ export function MemberActions({
     }
     setPending(true);
     setError(null);
-    const result = await changeMemberRoleAction(membershipId, nextRole).catch(() => ({ error: "We couldn’t change the role. Try again." }) as OrgFormState);
+    const result = await changeMemberRoleAction(membershipId, nextRole).catch(
+      () =>
+        ({ error: "We couldn’t change the role. Try again." }) as OrgFormState,
+    );
     setPending(false);
     if (result.error) {
       setError(result.error);
@@ -234,13 +310,24 @@ export function MemberActions({
     router.refresh();
   };
 
-  const promoting = INVITABLE_ROLE_KEYS.indexOf(nextRole) < INVITABLE_ROLE_KEYS.indexOf(role);
+  const promoting =
+    INVITABLE_ROLE_KEYS.indexOf(nextRole) < INVITABLE_ROLE_KEYS.indexOf(role);
 
   return (
     <>
       <TableActionsMenu
         label={name}
-        actions={canChangeRole ? [{ label: "Change role", icon: <UserCog className="h-4 w-4" aria-hidden />, onSelect: open }] : []}
+        actions={
+          canChangeRole
+            ? [
+                {
+                  label: "Change role",
+                  icon: <UserCog className="h-4 w-4" aria-hidden />,
+                  onSelect: open,
+                },
+              ]
+            : []
+        }
         deleteLabel={`Remove ${name}?`}
         deleteDescription="They will lose access to this organization immediately. Their past activity remains in the audit log."
         destructiveActionLabel="Remove"
@@ -253,17 +340,36 @@ export function MemberActions({
         title="Change role"
         description={
           <>
-            <strong className="font-medium text-ink">{name}</strong> is currently{" "}
-            <strong className="font-medium text-ink">{roleLabel(role)}</strong>. They’ll see the change the next time
-            they load a page.
+            <strong className="font-medium text-ink">{name}</strong> is
+            currently{" "}
+            <strong className="font-medium text-ink">{roleLabel(role)}</strong>.
+            They’ll see the change the next time they load a page.
           </>
         }
         pending={pending}
         footer={
           <>
-            <Button type="button" variant="ghost" onClick={() => dialog.current?.close()} disabled={pending}>Cancel</Button>
-            <Button type="button" variant="clay" onClick={save} disabled={pending || nextRole === role}>
-              {pending ? "Saving…" : nextRole === role ? "Save role" : promoting ? `Promote to ${roleLabel(nextRole)}` : `Change to ${roleLabel(nextRole)}`}
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => dialog.current?.close()}
+              disabled={pending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="clay"
+              onClick={save}
+              disabled={pending || nextRole === role}
+            >
+              {pending
+                ? "Saving…"
+                : nextRole === role
+                  ? "Save role"
+                  : promoting
+                    ? `Promote to ${roleLabel(nextRole)}`
+                    : `Change to ${roleLabel(nextRole)}`}
             </Button>
           </>
         }
@@ -275,11 +381,21 @@ export function MemberActions({
           className="mt-5 sm:grid-cols-1"
           options={ROLE_OPTIONS.map((option) => ({
             ...option,
-            label: option.value === role ? `${option.label} · current` : option.label,
+            label:
+              option.value === role
+                ? `${option.label} · current`
+                : option.label,
             disabled: pending,
           }))}
         />
-        {error ? <p className="mt-3 rounded-lg bg-clay-mist px-3 py-2 text-sm text-clay-deep" role="alert">{error}</p> : null}
+        {error ? (
+          <p
+            className="mt-3 rounded-lg bg-clay-mist px-3 py-2 text-sm text-clay-deep"
+            role="alert"
+          >
+            {error}
+          </p>
+        ) : null}
       </TeamDialog>
     </>
   );
@@ -287,7 +403,13 @@ export function MemberActions({
 
 /** An info button that opens what every role can do. */
 /** An info button that opens what every role can do in this organization. */
-export function RolesInfoButton({ matrix, canManage }: { matrix: Record<RoleKey, readonly Permission[]>; canManage: boolean }) {
+export function RolesInfoButton({
+  matrix,
+  canManage,
+}: {
+  matrix: Record<RoleKey, readonly Permission[]>;
+  canManage: boolean;
+}) {
   const dialog = useRef<HTMLDialogElement>(null);
   return (
     <>
@@ -308,16 +430,34 @@ export function RolesInfoButton({ matrix, canManage }: { matrix: Record<RoleKey,
         description="What each role can do in this organization."
         footer={
           <>
-            <Button type="button" variant="ghost" onClick={() => dialog.current?.close()}>Close</Button>
-            {canManage ? <Link href="/settings/permissions" className={buttonClassName("clay")}>Edit permissions</Link> : null}
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => dialog.current?.close()}
+            >
+              Close
+            </Button>
+            {canManage ? (
+              <Link
+                href="/settings/permissions"
+                className={buttonClassName("clay")}
+              >
+                Edit permissions
+              </Link>
+            ) : null}
           </>
         }
       >
         <ul className="mt-5 grid gap-3 sm:grid-cols-2">
           {ROLE_KEYS.map((key) => (
-            <li key={key} className="rounded-lg border border-pine/12 bg-paper/60 p-3">
+            <li
+              key={key}
+              className="rounded-lg border border-pine/12 bg-paper/60 p-3"
+            >
               <p className="font-medium text-pine">{ROLE_DETAILS[key].name}</p>
-              <p className="mt-1 text-xs leading-relaxed text-ink/60">{ROLE_DETAILS[key].description}</p>
+              <p className="mt-1 text-xs leading-relaxed text-ink/60">
+                {ROLE_DETAILS[key].description}
+              </p>
             </li>
           ))}
         </ul>
@@ -326,9 +466,20 @@ export function RolesInfoButton({ matrix, canManage }: { matrix: Record<RoleKey,
             <caption className="sr-only">Permissions by role</caption>
             <thead className="bg-sage/35">
               <tr>
-                <th scope="col" className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-pine/65">Can…</th>
+                <th
+                  scope="col"
+                  className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-pine/65"
+                >
+                  Can…
+                </th>
                 {ROLE_KEYS.map((key) => (
-                  <th key={key} scope="col" className="px-2 py-2 text-center text-xs font-semibold text-pine/80">{ROLE_DETAILS[key].name}</th>
+                  <th
+                    key={key}
+                    scope="col"
+                    className="px-2 py-2 text-center text-xs font-semibold text-pine/80"
+                  >
+                    {ROLE_DETAILS[key].name}
+                  </th>
                 ))}
               </tr>
             </thead>
@@ -336,24 +487,53 @@ export function RolesInfoButton({ matrix, canManage }: { matrix: Record<RoleKey,
               {PERMISSION_AREAS.map((group) => (
                 <Fragment key={group.area}>
                   <tr className="border-t border-pine/10 bg-paper/60">
-                    <th scope="colgroup" colSpan={ROLE_KEYS.length + 1} className="px-3 pb-1 pt-3 text-left text-xs font-semibold text-pine">{group.label}</th>
+                    <th
+                      scope="colgroup"
+                      colSpan={ROLE_KEYS.length + 1}
+                      className="px-3 pb-1 pt-3 text-left text-xs font-semibold text-pine"
+                    >
+                      {group.label}
+                    </th>
                   </tr>
-                  {PERMISSION_ACTIONS.filter((action) => action in group.actions).map((action) => {
+                  {PERMISSION_ACTIONS.filter(
+                    (action) => action in group.actions,
+                  ).map((action) => {
                     const permission = `${group.area}.${action}` as Permission;
                     return (
                       <tr key={permission} className="border-t border-pine/5">
-                        <th scope="row" className="px-3 py-1.5 text-left font-normal text-ink/75">
-                          <span className="sr-only">{ACTION_LABELS[action]}: </span>
-                          {(group.actions as Partial<Record<PermissionAction, string>>)[action]}
+                        <th
+                          scope="row"
+                          className="px-3 py-1.5 text-left font-normal text-ink/75"
+                        >
+                          <span className="sr-only">
+                            {ACTION_LABELS[action]}:{" "}
+                          </span>
+                          {
+                            (
+                              group.actions as Partial<
+                                Record<PermissionAction, string>
+                              >
+                            )[action]
+                          }
                         </th>
                         {ROLE_KEYS.map((key) => {
                           const allowed = matrix[key].includes(permission);
                           return (
                             <td key={key} className="px-2 py-1.5 text-center">
-                              {allowed
-                                ? <Check className="mx-auto h-4 w-4 text-moss" aria-hidden />
-                                : <Minus className="mx-auto h-4 w-4 text-ink/25" aria-hidden />}
-                              <span className="sr-only">{allowed ? "Allowed" : "Not allowed"}</span>
+                              {allowed ? (
+                                <Check
+                                  className="mx-auto h-4 w-4 text-moss"
+                                  aria-hidden
+                                />
+                              ) : (
+                                <Minus
+                                  className="mx-auto h-4 w-4 text-ink/25"
+                                  aria-hidden
+                                />
+                              )}
+                              <span className="sr-only">
+                                {allowed ? "Allowed" : "Not allowed"}
+                              </span>
                             </td>
                           );
                         })}
@@ -371,10 +551,21 @@ export function RolesInfoButton({ matrix, canManage }: { matrix: Record<RoleKey,
 }
 
 /** Approve or decline one pending join request, each behind a confirmation. */
-export function JoinRequestReview({ requestId, name, roleName }: { requestId: string; name: string; roleName: string }) {
+export function JoinRequestReview({
+  requestId,
+  name,
+  roleName,
+}: {
+  requestId: string;
+  name: string;
+  roleName: string;
+}) {
   const router = useRouter();
   const review = (approve: boolean) => async () => {
-    const result = await reviewOrganizationJoinRequestAction(requestId, approve);
+    const result = await reviewOrganizationJoinRequestAction(
+      requestId,
+      approve,
+    );
     if (result.error) throw new Error(result.error);
     router.refresh();
   };
@@ -386,7 +577,12 @@ export function JoinRequestReview({ requestId, name, roleName }: { requestId: st
         confirmLabel="Approve request"
         successMessage={`${name} can now access this organization.`}
         onConfirm={review(true)}
-        trigger={<><Check className="h-4 w-4" aria-hidden />Approve</>}
+        trigger={
+          <>
+            <Check className="h-4 w-4" aria-hidden />
+            Approve
+          </>
+        }
         triggerVariant="outline"
         triggerSize="sm"
         triggerAriaLabel={`Approve access request from ${name}`}
@@ -397,7 +593,12 @@ export function JoinRequestReview({ requestId, name, roleName }: { requestId: st
         confirmLabel="Decline request"
         successMessage={`Declined ${name}’s request.`}
         onConfirm={review(false)}
-        trigger={<><X className="h-4 w-4" aria-hidden />Decline</>}
+        trigger={
+          <>
+            <X className="h-4 w-4" aria-hidden />
+            Decline
+          </>
+        }
         triggerSize="sm"
         triggerAriaLabel={`Decline access request from ${name}`}
       />
@@ -422,7 +623,12 @@ export function JoinCodeControl() {
   const generate = async () => {
     setPending(true);
     setError(null);
-    const result = await createOrganizationJoinCodeAction().catch(() => ({ error: "We couldn’t create a join code. Try again." }) as OrgFormState);
+    const result = await createOrganizationJoinCodeAction().catch(
+      () =>
+        ({
+          error: "We couldn’t create a join code. Try again.",
+        }) as OrgFormState,
+    );
     setPending(false);
     if (result.joinCode) setCode(result.joinCode);
     else setError(result.error ?? "We couldn’t create a join code. Try again.");
@@ -430,7 +636,15 @@ export function JoinCodeControl() {
 
   return (
     <>
-      <Button type="button" variant="outline" size="sm" onClick={() => { reset(); dialog.current?.showModal(); }}>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => {
+          reset();
+          dialog.current?.showModal();
+        }}
+      >
         <KeyRound className="h-4 w-4" aria-hidden />
         Create join code
       </Button>
@@ -440,18 +654,31 @@ export function JoinCodeControl() {
         title="Organization join code"
         description={
           <>
-            Anyone with this code can <strong className="font-medium text-ink">ask</strong> to join as Staff. It does
-            not grant access by itself: each request appears under Pending access requests for you to approve or
-            decline.
+            Anyone with this code can{" "}
+            <strong className="font-medium text-ink">ask</strong> to join as
+            Staff. It does not grant access by itself: each request appears
+            under Pending access requests for you to approve or decline.
           </>
         }
         pending={pending}
         onClose={reset}
         footer={
           <>
-            <Button type="button" variant="ghost" onClick={() => dialog.current?.close()} disabled={pending}>{code ? "Done" : "Cancel"}</Button>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => dialog.current?.close()}
+              disabled={pending}
+            >
+              {code ? "Done" : "Cancel"}
+            </Button>
             {code ? null : (
-              <Button type="button" variant="clay" onClick={generate} disabled={pending}>
+              <Button
+                type="button"
+                variant="clay"
+                onClick={generate}
+                disabled={pending}
+              >
                 {pending ? "Creating…" : "Create code"}
               </Button>
             )}
@@ -460,14 +687,26 @@ export function JoinCodeControl() {
       >
         {code ? (
           <div className="mt-5 space-y-3">
-            <CopyField label="Join code" value={code} hint="They enter it on the Join an existing organization screen after signing in." />
+            <CopyField
+              label="Join code"
+              value={code}
+              hint="They enter it on the Join an existing organization screen after signing in."
+            />
             <p className="rounded-lg bg-clay-mist/60 px-3 py-2 text-xs leading-relaxed text-clay-deep">
-              This code is shown only once and can’t be retrieved later. Share it only with people you expect to
-              hear from; you can always decline unknown requests.
+              This code is shown only once and can’t be retrieved later. Share
+              it only with people you expect to hear from; you can always
+              decline unknown requests.
             </p>
           </div>
         ) : null}
-        {error ? <p className="mt-3 rounded-lg bg-clay-mist px-3 py-2 text-sm text-clay-deep" role="alert">{error}</p> : null}
+        {error ? (
+          <p
+            className="mt-3 rounded-lg bg-clay-mist px-3 py-2 text-sm text-clay-deep"
+            role="alert"
+          >
+            {error}
+          </p>
+        ) : null}
       </TeamDialog>
     </>
   );

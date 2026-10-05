@@ -15,7 +15,9 @@ export function CookieBanner({ answered }: { answered: boolean }) {
   function choose(consent: CookieConsent) {
     writeConsent(consent);
     // Re-save (or clear) the theme cookie to match the new choice.
-    applyThemePreference(parseThemePreference(document.documentElement.dataset.theme));
+    applyThemePreference(
+      parseThemePreference(document.documentElement.dataset.theme),
+    );
     setOpen(false);
   }
 
@@ -28,17 +30,29 @@ export function CookieBanner({ answered }: { answered: boolean }) {
       <div className="flex items-start gap-3">
         <Cookie className="mt-0.5 h-5 w-5 shrink-0 text-pine" aria-hidden />
         <div>
-          <p className="text-sm font-semibold text-pine">We use a few cookies</p>
+          <p className="text-sm font-semibold text-pine">
+            We use a few cookies
+          </p>
           <p className="mt-1 text-sm leading-relaxed text-ink/70">
-            Essential cookies keep you signed in. With your OK, we also remember preferences like your theme and use Google Analytics to see how Hostayo is used.{" "}
-            <Link href="/cookies" className="font-medium text-pine underline underline-offset-4 hover:text-pine-soft">
+            Essential cookies keep you signed in. With your OK, we also remember
+            preferences like your theme and use Google Analytics to see how
+            Hostayo is used.{" "}
+            <Link
+              href="/cookies"
+              className="font-medium text-pine underline underline-offset-4 hover:text-pine-soft"
+            >
               Cookie Policy
             </Link>
           </p>
         </div>
       </div>
       <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        <Button type="button" variant="outline" size="sm" onClick={() => choose("essential")}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => choose("essential")}
+        >
           Essential only
         </Button>
         <Button type="button" size="sm" onClick={() => choose("all")}>

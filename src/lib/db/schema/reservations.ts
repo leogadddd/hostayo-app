@@ -74,7 +74,10 @@ export const guests = pgTable(
     tin: text("tin"),
     emergencyContactName: text("emergency_contact_name"),
     emergencyContactPhone: text("emergency_contact_phone"),
-    tags: text("tags").array().notNull().default(sql`'{}'::text[]`),
+    tags: text("tags")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     // Flagged guests warn the team before rebooking; the reason says why.
     flagged: boolean("flagged").notNull().default(false),
     flagReason: text("flag_reason"),
@@ -130,10 +133,22 @@ export const bookingPlatforms = pgTable(
       .defaultNow(),
   },
   (table) => [
-    uniqueIndex("booking_platforms_organization_id_unique").on(table.organizationId, table.id),
-    uniqueIndex("booking_platforms_org_name_unique").on(table.organizationId, sql`lower(${table.name})`),
-    uniqueIndex("booking_platforms_org_key_unique").on(table.organizationId, table.key),
-    check("booking_platforms_name_length", sql`char_length(trim(${table.name})) BETWEEN 2 AND 60`),
+    uniqueIndex("booking_platforms_organization_id_unique").on(
+      table.organizationId,
+      table.id,
+    ),
+    uniqueIndex("booking_platforms_org_name_unique").on(
+      table.organizationId,
+      sql`lower(${table.name})`,
+    ),
+    uniqueIndex("booking_platforms_org_key_unique").on(
+      table.organizationId,
+      table.key,
+    ),
+    check(
+      "booking_platforms_name_length",
+      sql`char_length(trim(${table.name})) BETWEEN 2 AND 60`,
+    ),
   ],
 );
 
@@ -210,10 +225,7 @@ export const reservations = pgTable(
       "reservations_reservation_fee_check",
       sql`(${table.reservationFeeType} IS NULL) = (${table.reservationFeeAmount} IS NULL)`,
     ),
-    check(
-      "reservations_guest_count_check",
-      sql`${table.guestCount} >= 1`,
-    ),
+    check("reservations_guest_count_check", sql`${table.guestCount} >= 1`),
   ],
 );
 
@@ -232,16 +244,27 @@ export const reservationOccupants = pgTable(
     reservationId: uuid("reservation_id").notNull(),
     name: text("name").notNull(),
     position: integer("position").notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
-    uniqueIndex("reservation_occupants_organization_id_unique").on(table.organizationId, table.id),
-    uniqueIndex("reservation_occupants_reservation_position_unique").on(table.reservationId, table.position),
+    uniqueIndex("reservation_occupants_organization_id_unique").on(
+      table.organizationId,
+      table.id,
+    ),
+    uniqueIndex("reservation_occupants_reservation_position_unique").on(
+      table.reservationId,
+      table.position,
+    ),
     foreignKey({
       columns: [table.organizationId, table.reservationId],
       foreignColumns: [reservations.organizationId, reservations.id],
     }).onDelete("cascade"),
-    check("reservation_occupants_name_check", sql`char_length(trim(${table.name})) > 0`),
+    check(
+      "reservation_occupants_name_check",
+      sql`char_length(trim(${table.name})) > 0`,
+    ),
     check("reservation_occupants_position_check", sql`${table.position} >= 0`),
   ],
 );
@@ -288,7 +311,11 @@ export const reservationCharges = pgTable(
   ],
 );
 
-export const EXTENSION_STATUSES = ["requested", "approved", "declined"] as const;
+export const EXTENSION_STATUSES = [
+  "requested",
+  "approved",
+  "declined",
+] as const;
 export type ExtensionStatus = (typeof EXTENSION_STATUSES)[number];
 export const extensionStatus = pgEnum("extension_status", EXTENSION_STATUSES);
 
@@ -335,7 +362,10 @@ export const reservationExtensions = pgTable(
       "reservation_extensions_charge_status_check",
       sql`(${table.status} = 'approved') = (${table.chargeId} IS NOT NULL)`,
     ),
-    index("reservation_extensions_reservation_idx").on(table.organizationId, table.reservationId),
+    index("reservation_extensions_reservation_idx").on(
+      table.organizationId,
+      table.reservationId,
+    ),
     uniqueIndex("reservation_extensions_charge_unique").on(table.chargeId),
     foreignKey({
       columns: [table.organizationId, table.reservationId],
@@ -343,10 +373,19 @@ export const reservationExtensions = pgTable(
     }).onDelete("cascade"),
     foreignKey({
       columns: [table.organizationId, table.chargeId],
-      foreignColumns: [reservationCharges.organizationId, reservationCharges.id],
+      foreignColumns: [
+        reservationCharges.organizationId,
+        reservationCharges.id,
+      ],
     }).onDelete("cascade"),
-    check("reservation_extensions_hours_check", sql`${table.hours} BETWEEN 1 AND 24`),
-    check("reservation_extensions_rate_check", sql`${table.hourlyRateCents} >= 0`),
+    check(
+      "reservation_extensions_hours_check",
+      sql`${table.hours} BETWEEN 1 AND 24`,
+    ),
+    check(
+      "reservation_extensions_rate_check",
+      sql`${table.hourlyRateCents} >= 0`,
+    ),
   ],
 );
 

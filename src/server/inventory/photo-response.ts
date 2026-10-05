@@ -1,13 +1,19 @@
 import "server-only";
 
 import { isStoredPhotoKey } from "@/lib/photos";
-import { createObjectStorageFromEnvironment, StorageError } from "@/server/storage/service";
+import {
+  createObjectStorageFromEnvironment,
+  StorageError,
+} from "@/server/storage/service";
 
 /**
  * Stream a stored cover photo. The key must belong to the member's own
  * organization, and the URL carries a per-upload version, so it can be cached.
  */
-export async function photoResponse(organizationId: string, imageUrl: string | null | undefined) {
+export async function photoResponse(
+  organizationId: string,
+  imageUrl: string | null | undefined,
+) {
   if (!isStoredPhotoKey(imageUrl, organizationId)) {
     return Response.json({ error: "Photo not found." }, { status: 404 });
   }

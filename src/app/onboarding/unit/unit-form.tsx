@@ -11,10 +11,10 @@ import { saveFirstUnitAction, type OnboardingFormState } from "../actions";
 import { StepNav } from "../step-nav";
 
 export function UnitForm({ defaultName }: { defaultName: string }) {
-  const [state, formAction, pending] = useActionState<OnboardingFormState, FormData>(
-    saveFirstUnitAction,
-    {},
-  );
+  const [state, formAction, pending] = useActionState<
+    OnboardingFormState,
+    FormData
+  >(saveFirstUnitAction, {});
   useActionFeedback(state, { errorTitle: "Couldn’t save the unit" });
   const router = useRouter();
   useEffect(() => {
@@ -40,7 +40,10 @@ export function UnitForm({ defaultName }: { defaultName: string }) {
       <FieldError message={state.error} />
 
       <StepNav backHref="/onboarding/property">
-        <Link href="/onboarding/welcome" className={buttonClassName("ghost", "lg")}>
+        <Link
+          href="/onboarding/welcome"
+          className={buttonClassName("ghost", "lg")}
+        >
           Skip for now
         </Link>
         <Button type="submit" variant="clay" size="lg" disabled={pending}>

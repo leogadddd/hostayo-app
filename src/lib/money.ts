@@ -16,7 +16,10 @@ export class MoneyParseError extends Error {}
  * Parse a user-entered peso amount ("5,500", "5500.50") into integer centavos.
  * Throws MoneyParseError on anything else — callers surface the message.
  */
-export function pesosToCentavos(input: string, options?: { allowZero?: boolean }): number {
+export function pesosToCentavos(
+  input: string,
+  options?: { allowZero?: boolean },
+): number {
   const trimmed = input.trim();
   let match: RegExpExecArray | null;
   if (trimmed.includes(",")) {

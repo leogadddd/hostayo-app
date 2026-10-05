@@ -36,7 +36,10 @@ export const RESERVATION_STATUS_LABELS: Record<ReservationStatus, string> = {
   expired: "Expired",
 };
 
-export const RESERVATION_STATUS_DESCRIPTIONS: Record<ReservationStatus, string> = {
+export const RESERVATION_STATUS_DESCRIPTIONS: Record<
+  ReservationStatus,
+  string
+> = {
   hold: "Dates are held until the hold expires.",
   confirmed: "Booking confirmed; balance may still be due.",
   checked_in: "Guest has checked in.",
@@ -83,7 +86,8 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   "organization.renamed": "Organization renamed",
   "organization.profile_updated": "Organization profile updated",
   "organization.region_updated": "Organization region updated",
-  "organization.payment_instructions_updated": "Guest payment instructions updated",
+  "organization.payment_instructions_updated":
+    "Guest payment instructions updated",
   "organization.staff_invited": "Staff member added",
   "organization.staff_removed": "Staff member removed",
   "organization.member_role_changed": "Team member role changed",

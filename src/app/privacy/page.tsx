@@ -63,8 +63,7 @@ const sections = [
   },
   {
     title: "11. Contact",
-    content:
-      `For questions, requests, or concerns about privacy and personal information, please contact the Hostayo team at ${SUPPORT_EMAIL}, or message us on Facebook or Instagram (@hostayoph). Signed-in users can also reach us from Settings → Support.`,
+    content: `For questions, requests, or concerns about privacy and personal information, please contact the Hostayo team at ${SUPPORT_EMAIL}, or message us on Facebook or Instagram (@hostayoph). Signed-in users can also reach us from Settings → Support.`,
   },
 ];
 
@@ -73,22 +72,44 @@ export default function PrivacyPage() {
     <div className="min-h-screen bg-paper text-ink">
       <header className="border-b border-pine/10">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-5 sm:px-8">
-          <a href={SITE_URL} aria-label="Hostayo home"><Logo /></a>
-          {loginLinksHidden() ? null : <Link href="/login" className="text-sm font-medium text-pine underline underline-offset-4 hover:text-pine-soft">Sign in</Link>}
+          <a href={SITE_URL} aria-label="Hostayo home">
+            <Logo />
+          </a>
+          {loginLinksHidden() ? null : (
+            <Link
+              href="/login"
+              className="text-sm font-medium text-pine underline underline-offset-4 hover:text-pine-soft"
+            >
+              Sign in
+            </Link>
+          )}
         </div>
       </header>
       <main className="mx-auto max-w-4xl px-6 py-14 sm:px-8 sm:py-20">
         <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-pine/60">Legal</p>
-          <h1 className="mt-3 font-display text-4xl leading-tight text-pine sm:text-5xl">Privacy Policy</h1>
-          <p className="mt-5 text-sm leading-relaxed text-ink/65 sm:text-base">This policy explains what information Hostayo handles, why we use it, and the choices available to you and your organization.</p>
-          <p className="mt-5 text-sm text-ink/50">Effective date: September 26, 2026</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-pine/60">
+            Legal
+          </p>
+          <h1 className="mt-3 font-display text-4xl leading-tight text-pine sm:text-5xl">
+            Privacy Policy
+          </h1>
+          <p className="mt-5 text-sm leading-relaxed text-ink/65 sm:text-base">
+            This policy explains what information Hostayo handles, why we use
+            it, and the choices available to you and your organization.
+          </p>
+          <p className="mt-5 text-sm text-ink/50">
+            Effective date: September 26, 2026
+          </p>
         </div>
         <div className="mt-14 max-w-3xl space-y-10 sm:mt-16">
           {sections.map((section) => (
             <section key={section.title}>
-              <h2 className="font-display text-2xl text-pine">{section.title}</h2>
-              <p className="mt-3 text-sm leading-7 text-ink/70 sm:text-base">{section.content}</p>
+              <h2 className="font-display text-2xl text-pine">
+                {section.title}
+              </h2>
+              <p className="mt-3 text-sm leading-7 text-ink/70 sm:text-base">
+                {section.content}
+              </p>
             </section>
           ))}
         </div>

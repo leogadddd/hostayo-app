@@ -22,7 +22,10 @@ import { formatPHP } from "@/lib/money";
 import { summarizeUnitActivity } from "@/lib/unit-activity";
 import { cn } from "@/lib/utils";
 import { getOccupancySegments } from "@/server/inventory/availability";
-import { getPropertyOrThrow, listPropertyUnits } from "@/server/inventory/service";
+import {
+  getPropertyOrThrow,
+  listPropertyUnits,
+} from "@/server/inventory/service";
 import { InventoryError } from "@/server/inventory/validation";
 import { listPropertyAmenities } from "@/server/inventory/amenities";
 import { buttonClassName } from "@/components/ui/button";
@@ -46,7 +49,11 @@ export const metadata: Metadata = { title: "Property" };
 const OUTLOOK_DAYS = 30;
 const ARRIVAL_DAYS = 14;
 
-export default async function PropertyDetailPage({ params }: { params: Promise<{ propertyId: string }> }) {
+export default async function PropertyDetailPage({
+  params,
+}: {
+  params: Promise<{ propertyId: string }>;
+}) {
   const membership = await requirePermission("properties.view");
   if (!membership) return <PermissionDenied />;
 
@@ -71,16 +78,30 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
     outlookEnd,
   );
   const activityByUnit = new Map(
-    units.map((unit) => [unit.id, summarizeUnitActivity(segmentsByUnit.get(unit.id) ?? [], today, outlookEnd)]),
+    units.map((unit) => [
+      unit.id,
+      summarizeUnitActivity(
+        segmentsByUnit.get(unit.id) ?? [],
+        today,
+        outlookEnd,
+      ),
+    ]),
   );
   const activeUnits = units.filter((unit) => unit.status === "active");
-  const staying = units.filter((unit) => activityByUnit.get(unit.id)?.current).length;
-  const bookedNights = activeUnits.reduce((sum, unit) => sum + (activityByUnit.get(unit.id)?.bookedNights ?? 0), 0);
+  const staying = units.filter(
+    (unit) => activityByUnit.get(unit.id)?.current,
+  ).length;
+  const bookedNights = activeUnits.reduce(
+    (sum, unit) => sum + (activityByUnit.get(unit.id)?.bookedNights ?? 0),
+    0,
+  );
   const arrivalEnd = addDaysLocal(today, ARRIVAL_DAYS);
   const arrivals = units
     .flatMap((unit) =>
       (activityByUnit.get(unit.id)?.upcoming ?? [])
-        .filter((stay) => stay.startDate >= today && stay.startDate < arrivalEnd)
+        .filter(
+          (stay) => stay.startDate >= today && stay.startDate < arrivalEnd,
+        )
         .map((stay) => ({ stay, unitName: unit.name })),
     )
     .sort((a, b) => a.stay.startDate.localeCompare(b.stay.startDate));
@@ -90,14 +111,20 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
 
   return (
     <div className="min-w-0 overflow-hidden">
-      <Link href="/properties" className="mb-4 inline-flex items-center gap-2 text-sm text-pine/70 hover:text-clay">
+      <Link
+        href="/properties"
+        className="mb-4 inline-flex items-center gap-2 text-sm text-pine/70 hover:text-clay"
+      >
         <ArrowLeft className="h-4 w-4" aria-hidden />
         All properties
       </Link>
 
       <section className="overflow-hidden rounded-2xl border border-pine/10 bg-surface shadow-[0_1px_2px_rgba(32,58,53,0.06)]">
         <div className="grid md:grid-cols-[16rem_minmax(0,1fr)] xl:grid-cols-[20rem_minmax(0,1fr)]">
-          <UnitPhoto src={photoSrc("property", property)} className="aspect-[16/9] md:aspect-auto md:h-full md:min-h-56" />
+          <UnitPhoto
+            src={photoSrc("property", property)}
+            className="aspect-[16/9] md:aspect-auto md:h-full md:min-h-56"
+          />
           <div className="@container flex min-w-0 flex-col gap-5 p-5 sm:p-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="min-w-0">
@@ -105,23 +132,42 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                   <Building2 className="h-3.5 w-3.5" aria-hidden />
                   Property
                 </span>
-                <h1 className="mt-3 truncate font-display text-3xl tracking-tight text-pine sm:text-4xl">{property.name}</h1>
+                <h1 className="mt-3 truncate font-display text-3xl tracking-tight text-pine sm:text-4xl">
+                  {property.name}
+                </h1>
                 <p className="mt-1.5 flex items-center gap-1.5 text-sm text-ink/65">
-                  <MapPin className="h-4 w-4 shrink-0 text-pine/45" aria-hidden />
-                  <span className="truncate">{property.address || "No address yet"}</span>
+                  <MapPin
+                    className="h-4 w-4 shrink-0 text-pine/45"
+                    aria-hidden
+                  />
+                  <span className="truncate">
+                    {property.address || "No address yet"}
+                  </span>
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2 xl:justify-end">
-                <Link href={`${propertyHref}/units/new`} className={buttonClassName("clay", "md")}>
+                <Link
+                  href={`${propertyHref}/units/new`}
+                  className={buttonClassName("clay", "md")}
+                >
                   <Plus className="h-4 w-4" aria-hidden />
                   Add unit
                 </Link>
-                <SharePublicLink href={`/h/${membership.organizationSlug}`} title={`${property.name} public page`} />
-                <Link href={`${propertyHref}/edit`} className={buttonClassName("outline", "md")}>
+                <SharePublicLink
+                  href={`/h/${membership.organizationSlug}`}
+                  title={`${property.name} public page`}
+                />
+                <Link
+                  href={`${propertyHref}/edit`}
+                  className={buttonClassName("outline", "md")}
+                >
                   <Pencil className="h-4 w-4" aria-hidden />
                   Edit
                 </Link>
-                <Link href={calendarHref} className={buttonClassName("ghost", "md")}>
+                <Link
+                  href={calendarHref}
+                  className={buttonClassName("ghost", "md")}
+                >
                   <CalendarDays className="h-4 w-4" aria-hidden />
                   Calendar
                 </Link>
@@ -165,7 +211,10 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
             title={`Units (${units.length})`}
             description="Each unit is booked on its own."
             action={
-              <Link href={`${propertyHref}/units/new`} className={buttonClassName("outline", "sm")}>
+              <Link
+                href={`${propertyHref}/units/new`}
+                className={buttonClassName("outline", "sm")}
+              >
                 <Plus className="h-4 w-4" aria-hidden />
                 Add unit
               </Link>
@@ -176,26 +225,45 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
               <ul className="divide-y divide-pine/8 border-t border-pine/8">
                 {units.map((unit) => {
                   const activity = activityByUnit.get(unit.id);
-                  const line = activityLine(activity?.current ?? null, activity?.next ?? null);
+                  const line = activityLine(
+                    activity?.current ?? null,
+                    activity?.next ?? null,
+                  );
                   const unitHref = `${propertyHref}/units/${unit.id}`;
                   return (
-                    <li key={unit.id} className="relative flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-pine-mist/35 sm:px-6">
+                    <li
+                      key={unit.id}
+                      className="relative flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-pine-mist/35 sm:px-6"
+                    >
                       <UnitPhoto
                         src={photoSrc("unit", unit)}
                         className="h-14 w-20 shrink-0 rounded-lg [&_span]:hidden [&_svg]:h-5 [&_svg]:w-5"
                       />
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <Link href={unitHref} className="truncate font-medium text-pine after:absolute after:inset-0">
+                          <Link
+                            href={unitHref}
+                            className="truncate font-medium text-pine after:absolute after:inset-0"
+                          >
                             {unit.name}
                           </Link>
                           <UnitStatusBadge status={unit.status} />
                         </div>
                         <p className="mt-0.5 truncate text-xs text-ink/55">
-                          Sleeps {unit.capacity} · {unit.bedrooms} bed · {unit.bathrooms} bath
-                          {unit.defaultNightlyRateCents ? ` · ${formatPHP(unit.defaultNightlyRateCents)}/night` : ""}
+                          Sleeps {unit.capacity} · {unit.bedrooms} bed ·{" "}
+                          {unit.bathrooms} bath
+                          {unit.defaultNightlyRateCents
+                            ? ` · ${formatPHP(unit.defaultNightlyRateCents)}/night`
+                            : ""}
                         </p>
-                        <p className={cn("mt-0.5 truncate text-xs", line.tone === "pine" ? "font-medium text-pine" : "text-ink/45")}>
+                        <p
+                          className={cn(
+                            "mt-0.5 truncate text-xs",
+                            line.tone === "pine"
+                              ? "font-medium text-pine"
+                              : "text-ink/45",
+                          )}
+                        >
                           {line.label}
                         </p>
                       </div>
@@ -206,7 +274,11 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                           editHref={`${unitHref}/edit`}
                           deleteLabel={`Delete ${unit.name}?`}
                           deleteDescription="The unit will disappear from active inventory, but its reservation, payment, task, expense, and audit history will be preserved. Units with an active hold or stay cannot be deleted."
-                          onDelete={deleteUnitAction.bind(null, property.id, unit.id)}
+                          onDelete={deleteUnitAction.bind(
+                            null,
+                            property.id,
+                            unit.id,
+                          )}
                           shareHref={`/h/${membership.organizationSlug}/${unit.publicSlug}`}
                         />
                       </div>
@@ -217,8 +289,13 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
             ) : (
               <div className="border-t border-pine/8 px-5 py-10 text-center sm:px-6">
                 <p className="font-medium text-pine">No units yet</p>
-                <p className="mt-1 text-sm text-ink/55">Add a room, studio or villa that guests can book.</p>
-                <Link href={`${propertyHref}/units/new`} className={buttonClassName("clay", "sm", "mt-4")}>
+                <p className="mt-1 text-sm text-ink/55">
+                  Add a room, studio or villa that guests can book.
+                </p>
+                <Link
+                  href={`${propertyHref}/units/new`}
+                  className={buttonClassName("clay", "sm", "mt-4")}
+                >
                   <Plus className="h-4 w-4" aria-hidden />
                   Add unit
                 </Link>
@@ -226,7 +303,11 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
             )}
           </Panel>
 
-          <Panel title="Arriving soon" description={`Holds and bookings checking in over the next ${ARRIVAL_DAYS} days.`} flush>
+          <Panel
+            title="Arriving soon"
+            description={`Holds and bookings checking in over the next ${ARRIVAL_DAYS} days.`}
+            flush
+          >
             {arrivals.length ? (
               <ul className="divide-y divide-pine/8 border-t border-pine/8">
                 {arrivals.map(({ stay, unitName }) => (
@@ -247,7 +328,11 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
           <Panel title="Manage property">
             <div className="space-y-2">
               {activeUnits.length ? (
-                <SideAction href="/reservations/new" icon={CalendarPlus} tone="clay">
+                <SideAction
+                  href="/reservations/new"
+                  icon={CalendarPlus}
+                  tone="clay"
+                >
                   New reservation
                 </SideAction>
               ) : null}
@@ -265,22 +350,41 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
 
           <Panel title="Details">
             <dl className="space-y-3 text-sm">
-              <DetailRow label="Check-in from" value={timeLabel(property.checkInTime)} />
-              <DetailRow label="Check-out by" value={timeLabel(property.checkOutTime)} />
+              <DetailRow
+                label="Check-in from"
+                value={timeLabel(property.checkInTime)}
+              />
+              <DetailRow
+                label="Check-out by"
+                value={timeLabel(property.checkOutTime)}
+              />
               <DetailRow
                 label="Turnover time"
                 value={durationLabel(property.turnoverDurationMinutes)}
               />
-              <DetailRow label="Timezone" value={property.timezone.replace(/_/g, " ")} />
+              <DetailRow
+                label="Timezone"
+                value={property.timezone.replace(/_/g, " ")}
+              />
             </dl>
             <div className="mt-4 border-t border-pine/10 pt-4">
-              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-ink/45">Amenities</p>
-              <AmenityList amenities={amenities} emptyLabel="No amenities selected." />
+              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-ink/45">
+                Amenities
+              </p>
+              <AmenityList
+                amenities={amenities}
+                emptyLabel="No amenities selected."
+              />
             </div>
             <div className="mt-4 border-t border-pine/10 pt-4">
               <div className="mb-1 flex items-baseline justify-between gap-3">
-                <p className="text-xs font-medium uppercase tracking-wide text-ink/45">House rules</p>
-                <Link href={`${propertyHref}/house-rules`} className="text-xs font-medium text-clay-deep hover:underline">
+                <p className="text-xs font-medium uppercase tracking-wide text-ink/45">
+                  House rules
+                </p>
+                <Link
+                  href={`${propertyHref}/house-rules`}
+                  className="text-xs font-medium text-clay-deep hover:underline"
+                >
                   {property.houseRules ? "View & edit" : "Add"}
                 </Link>
               </div>
@@ -294,7 +398,9 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                   <p className="line-clamp-3 whitespace-pre-wrap break-words text-sm leading-relaxed text-pine">
                     {property.houseRules}
                   </p>
-                  <span className="mt-1 inline-block text-xs text-ink/45 group-hover:text-clay-deep">Read all</span>
+                  <span className="mt-1 inline-block text-xs text-ink/45 group-hover:text-clay-deep">
+                    Read all
+                  </span>
                 </Link>
               ) : (
                 <p className="text-sm text-ink/55">None yet.</p>
@@ -311,7 +417,9 @@ function durationLabel(minutes: number) {
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;
   if (!hours) return `${rest} min`;
-  return rest ? `${hours} h ${rest} min` : `${hours} hour${hours === 1 ? "" : "s"}`;
+  return rest
+    ? `${hours} h ${rest} min`
+    : `${hours} hour${hours === 1 ? "" : "s"}`;
 }
 
 function DetailRow({ label, value }: { label: string; value: string }) {

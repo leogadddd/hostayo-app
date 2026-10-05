@@ -26,19 +26,32 @@ export function weekdayOf(date: string): Weekday {
 }
 
 /** Only the days whose rate differs from the regular one. */
-export function effectiveDayRates(baseCents: number, dayRates: DayRates | null | undefined): DayRates {
+export function effectiveDayRates(
+  baseCents: number,
+  dayRates: DayRates | null | undefined,
+): DayRates {
   const result: DayRates = {};
-  for (const [key, cents] of Object.entries(dayRates ?? {}) as [Weekday, number][]) {
+  for (const [key, cents] of Object.entries(dayRates ?? {}) as [
+    Weekday,
+    number,
+  ][]) {
     if (typeof cents === "number" && cents !== baseCents) result[key] = cents;
   }
   return result;
 }
 
-export function hasDayRates(baseCents: number, dayRates: DayRates | null | undefined): boolean {
+export function hasDayRates(
+  baseCents: number,
+  dayRates: DayRates | null | undefined,
+): boolean {
   return Object.keys(effectiveDayRates(baseCents, dayRates)).length > 0;
 }
 
-export function nightlyRateFor(date: string, baseCents: number, dayRates: DayRates | null | undefined): number {
+export function nightlyRateFor(
+  date: string,
+  baseCents: number,
+  dayRates: DayRates | null | undefined,
+): number {
   return dayRates?.[weekdayOf(date)] ?? baseCents;
 }
 
@@ -71,10 +84,18 @@ export function accommodationLines(input: {
   const nightsLabel = (n: number) => `${n} ${n === 1 ? "night" : "nights"}`;
   if (groups.size <= 1) {
     const [cents = input.baseCents] = groups.keys();
-    return [{ description: `Accommodation (${nightsLabel(input.nights)})`, quantity: input.nights, unitAmountCents: cents }];
+    return [
+      {
+        description: `Accommodation (${nightsLabel(input.nights)})`,
+        quantity: input.nights,
+        unitAmountCents: cents,
+      },
+    ];
   }
   return [...groups].map(([cents, group]) => {
-    const days = WEEKDAYS.filter((day) => group.days.has(day.key)).map((day) => SHORT_NAME.get(day.key));
+    const days = WEEKDAYS.filter((day) => group.days.has(day.key)).map((day) =>
+      SHORT_NAME.get(day.key),
+    );
     return {
       description: `Accommodation · ${days.join(", ")} (${nightsLabel(group.nights)})`,
       quantity: group.nights,
@@ -83,8 +104,13 @@ export function accommodationLines(input: {
   });
 }
 
-export function accommodationTotal(input: Parameters<typeof accommodationLines>[0]): number {
-  return accommodationLines(input).reduce((sum, line) => sum + line.quantity * line.unitAmountCents, 0);
+export function accommodationTotal(
+  input: Parameters<typeof accommodationLines>[0],
+): number {
+  return accommodationLines(input).reduce(
+    (sum, line) => sum + line.quantity * line.unitAmountCents,
+    0,
+  );
 }
 
 /**
@@ -102,5 +128,7 @@ export function dayRateSummary(
     if (cents === undefined) continue;
     byRate.set(cents, [...(byRate.get(cents) ?? []), day.short]);
   }
-  return [...byRate].map(([cents, days]) => `${days.join(", ")} ${format(cents)}`);
+  return [...byRate].map(
+    ([cents, days]) => `${days.join(", ")} ${format(cents)}`,
+  );
 }

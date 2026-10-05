@@ -43,11 +43,15 @@ function boolean(metadata: Record<string, unknown> | null, key: string) {
 
 function strings(metadata: Record<string, unknown> | null, key: string) {
   const value = metadata?.[key];
-  return Array.isArray(value) && value.every((item) => typeof item === "string") ? value : null;
+  return Array.isArray(value) && value.every((item) => typeof item === "string")
+    ? value
+    : null;
 }
 
 function words(value: string) {
-  return value.replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase());
+  return value
+    .replaceAll("_", " ")
+    .replace(/^./, (letter) => letter.toUpperCase());
 }
 
 function shortReference(value: string | null) {
@@ -60,7 +64,8 @@ function join(parts: Array<string | null>) {
 
 export function formatAuditTarget(event: AuditDisplayEvent) {
   const kind = ENTITY_LABELS[event.entity] ?? words(event.entity);
-  const targetName = text(event.metadata, "name") ?? text(event.metadata, "email");
+  const targetName =
+    text(event.metadata, "name") ?? text(event.metadata, "email");
   return {
     kind,
     label: targetName ?? `${kind} ${shortReference(event.entityId)}`,
@@ -77,24 +82,40 @@ export function formatAuditDetails(event: AuditDisplayEvent): string | null {
     case "property.deleted": {
       const count = number(metadata, "deletedUnitCount");
       const unitNames = strings(metadata, "deletedUnitNames");
-      const summary = count === null ? "Removed from active inventory." : `${count} ${count === 1 ? "unit" : "units"} archived with this property.`;
-      return unitNames?.length ? `${summary} ${unitNames.join(", ")}.` : summary;
+      const summary =
+        count === null
+          ? "Removed from active inventory."
+          : `${count} ${count === 1 ? "unit" : "units"} archived with this property.`;
+      return unitNames?.length
+        ? `${summary} ${unitNames.join(", ")}.`
+        : summary;
     }
     case "unit.deleted":
       return "Removed from active inventory; historical records were kept.";
     case "unit.status_changed":
-      return join([text(metadata, "from") ? words(text(metadata, "from")!) : null, text(metadata, "to") ? `→ ${words(text(metadata, "to")!)}` : null]);
+      return join([
+        text(metadata, "from") ? words(text(metadata, "from")!) : null,
+        text(metadata, "to") ? `→ ${words(text(metadata, "to")!)}` : null,
+      ]);
     case "unit_block.created":
     case "unit_block.removed":
-      return join([
-        text(metadata, "startDate") && text(metadata, "endDate") ? `${text(metadata, "startDate")} → ${text(metadata, "endDate")}` : null,
-        reason,
-      ]) || null;
+      return (
+        join([
+          text(metadata, "startDate") && text(metadata, "endDate")
+            ? `${text(metadata, "startDate")} → ${text(metadata, "endDate")}`
+            : null,
+          reason,
+        ]) || null
+      );
     case "reservation.created":
-      return join([
-        text(metadata, "status") ? words(text(metadata, "status")!) : null,
-        text(metadata, "checkIn") && text(metadata, "checkOut") ? `${text(metadata, "checkIn")} → ${text(metadata, "checkOut")}` : null,
-      ]) || null;
+      return (
+        join([
+          text(metadata, "status") ? words(text(metadata, "status")!) : null,
+          text(metadata, "checkIn") && text(metadata, "checkOut")
+            ? `${text(metadata, "checkIn")} → ${text(metadata, "checkOut")}`
+            : null,
+        ]) || null
+      );
     case "reservation.confirmed":
     case "reservation.cancelled":
       return reason ? `Reason: ${reason}` : null;
@@ -105,42 +126,63 @@ export function formatAuditDetails(event: AuditDisplayEvent): string | null {
     case "platform.updated":
       return strings(metadata, "fields")?.map(words).join(", ") || null;
     case "payment.recorded":
-      return join([
-        amount === null ? null : formatPHP(amount),
-        text(metadata, "allocation") ? words(text(metadata, "allocation")!) : null,
-        text(metadata, "method") ? words(text(metadata, "method")!) : null,
-      ]) || null;
+      return (
+        join([
+          amount === null ? null : formatPHP(amount),
+          text(metadata, "allocation")
+            ? words(text(metadata, "allocation")!)
+            : null,
+          text(metadata, "method") ? words(text(metadata, "method")!) : null,
+        ]) || null
+      );
     case "refund.recorded":
     case "deposit.deducted":
-      return join([
-        amount === null ? null : formatPHP(amount),
-        text(metadata, "allocation") ? words(text(metadata, "allocation")!) : null,
-      ]) || null;
+      return (
+        join([
+          amount === null ? null : formatPHP(amount),
+          text(metadata, "allocation")
+            ? words(text(metadata, "allocation")!)
+            : null,
+        ]) || null
+      );
     case "expense.created":
-      return join([
-        amount === null ? null : formatPHP(amount),
-        text(metadata, "category") ? words(text(metadata, "category")!) : null,
-        text(metadata, "classification") ? words(text(metadata, "classification")!) : null,
-      ]) || null;
+      return (
+        join([
+          amount === null ? null : formatPHP(amount),
+          text(metadata, "category")
+            ? words(text(metadata, "category")!)
+            : null,
+          text(metadata, "classification")
+            ? words(text(metadata, "classification")!)
+            : null,
+        ]) || null
+      );
     case "organization.staff_invited":
     case "organization.staff_removed":
       return join([text(metadata, "name"), text(metadata, "email")]) || null;
     case "organization.permissions_updated": {
       const role = text(metadata, "role");
-      const count = (key: string) => (Array.isArray(metadata?.[key]) ? (metadata[key] as unknown[]).length : 0);
-      return join([
-        role ? words(role) : null,
-        count("granted") ? `${count("granted")} granted` : null,
-        count("revoked") ? `${count("revoked")} removed` : null,
-      ]) || null;
+      const count = (key: string) =>
+        Array.isArray(metadata?.[key])
+          ? (metadata[key] as unknown[]).length
+          : 0;
+      return (
+        join([
+          role ? words(role) : null,
+          count("granted") ? `${count("granted")} granted` : null,
+          count("revoked") ? `${count("revoked")} removed` : null,
+        ]) || null
+      );
     }
     case "organization.member_role_changed": {
       const from = text(metadata, "fromRole");
       const to = text(metadata, "toRole");
-      return join([
-        text(metadata, "name"),
-        from && to ? `${words(from)} → ${words(to)}` : null,
-      ]) || null;
+      return (
+        join([
+          text(metadata, "name"),
+          from && to ? `${words(from)} → ${words(to)}` : null,
+        ]) || null
+      );
     }
     case "task.item_completed":
     case "task.item_reopened":
@@ -149,30 +191,46 @@ export function formatAuditDetails(event: AuditDisplayEvent): string | null {
       const hasNotes = boolean(metadata, "hasNotes");
       const characters = number(metadata, "characterCount");
       if (hasNotes === false) return "Notes cleared.";
-      return characters === null ? "Notes updated." : `Notes updated · ${characters} characters.`;
+      return characters === null
+        ? "Notes updated."
+        : `Notes updated · ${characters} characters.`;
     }
     case "task.marked_ready":
-      return boolean(metadata, "override") ? "Owner override used because damage remained open." : "All readiness checks passed.";
+      return boolean(metadata, "override")
+        ? "Owner override used because damage remained open."
+        : "All readiness checks passed.";
     case "unit.checklist_updated": {
       const count = number(metadata, "itemCount");
-      return count === null ? null : `${count} checklist ${count === 1 ? "item" : "items"}.`;
+      return count === null
+        ? null
+        : `${count} checklist ${count === 1 ? "item" : "items"}.`;
     }
     case "damage.reported":
-      return join([
-        text(metadata, "description"),
-        number(metadata, "estimatedAmountCents") === null ? null : `Estimate ${formatPHP(number(metadata, "estimatedAmountCents")!)}`,
-      ]) || null;
+      return (
+        join([
+          text(metadata, "description"),
+          number(metadata, "estimatedAmountCents") === null
+            ? null
+            : `Estimate ${formatPHP(number(metadata, "estimatedAmountCents")!)}`,
+        ]) || null
+      );
     case "damage.resolved":
-      return join([
-        text(metadata, "resolutionNote"),
-        number(metadata, "actualAmountCents") === null ? null : `Actual ${formatPHP(number(metadata, "actualAmountCents")!)}`,
-      ]) || null;
+      return (
+        join([
+          text(metadata, "resolutionNote"),
+          number(metadata, "actualAmountCents") === null
+            ? null
+            : `Actual ${formatPHP(number(metadata, "actualAmountCents")!)}`,
+        ]) || null
+      );
     case "guest_link.created":
     case "guest_link.rotated":
     case "guest_link.revoked":
     case "payment_proof.submitted":
     case "payment_proof.dismissed":
-      return reservationId ? `Reservation ${shortReference(reservationId)}` : null;
+      return reservationId
+        ? `Reservation ${shortReference(reservationId)}`
+        : null;
     default:
       return reason ? `Reason: ${reason}` : null;
   }

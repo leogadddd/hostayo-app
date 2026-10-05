@@ -1,7 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type RefObject,
+} from "react";
 import { ImagePlus, RotateCcw } from "lucide-react";
 import { Button, buttonClassName } from "@/components/ui/button";
 import { FieldError, Input } from "@/components/ui/input";
@@ -21,14 +28,22 @@ export function FormSection({
   return (
     <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)] sm:p-6">
       <h2 className="font-display text-xl text-pine">{title}</h2>
-      {description ? <p className="mt-1 text-sm text-ink/55">{description}</p> : null}
+      {description ? (
+        <p className="mt-1 text-sm text-ink/55">{description}</p>
+      ) : null}
       <div className="mt-5">{children}</div>
     </section>
   );
 }
 
 /** Main sections on the left, a sticky preview and save panel on the right. */
-export function FormLayout({ children, aside }: { children: ReactNode; aside: ReactNode }) {
+export function FormLayout({
+  children,
+  aside,
+}: {
+  children: ReactNode;
+  aside: ReactNode;
+}) {
   return (
     <div className="grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_24rem]">
       <div className="min-w-0 space-y-6">{children}</div>
@@ -63,13 +78,24 @@ export function FormAside({
       {preview}
       <div className="space-y-3 border-t border-pine/10 p-5">
         <FieldError message={error} />
-        <Button type="submit" variant="clay" size="lg" className="w-full" disabled={pending}>
+        <Button
+          type="submit"
+          variant="clay"
+          size="lg"
+          className="w-full"
+          disabled={pending}
+        >
           {pending ? pendingLabel : submitLabel}
         </Button>
-        <Link href={cancelHref} className={buttonClassName("ghost", "md", "w-full")}>
+        <Link
+          href={cancelHref}
+          className={buttonClassName("ghost", "md", "w-full")}
+        >
           Cancel
         </Link>
-        {note ? <p className="text-center text-xs text-ink/50">{note}</p> : null}
+        {note ? (
+          <p className="text-center text-xs text-ink/50">{note}</p>
+        ) : null}
       </div>
     </div>
   );
@@ -95,13 +121,19 @@ export function PhotoField({
   useEffect(() => {
     onPreview?.(shown);
   }, [shown, onPreview]);
-  useEffect(() => () => {
-    if (selected) URL.revokeObjectURL(selected);
-  }, [selected]);
+  useEffect(
+    () => () => {
+      if (selected) URL.revokeObjectURL(selected);
+    },
+    [selected],
+  );
 
   return (
     <div className="flex flex-wrap items-center gap-5">
-      <UnitPhoto src={shown} className="aspect-[4/3] w-44 shrink-0 rounded-xl border border-pine/10" />
+      <UnitPhoto
+        src={shown}
+        className="aspect-[4/3] w-44 shrink-0 rounded-xl border border-pine/10"
+      />
       <div className="min-w-0 space-y-2">
         <input
           ref={inputRef}
@@ -113,7 +145,10 @@ export function PhotoField({
           onChange={(event) => {
             const file = event.target.files?.[0];
             if (!file) return;
-            if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 4 * 1024 * 1024) {
+            if (
+              !["image/jpeg", "image/png", "image/webp"].includes(file.type) ||
+              file.size > 4 * 1024 * 1024
+            ) {
               setError("Choose a JPG, PNG, or WebP image up to 4 MB.");
               event.target.value = "";
               return;
@@ -123,7 +158,11 @@ export function PhotoField({
           }}
         />
         <div className="flex flex-wrap gap-2">
-          <Button type="button" variant="outline" onClick={() => inputRef.current?.click()}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => inputRef.current?.click()}
+          >
             <ImagePlus className="h-4 w-4" aria-hidden />
             {shown ? "Replace photo" : "Add photo"}
           </Button>
@@ -142,7 +181,11 @@ export function PhotoField({
           ) : null}
         </div>
         <p className="text-xs text-ink/50">JPG, PNG, or WebP · up to 4 MB.</p>
-        {error ? <p className="text-xs text-clay-deep" role="alert">{error}</p> : null}
+        {error ? (
+          <p className="text-xs text-clay-deep" role="alert">
+            {error}
+          </p>
+        ) : null}
       </div>
     </div>
   );
@@ -152,8 +195,14 @@ export function PhotoField({
 export function PesoInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <div className="relative">
-      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink/45">₱</span>
-      <Input inputMode="decimal" {...props} className={cn("pl-7 tabular-nums", props.className)} />
+      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink/45">
+        ₱
+      </span>
+      <Input
+        inputMode="decimal"
+        {...props}
+        className={cn("pl-7 tabular-nums", props.className)}
+      />
     </div>
   );
 }

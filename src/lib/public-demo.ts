@@ -9,8 +9,17 @@ import { cache } from "react";
 import { and, eq, isNull } from "drizzle-orm";
 import type { ContactChannel } from "@/lib/contact-channels";
 import { db } from "@/lib/db";
-import { guests, organizations, properties, reservations, units } from "@/lib/db/schema";
-import { listPropertyAmenities, listUnitAmenities } from "@/server/inventory/amenities";
+import {
+  guests,
+  organizations,
+  properties,
+  reservations,
+  units,
+} from "@/lib/db/schema";
+import {
+  listPropertyAmenities,
+  listUnitAmenities,
+} from "@/server/inventory/amenities";
 import { getOccupancySegments } from "@/server/inventory/availability";
 import { findActiveGuestToken } from "@/server/reservations/guest-link";
 
@@ -154,9 +163,19 @@ function demoUnits(today: string): PublicUnit[] {
       "Lock the door and return the key to the lockbox.",
     ],
     areaTips: [
-      { title: "Island hopping", detail: "Tours leave from the beach at 8:30 AM. Ask us to book one." },
-      { title: "Dinner nearby", detail: "Three restaurants within a 5 minute walk, all along the beach road." },
-      { title: "Groceries", detail: "The small market on the main road opens at 6:00 AM." },
+      {
+        title: "Island hopping",
+        detail: "Tours leave from the beach at 8:30 AM. Ask us to book one.",
+      },
+      {
+        title: "Dinner nearby",
+        detail:
+          "Three restaurants within a 5 minute walk, all along the beach road.",
+      },
+      {
+        title: "Groceries",
+        detail: "The small market on the main road opens at 6:00 AM.",
+      },
     ],
     contactChannelIds: null,
   };
@@ -219,72 +238,127 @@ function demoUnits(today: string): PublicUnit[] {
   ];
 }
 
-export const getPublicHost = cache(async (slug: string): Promise<PublicHost | null> => {
-  if (!slug) return null;
-  const organization = await db.query.organizations.findFirst({
-    columns: { id: true, name: true, displayName: true, logoUrl: true, tagline: true, contactChannels: true, publicListingEnabled: true, city: true, municipality: true, province: true, createdAt: true },
-    where: eq(organizations.slug, slug),
-  });
-  if (!organization) return null;
-  const rows = await db.select({ unit: units, property: properties }).from(units)
-    .innerJoin(properties, and(eq(units.propertyId, properties.id), eq(units.organizationId, properties.organizationId)))
-    .where(and(eq(units.organizationId, organization.id), eq(units.status, "active"), isNull(units.deletedAt), isNull(properties.deletedAt)))
-    .orderBy(units.name);
-  const today = todayISO();
-  const bookedByUnit = await getOccupancySegments(organization.id, rows.map((row) => row.unit.id), today, addDays(today, 366));
-  const mappedUnits = await Promise.all(rows.map(async ({ unit, property }) => {
-    const [unitAmenities, propertyAmenities] = await Promise.all([
-      listUnitAmenities(organization.id, unit.id),
-      listPropertyAmenities(organization.id, property.id),
-    ]);
+export const getPublicHost = cache(
+  async (slug: string): Promise<PublicHost | null> => {
+    if (!slug) return null;
+    const organization = await db.query.organizations.findFirst({
+      columns: {
+        id: true,
+        name: true,
+        displayName: true,
+        logoUrl: true,
+        tagline: true,
+        contactChannels: true,
+        publicListingEnabled: true,
+        city: true,
+        municipality: true,
+        province: true,
+        createdAt: true,
+      },
+      where: eq(organizations.slug, slug),
+    });
+    if (!organization) return null;
+    const rows = await db
+      .select({ unit: units, property: properties })
+      .from(units)
+      .innerJoin(
+        properties,
+        and(
+          eq(units.propertyId, properties.id),
+          eq(units.organizationId, properties.organizationId),
+        ),
+      )
+      .where(
+        and(
+          eq(units.organizationId, organization.id),
+          eq(units.status, "active"),
+          isNull(units.deletedAt),
+          isNull(properties.deletedAt),
+        ),
+      )
+      .orderBy(units.name);
+    const today = todayISO();
+    const bookedByUnit = await getOccupancySegments(
+      organization.id,
+      rows.map((row) => row.unit.id),
+      today,
+      addDays(today, 366),
+    );
+    const mappedUnits = await Promise.all(
+      rows.map(async ({ unit, property }) => {
+        const [unitAmenities, propertyAmenities] = await Promise.all([
+          listUnitAmenities(organization.id, unit.id),
+          listPropertyAmenities(organization.id, property.id),
+        ]);
+        return {
+          id: unit.id,
+          slug: unit.publicSlug,
+          name: unit.name,
+          propertyName: property.name,
+          location:
+            [
+              organization.city ?? organization.municipality,
+              organization.province,
+            ]
+              .filter(Boolean)
+              .join(", ") || "Philippines",
+          description: unit.description ?? "",
+          imageUrl: unit.imageUrl,
+          imageGallery: unit.imageGallery,
+          capacity: unit.capacity,
+          bedrooms: unit.bedrooms,
+          bathrooms: unit.bathrooms,
+          nightlyRateCents: unit.defaultNightlyRateCents,
+          dayRates: unit.dayRates,
+          cleaningFeeCents: unit.cleaningFeeCents,
+          securityDepositCents: unit.securityDepositCents,
+          reservationFeeLabel: null,
+          checkInTime: unit.checkInTime,
+          checkOutTime: unit.checkOutTime,
+          unitAmenities: unitAmenities.map((amenity) => ({
+            name: amenity.name,
+            icon: amenity.icon ?? "",
+          })),
+          propertyAmenities: propertyAmenities.map((amenity) => ({
+            name: amenity.name,
+            icon: amenity.icon ?? "",
+          })),
+          guestHouseRules: unit.guestHouseRules,
+          wifiName: unit.wifiName,
+          wifiPassword: unit.wifiPassword,
+          arrivalNotes: unit.arrivalNotes,
+          checkoutSteps: unit.checkoutSteps,
+          areaTips: unit.areaTips,
+          contactChannelIds: unit.contactChannelIds,
+          booked: (bookedByUnit.get(unit.id) ?? []).map((segment) => ({
+            checkIn: segment.startDate,
+            checkOut: segment.endDate,
+          })),
+        } satisfies PublicUnit;
+      }),
+    );
     return {
-      id: unit.id,
-      slug: unit.publicSlug,
-      name: unit.name,
-      propertyName: property.name,
-      location: [organization.city ?? organization.municipality, organization.province].filter(Boolean).join(", ") || "Philippines",
-      description: unit.description ?? "",
-      imageUrl: unit.imageUrl,
-      imageGallery: unit.imageGallery,
-      capacity: unit.capacity,
-      bedrooms: unit.bedrooms,
-      bathrooms: unit.bathrooms,
-      nightlyRateCents: unit.defaultNightlyRateCents,
-      dayRates: unit.dayRates,
-      cleaningFeeCents: unit.cleaningFeeCents,
-      securityDepositCents: unit.securityDepositCents,
-      reservationFeeLabel: null,
-      checkInTime: unit.checkInTime,
-      checkOutTime: unit.checkOutTime,
-      unitAmenities: unitAmenities.map((amenity) => ({ name: amenity.name, icon: amenity.icon ?? "" })),
-      propertyAmenities: propertyAmenities.map((amenity) => ({ name: amenity.name, icon: amenity.icon ?? "" })),
-      guestHouseRules: unit.guestHouseRules,
-      wifiName: unit.wifiName,
-      wifiPassword: unit.wifiPassword,
-      arrivalNotes: unit.arrivalNotes,
-      checkoutSteps: unit.checkoutSteps,
-      areaTips: unit.areaTips,
-      contactChannelIds: unit.contactChannelIds,
-      booked: (bookedByUnit.get(unit.id) ?? []).map((segment) => ({ checkIn: segment.startDate, checkOut: segment.endDate })),
-    } satisfies PublicUnit;
-  }));
-  return {
-    slug,
-    displayName: organization.displayName ?? organization.name,
-    tagline: organization.tagline ?? "",
-    about: "",
-    logoUrl: organization.logoUrl,
-    location: [organization.city ?? organization.municipality, organization.province].filter(Boolean).join(", ") || "Philippines",
-    channels: organization.contactChannels,
-    hostingSince: String(organization.createdAt.getUTCFullYear()),
-    publicListingEnabled: organization.publicListingEnabled,
-    units: mappedUnits,
-  };
-});
+      slug,
+      displayName: organization.displayName ?? organization.name,
+      tagline: organization.tagline ?? "",
+      about: "",
+      logoUrl: organization.logoUrl,
+      location:
+        [organization.city ?? organization.municipality, organization.province]
+          .filter(Boolean)
+          .join(", ") || "Philippines",
+      channels: organization.contactChannels,
+      hostingSince: String(organization.createdAt.getUTCFullYear()),
+      publicListingEnabled: organization.publicListingEnabled,
+      units: mappedUnits,
+    };
+  },
+);
 
 export async function getPublicUnit(hostSlug: string, unitSlug: string) {
   const host = await getPublicHost(hostSlug);
-  const unit = host?.units.find((candidate) => candidate.slug === unitSlug) ?? null;
+  const unit =
+    host?.units.find((candidate) => candidate.slug === unitSlug) ?? null;
   return host && unit ? { host, unit } : null;
 }
 
@@ -303,23 +377,34 @@ export async function getGuestStay(token: string): Promise<GuestStay | null> {
       address: properties.address,
     })
     .from(reservations)
-    .innerJoin(guests, and(
-      eq(reservations.guestId, guests.id),
-      eq(reservations.organizationId, guests.organizationId),
-    ))
-    .innerJoin(units, and(
-      eq(reservations.unitId, units.id),
-      eq(reservations.organizationId, units.organizationId),
-    ))
-    .innerJoin(properties, and(
-      eq(units.propertyId, properties.id),
-      eq(units.organizationId, properties.organizationId),
-    ))
+    .innerJoin(
+      guests,
+      and(
+        eq(reservations.guestId, guests.id),
+        eq(reservations.organizationId, guests.organizationId),
+      ),
+    )
+    .innerJoin(
+      units,
+      and(
+        eq(reservations.unitId, units.id),
+        eq(reservations.organizationId, units.organizationId),
+      ),
+    )
+    .innerJoin(
+      properties,
+      and(
+        eq(units.propertyId, properties.id),
+        eq(units.organizationId, properties.organizationId),
+      ),
+    )
     .innerJoin(organizations, eq(reservations.organizationId, organizations.id))
-    .where(and(
-      eq(reservations.id, activeToken.reservationId),
-      eq(reservations.organizationId, activeToken.organizationId),
-    ))
+    .where(
+      and(
+        eq(reservations.id, activeToken.reservationId),
+        eq(reservations.organizationId, activeToken.organizationId),
+      ),
+    )
     .limit(1);
   if (!reservation) return null;
 
@@ -336,8 +421,10 @@ export async function getGuestStay(token: string): Promise<GuestStay | null> {
     mapUrl: null,
     checkInDate: reservation.checkInDate,
     checkOutDate: reservation.checkOutDate,
-    status: reservation.status === "checked_in" || reservation.status === "checked_out"
-      ? reservation.status
-      : "confirmed",
+    status:
+      reservation.status === "checked_in" ||
+      reservation.status === "checked_out"
+        ? reservation.status
+        : "confirmed",
   };
 }

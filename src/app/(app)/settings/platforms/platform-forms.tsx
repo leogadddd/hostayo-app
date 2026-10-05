@@ -3,7 +3,15 @@
 import { useActionState, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowDown, ArrowUp, Check, Pencil, RotateCcw, Trash2, X } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  Check,
+  Pencil,
+  RotateCcw,
+  Trash2,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button, buttonClassName } from "@/components/ui/button";
 import { ChoiceCards } from "@/components/ui/choice-cards";
@@ -28,8 +36,19 @@ export interface PlatformFormValues {
 }
 
 const DOWN_PAYMENT_OPTIONS = [
-  { value: "true", label: "Applies", description: "Require the unit's down payment when that unit has one.", icon: Check },
-  { value: "false", label: "Doesn't apply", description: "Never require a down payment for bookings from this platform.", icon: X },
+  {
+    value: "true",
+    label: "Applies",
+    description: "Require the unit's down payment when that unit has one.",
+    icon: Check,
+  },
+  {
+    value: "false",
+    label: "Doesn't apply",
+    description:
+      "Never require a down payment for bookings from this platform.",
+    icon: X,
+  },
 ] as const;
 
 /** Add or edit a booking platform. */
@@ -39,17 +58,25 @@ export function PlatformForm({
   submitLabel,
   successMessage,
 }: {
-  action: (state: PlatformFormState, formData: FormData) => Promise<PlatformFormState>;
+  action: (
+    state: PlatformFormState,
+    formData: FormData,
+  ) => Promise<PlatformFormState>;
   values: PlatformFormValues;
   submitLabel: string;
   successMessage: string;
 }) {
   const save = useSaveAndReturn(action, "/settings/platforms", successMessage);
-  const [state, formAction, pending] = useActionState<PlatformFormState, FormData>(save, {});
+  const [state, formAction, pending] = useActionState<
+    PlatformFormState,
+    FormData
+  >(save, {});
   useActionFeedback(state);
   const [name, setName] = useState(values.name);
   const [color, setColor] = useState(values.color || "#2F5D50");
-  const [downPaymentApplies, setDownPaymentApplies] = useState<"true" | "false">(values.downPaymentApplies ? "true" : "false");
+  const [downPaymentApplies, setDownPaymentApplies] = useState<
+    "true" | "false"
+  >(values.downPaymentApplies ? "true" : "false");
 
   return (
     <form action={formAction} className="space-y-5">
@@ -57,8 +84,20 @@ export function PlatformForm({
         <div>
           <Label htmlFor="platform-name">Name</Label>
           <div className="flex items-center gap-2">
-            <PlatformLogo platform={{ name: name || "?", logoUrl: values.logoUrl, color }} className="h-9 w-9 rounded-lg text-sm" />
-            <Input id="platform-name" name="name" value={name} onChange={(event) => setName(event.target.value)} required minLength={2} maxLength={60} placeholder="e.g. TikTok" />
+            <PlatformLogo
+              platform={{ name: name || "?", logoUrl: values.logoUrl, color }}
+              className="h-9 w-9 rounded-lg text-sm"
+            />
+            <Input
+              id="platform-name"
+              name="name"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              required
+              minLength={2}
+              maxLength={60}
+              placeholder="e.g. TikTok"
+            />
           </div>
         </div>
         <div>
@@ -71,26 +110,62 @@ export function PlatformForm({
               onChange={(event) => setColor(event.target.value.toUpperCase())}
               className="h-9 w-9 shrink-0 cursor-pointer rounded-lg border border-pine/15 bg-surface p-0.5"
             />
-            <Input id="platform-color" name="color" value={color} onChange={(event) => setColor(event.target.value)} maxLength={7} className="font-mono" />
+            <Input
+              id="platform-color"
+              name="color"
+              value={color}
+              onChange={(event) => setColor(event.target.value)}
+              maxLength={7}
+              className="font-mono"
+            />
           </div>
         </div>
       </div>
 
       <div>
-        <p id="platform-down-payment" className="mb-1.5 text-sm font-medium text-ink">When a unit requires a down payment, does it apply to this platform?</p>
-        <input type="hidden" name="downPaymentApplies" value={downPaymentApplies} />
-        <ChoiceCards aria-labelledby="platform-down-payment" value={downPaymentApplies} onChange={setDownPaymentApplies} options={DOWN_PAYMENT_OPTIONS} />
+        <p
+          id="platform-down-payment"
+          className="mb-1.5 text-sm font-medium text-ink"
+        >
+          When a unit requires a down payment, does it apply to this platform?
+        </p>
+        <input
+          type="hidden"
+          name="downPaymentApplies"
+          value={downPaymentApplies}
+        />
+        <ChoiceCards
+          aria-labelledby="platform-down-payment"
+          value={downPaymentApplies}
+          onChange={setDownPaymentApplies}
+          options={DOWN_PAYMENT_OPTIONS}
+        />
       </div>
 
       <div>
-          <Label htmlFor="platform-website">Website <span className="font-normal text-ink/45">(optional)</span></Label>
-          <Input id="platform-website" name="websiteUrl" type="url" defaultValue={values.websiteUrl} placeholder="https://www.example.com" />
+        <Label htmlFor="platform-website">
+          Website <span className="font-normal text-ink/45">(optional)</span>
+        </Label>
+        <Input
+          id="platform-website"
+          name="websiteUrl"
+          type="url"
+          defaultValue={values.websiteUrl}
+          placeholder="https://www.example.com"
+        />
       </div>
 
       <FieldError message={state.error} />
       <div className="flex flex-wrap gap-2">
-        <Button type="submit" variant="primary" disabled={pending}>{pending ? "Saving…" : submitLabel}</Button>
-        <Link href="/settings/platforms" className={buttonClassName("ghost", "md")}>Cancel</Link>
+        <Button type="submit" variant="primary" disabled={pending}>
+          {pending ? "Saving…" : submitLabel}
+        </Button>
+        <Link
+          href="/settings/platforms"
+          className={buttonClassName("ghost", "md")}
+        >
+          Cancel
+        </Link>
       </div>
     </form>
   );
@@ -104,7 +179,12 @@ export function PlatformRowActions({
   canUpdate,
   canDelete,
 }: {
-  platform: { id: string; name: string; key: string | null; reservationCount: number };
+  platform: {
+    id: string;
+    name: string;
+    key: string | null;
+    reservationCount: number;
+  };
   isFirst: boolean;
   isLast: boolean;
   canUpdate: boolean;
@@ -115,7 +195,8 @@ export function PlatformRowActions({
   const move = (direction: "up" | "down") =>
     startMove(async () => {
       const result = await movePlatformAction(platform.id, direction);
-      if (result.error) toast.error("That didn’t work", { description: result.error });
+      if (result.error)
+        toast.error("That didn’t work", { description: result.error });
       router.refresh();
     });
   const keeps = platform.key !== null || platform.reservationCount > 0;
@@ -124,13 +205,31 @@ export function PlatformRowActions({
     <div className="flex items-center justify-end gap-1">
       {canUpdate ? (
         <>
-          <Button type="button" variant="ghost" size="sm" aria-label={`Move ${platform.name} up`} disabled={isFirst || moving} onClick={() => move("up")}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            aria-label={`Move ${platform.name} up`}
+            disabled={isFirst || moving}
+            onClick={() => move("up")}
+          >
             <ArrowUp className="h-4 w-4" aria-hidden />
           </Button>
-          <Button type="button" variant="ghost" size="sm" aria-label={`Move ${platform.name} down`} disabled={isLast || moving} onClick={() => move("down")}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            aria-label={`Move ${platform.name} down`}
+            disabled={isLast || moving}
+            onClick={() => move("down")}
+          >
             <ArrowDown className="h-4 w-4" aria-hidden />
           </Button>
-          <Link href={`/settings/platforms/${platform.id}/edit`} aria-label={`Edit ${platform.name}`} className={buttonClassName("ghost", "sm")}>
+          <Link
+            href={`/settings/platforms/${platform.id}/edit`}
+            aria-label={`Edit ${platform.name}`}
+            className={buttonClassName("ghost", "sm")}
+          >
             <Pencil className="h-4 w-4" aria-hidden />
           </Link>
         </>
@@ -160,7 +259,13 @@ export function PlatformRowActions({
   );
 }
 
-export function RestorePlatformButton({ platformId, name }: { platformId: string; name: string }) {
+export function RestorePlatformButton({
+  platformId,
+  name,
+}: {
+  platformId: string;
+  name: string;
+}) {
   const router = useRouter();
   const [pending, start] = useTransition();
   return (
@@ -172,7 +277,8 @@ export function RestorePlatformButton({ platformId, name }: { platformId: string
       onClick={() =>
         start(async () => {
           const result = await restorePlatformAction(platformId);
-          if (result.error) toast.error("That didn’t work", { description: result.error });
+          if (result.error)
+            toast.error("That didn’t work", { description: result.error });
           else toast.success(`${name} restored.`);
           router.refresh();
         })

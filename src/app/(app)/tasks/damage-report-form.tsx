@@ -20,23 +20,33 @@ export function DamageReportForm({
   returnHref?: string;
 }) {
   const router = useRouter();
-  const [state, formAction, pending] = useActionState<DamageFormState, FormData>(
-    async (previous, formData) => {
-      const result = await createDamageReportAction(unitId, reservationId, previous, formData);
-      if (result.success && returnHref) {
-        toast.success("Damage report created.");
-        router.push(returnHref);
-        router.refresh();
-      }
-      return result;
-    },
-    {},
-  );
-  useActionFeedback(state, { success: returnHref ? undefined : "Damage report created." });
+  const [state, formAction, pending] = useActionState<
+    DamageFormState,
+    FormData
+  >(async (previous, formData) => {
+    const result = await createDamageReportAction(
+      unitId,
+      reservationId,
+      previous,
+      formData,
+    );
+    if (result.success && returnHref) {
+      toast.success("Damage report created.");
+      router.push(returnHref);
+      router.refresh();
+    }
+    return result;
+  }, {});
+  useActionFeedback(state, {
+    success: returnHref ? undefined : "Damage report created.",
+  });
 
   if (state.success) {
     return (
-      <p className="inline-flex items-center gap-1.5 text-sm text-pine" role="status">
+      <p
+        className="inline-flex items-center gap-1.5 text-sm text-pine"
+        role="status"
+      >
         <CheckCircle2 className="h-4 w-4" aria-hidden />
         Damage reported. It stays open until resolved.
       </p>
@@ -46,11 +56,21 @@ export function DamageReportForm({
   return (
     <form action={formAction} className="space-y-3">
       <div>
-        <Label htmlFor={reservationId ? "damage-description" : `damage-description-${unitId}`}>
+        <Label
+          htmlFor={
+            reservationId
+              ? "damage-description"
+              : `damage-description-${unitId}`
+          }
+        >
           What was damaged?
         </Label>
         <Textarea
-          id={reservationId ? "damage-description" : `damage-description-${unitId}`}
+          id={
+            reservationId
+              ? "damage-description"
+              : `damage-description-${unitId}`
+          }
           name="description"
           required
           minLength={2}
@@ -60,7 +80,11 @@ export function DamageReportForm({
         />
       </div>
       <div>
-        <Label htmlFor={reservationId ? "damage-estimate" : `damage-estimate-${unitId}`}>
+        <Label
+          htmlFor={
+            reservationId ? "damage-estimate" : `damage-estimate-${unitId}`
+          }
+        >
           Estimated cost (₱, optional)
         </Label>
         <Input
@@ -75,7 +99,11 @@ export function DamageReportForm({
         <Button type="submit" variant="clay" disabled={pending}>
           {pending ? "Reporting…" : "Report damage"}
         </Button>
-        {returnHref ? <Link href={returnHref} className="text-sm text-pine hover:underline">Cancel</Link> : null}
+        {returnHref ? (
+          <Link href={returnHref} className="text-sm text-pine hover:underline">
+            Cancel
+          </Link>
+        ) : null}
       </div>
     </form>
   );

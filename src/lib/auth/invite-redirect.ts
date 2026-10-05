@@ -6,6 +6,9 @@ export function inviteQuery(invite: string | null | undefined): string {
   return invite ? `?invite=${encodeURIComponent(invite)}` : "";
 }
 
-export function afterAuthPath(invite: string | null | undefined, fallback: string): string {
+export function afterAuthPath(
+  invite: string | null | undefined,
+  fallback: string,
+): string {
   return invite ? `/onboarding${inviteQuery(invite)}` : fallback;
 }

@@ -3,10 +3,23 @@ import { RouteModal } from "@/components/app/route-modal";
 import { editBlockPanel } from "../../../../unit-actions";
 
 /** Opened from the unit: the same form, as a modal over it. */
-export default async function EditUnitBlockModal({ params }: { params: Promise<{ propertyId: string; unitId: string; blockId: string }> }) {
+export default async function EditUnitBlockModal({
+  params,
+}: {
+  params: Promise<{ propertyId: string; unitId: string; blockId: string }>;
+}) {
   const membership = await requirePermission("properties.update");
   if (!membership) return null;
   const { propertyId, unitId, blockId } = await params;
-  const { form, title, description } = await editBlockPanel(membership.organizationId, propertyId, unitId, blockId);
-  return <RouteModal title={title} description={description}>{form}</RouteModal>;
+  const { form, title, description } = await editBlockPanel(
+    membership.organizationId,
+    propertyId,
+    unitId,
+    blockId,
+  );
+  return (
+    <RouteModal title={title} description={description}>
+      {form}
+    </RouteModal>
+  );
 }

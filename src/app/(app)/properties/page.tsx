@@ -29,7 +29,12 @@ export default async function PropertiesPage() {
     listOrgUnits(membership.organizationId),
   ]);
   // Each property counts from its own today; fetch from the earliest of them.
-  const todayByProperty = new Map(properties.map((property) => [property.id, todayInTimeZone(property.timezone)]));
+  const todayByProperty = new Map(
+    properties.map((property) => [
+      property.id,
+      todayInTimeZone(property.timezone),
+    ]),
+  );
   const earliest = [...todayByProperty.values()].sort()[0];
   const segmentsByUnit = earliest
     ? await getOccupancySegments(
@@ -42,11 +47,17 @@ export default async function PropertiesPage() {
 
   const summaries = properties.map((property) => {
     const today = todayByProperty.get(property.id)!;
-    const propertyUnits = units.filter((unit) => unit.propertyId === property.id);
+    const propertyUnits = units.filter(
+      (unit) => unit.propertyId === property.id,
+    );
     const active = propertyUnits.filter((unit) => unit.status === "active");
     const activities = propertyUnits.map((unit) => ({
       unit,
-      activity: summarizeUnitActivity(segmentsByUnit.get(unit.id) ?? [], today, addDaysLocal(today, OUTLOOK_DAYS)),
+      activity: summarizeUnitActivity(
+        segmentsByUnit.get(unit.id) ?? [],
+        today,
+        addDaysLocal(today, OUTLOOK_DAYS),
+      ),
     }));
     return {
       property,
@@ -61,7 +72,10 @@ export default async function PropertiesPage() {
 
   return (
     <div className="min-w-0 overflow-hidden">
-      <PageHeading title="Properties" description="Where your stays happen, and the units guests book inside each one.">
+      <PageHeading
+        title="Properties"
+        description="Where your stays happen, and the units guests book inside each one."
+      >
         <Link href="/properties/new" className={buttonClassName("clay")}>
           <Plus className="h-4 w-4" aria-hidden />
           Add property
@@ -73,66 +87,114 @@ export default async function PropertiesPage() {
           title="No properties yet"
           description="Add your first property, then the units guests can book."
           action={
-            <Link href="/properties/new" className={buttonClassName("clay", "md")}>
+            <Link
+              href="/properties/new"
+              className={buttonClassName("clay", "md")}
+            >
               Add property
             </Link>
           }
         />
       ) : (
         <ul className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-          {summaries.map(({ property, unitCount, activeCount, staying, bookedNights }) => {
-            const href = `/properties/${property.id}`;
-            return (
-              <li
-                key={property.id}
-                className="group relative flex flex-col overflow-hidden rounded-2xl border border-pine/10 bg-surface shadow-[0_1px_2px_rgba(32,58,53,0.06)] transition hover:-translate-y-0.5 hover:border-pine/25 hover:shadow-[0_10px_24px_rgba(32,58,53,0.08)]"
-              >
-                <UnitPhoto src={photoSrc("property", property)} className="aspect-[16/9]" />
-                <div className="flex flex-1 flex-col p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <Link href={href} className="block truncate font-display text-xl text-pine after:absolute after:inset-0">
-                        {property.name}
-                      </Link>
-                      <p className="mt-1 flex items-center gap-1.5 text-xs text-ink/55">
-                        <MapPin className="h-3.5 w-3.5 shrink-0 text-pine/40" aria-hidden />
-                        <span className="truncate">{property.address || "No address yet"}</span>
-                      </p>
+          {summaries.map(
+            ({ property, unitCount, activeCount, staying, bookedNights }) => {
+              const href = `/properties/${property.id}`;
+              return (
+                <li
+                  key={property.id}
+                  className="group relative flex flex-col overflow-hidden rounded-2xl border border-pine/10 bg-surface shadow-[0_1px_2px_rgba(32,58,53,0.06)] transition hover:-translate-y-0.5 hover:border-pine/25 hover:shadow-[0_10px_24px_rgba(32,58,53,0.08)]"
+                >
+                  <UnitPhoto
+                    src={photoSrc("property", property)}
+                    className="aspect-[16/9]"
+                  />
+                  <div className="flex flex-1 flex-col p-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <Link
+                          href={href}
+                          className="block truncate font-display text-xl text-pine after:absolute after:inset-0"
+                        >
+                          {property.name}
+                        </Link>
+                        <p className="mt-1 flex items-center gap-1.5 text-xs text-ink/55">
+                          <MapPin
+                            className="h-3.5 w-3.5 shrink-0 text-pine/40"
+                            aria-hidden
+                          />
+                          <span className="truncate">
+                            {property.address || "No address yet"}
+                          </span>
+                        </p>
+                      </div>
+                      <div className="relative z-10">
+                        <TableActionsMenu
+                          label={property.name}
+                          viewHref={href}
+                          editHref={`${href}/edit`}
+                          deleteLabel={`Delete ${property.name}?`}
+                          deleteDescription="The property and its units will disappear from active inventory, but reservation, payment, expense, and audit history will be preserved. Properties with an active hold or stay cannot be deleted."
+                          onDelete={deletePropertyAction.bind(
+                            null,
+                            property.id,
+                          )}
+                          links={[
+                            {
+                              href: `${href}/units/new`,
+                              label: "Add unit",
+                              icon: <Plus className="h-4 w-4" aria-hidden />,
+                            },
+                          ]}
+                          shareHref={`/h/${membership.organizationSlug}`}
+                        />
+                      </div>
                     </div>
-                    <div className="relative z-10">
-                      <TableActionsMenu
-                        label={property.name}
-                        viewHref={href}
-                        editHref={`${href}/edit`}
-                        deleteLabel={`Delete ${property.name}?`}
-                        deleteDescription="The property and its units will disappear from active inventory, but reservation, payment, expense, and audit history will be preserved. Properties with an active hold or stay cannot be deleted."
-                        onDelete={deletePropertyAction.bind(null, property.id)}
-                        links={[{ href: `${href}/units/new`, label: "Add unit", icon: <Plus className="h-4 w-4" aria-hidden /> }]}
-                        shareHref={`/h/${membership.organizationSlug}`}
+                    <dl className="mt-5 grid grid-cols-3 gap-2 border-t border-pine/8 pt-4 text-center">
+                      <Fact
+                        icon={DoorOpen}
+                        label="Units"
+                        value={String(unitCount)}
+                        detail={`${activeCount} active`}
                       />
-                    </div>
+                      <Fact
+                        icon={BedDouble}
+                        label="Tonight"
+                        value={String(staying)}
+                        detail="staying"
+                      />
+                      <Fact
+                        icon={TrendingUp}
+                        label={`${OUTLOOK_DAYS} days`}
+                        value={percent(
+                          bookedNights,
+                          activeCount * OUTLOOK_DAYS,
+                        )}
+                        detail="booked"
+                      />
+                    </dl>
                   </div>
-                  <dl className="mt-5 grid grid-cols-3 gap-2 border-t border-pine/8 pt-4 text-center">
-                    <Fact icon={DoorOpen} label="Units" value={String(unitCount)} detail={`${activeCount} active`} />
-                    <Fact icon={BedDouble} label="Tonight" value={String(staying)} detail="staying" />
-                    <Fact
-                      icon={TrendingUp}
-                      label={`${OUTLOOK_DAYS} days`}
-                      value={percent(bookedNights, activeCount * OUTLOOK_DAYS)}
-                      detail="booked"
-                    />
-                  </dl>
-                </div>
-              </li>
-            );
-          })}
+                </li>
+              );
+            },
+          )}
         </ul>
       )}
     </div>
   );
 }
 
-function Fact({ icon: Icon, label, value, detail }: { icon: typeof DoorOpen; label: string; value: string; detail: string }) {
+function Fact({
+  icon: Icon,
+  label,
+  value,
+  detail,
+}: {
+  icon: typeof DoorOpen;
+  label: string;
+  value: string;
+  detail: string;
+}) {
   return (
     <div className="min-w-0">
       <dt className="flex items-center justify-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-ink/45">

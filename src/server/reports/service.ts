@@ -124,7 +124,9 @@ export async function getReport(
     gte(reservations.checkOutDate, from),
   ];
   // Property-scoped money rows join through the stay's unit.
-  const propertyScope = propertyId ? eq(units.propertyId, propertyId) : undefined;
+  const propertyScope = propertyId
+    ? eq(units.propertyId, propertyId)
+    : undefined;
 
   const stayRowsPromise = db
     .select({
@@ -149,7 +151,10 @@ export async function getReport(
         : and(...stayConditions),
     );
   const periodPaymentsPromise = db
-    .select({ allocation: paymentEntries.allocation, amountCents: paymentEntries.amountCents })
+    .select({
+      allocation: paymentEntries.allocation,
+      amountCents: paymentEntries.amountCents,
+    })
     .from(paymentEntries)
     .innerJoin(
       reservations,
@@ -175,7 +180,10 @@ export async function getReport(
     );
 
   const periodRefundsPromise = db
-    .select({ allocation: refundEntries.allocation, amountCents: refundEntries.amountCents })
+    .select({
+      allocation: refundEntries.allocation,
+      amountCents: refundEntries.amountCents,
+    })
     .from(refundEntries)
     .innerJoin(
       reservations,
@@ -201,7 +209,11 @@ export async function getReport(
     );
 
   const periodDeductionsPromise = db
-    .select({ total: sql`coalesce(sum(${depositDeductions.amountCents}), 0)`.mapWith(Number) })
+    .select({
+      total: sql`coalesce(sum(${depositDeductions.amountCents}), 0)`.mapWith(
+        Number,
+      ),
+    })
     .from(depositDeductions)
     .innerJoin(
       reservations,
@@ -233,13 +245,20 @@ export async function getReport(
   ];
   if (propertyId) expenseConditions.push(eq(expenses.propertyId, propertyId));
   const periodExpenseRowsPromise = db
-    .select({ amountCents: expenses.amountCents, classification: expenses.classification })
+    .select({
+      amountCents: expenses.amountCents,
+      classification: expenses.classification,
+    })
     .from(expenses)
     .where(and(...expenseConditions));
 
   // All-time deposit position, still property-scoped when a property is chosen.
   const depositCollectedPromise = db
-    .select({ total: sql`coalesce(sum(${paymentEntries.amountCents}), 0)`.mapWith(Number) })
+    .select({
+      total: sql`coalesce(sum(${paymentEntries.amountCents}), 0)`.mapWith(
+        Number,
+      ),
+    })
     .from(paymentEntries)
     .innerJoin(
       reservations,
@@ -264,7 +283,11 @@ export async function getReport(
     );
 
   const depositRefundedPromise = db
-    .select({ total: sql`coalesce(sum(${refundEntries.amountCents}), 0)`.mapWith(Number) })
+    .select({
+      total: sql`coalesce(sum(${refundEntries.amountCents}), 0)`.mapWith(
+        Number,
+      ),
+    })
     .from(refundEntries)
     .innerJoin(
       reservations,
@@ -289,7 +312,11 @@ export async function getReport(
     );
 
   const depositDeductedPromise = db
-    .select({ total: sql`coalesce(sum(${depositDeductions.amountCents}), 0)`.mapWith(Number) })
+    .select({
+      total: sql`coalesce(sum(${depositDeductions.amountCents}), 0)`.mapWith(
+        Number,
+      ),
+    })
     .from(depositDeductions)
     .innerJoin(
       reservations,

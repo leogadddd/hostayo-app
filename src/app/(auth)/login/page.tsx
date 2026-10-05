@@ -8,7 +8,15 @@ import { authClient, setTwoFactorChallengeHandler } from "@/lib/auth/client";
 import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/ui/password-input";
 import { AuthLoadingOverlay } from "@/components/ui/auth-loading-overlay";
-import { ArrowLeft, ChevronRight, CircleAlert, KeyRound, MailCheck, Smartphone, Users } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronRight,
+  CircleAlert,
+  KeyRound,
+  MailCheck,
+  Smartphone,
+  Users,
+} from "lucide-react";
 import { afterAuthPath, inviteQuery } from "@/lib/auth/invite-redirect";
 import { Input, Label } from "@/components/ui/input";
 import { CodeInput } from "@/components/ui/code-input";
@@ -72,15 +80,19 @@ const DEMO_ACCOUNT = {
 function saveBrowserCredential(email: string, password: string) {
   const PasswordCredential = (
     window as Window & {
-      PasswordCredential?: new (data: { id: string; name: string; password: string }) => Credential;
+      PasswordCredential?: new (data: {
+        id: string;
+        name: string;
+        password: string;
+      }) => Credential;
     }
   ).PasswordCredential;
   if (!PasswordCredential || !navigator.credentials?.store) return;
-  void navigator.credentials.store(
-    new PasswordCredential({ id: email, name: email, password }),
-  ).catch(() => {
-    // A browser may decline credential storage; sign-in has still succeeded.
-  });
+  void navigator.credentials
+    .store(new PasswordCredential({ id: email, name: email, password }))
+    .catch(() => {
+      // A browser may decline credential storage; sign-in has still succeeded.
+    });
 }
 
 function LoginContent() {
@@ -101,7 +113,10 @@ function LoginContent() {
   const twoFactorRequired = useRef(false);
 
   useEffect(() => {
-    setTwoFactorChallengeHandler(() => { twoFactorRequired.current = true; setTwoFactorChallenge(true); });
+    setTwoFactorChallengeHandler(() => {
+      twoFactorRequired.current = true;
+      setTwoFactorChallenge(true);
+    });
     return () => setTwoFactorChallengeHandler(null);
   }, []);
 
@@ -140,7 +155,11 @@ function LoginContent() {
       : await authClient.twoFactor.verifyTotp({ code });
     setPending(false);
     if (result.error) {
-      setError(useRecoveryCode ? "That recovery code didn’t work. Check it and try again." : "That code didn’t work. Codes change every 30 seconds, so try the one showing now.");
+      setError(
+        useRecoveryCode
+          ? "That recovery code didn’t work. Check it and try again."
+          : "That code didn’t work. Codes change every 30 seconds, so try the one showing now.",
+      );
       setCodeShake((count) => count + 1);
       if (!useRecoveryCode) setTwoFactorCode("");
       return;
@@ -179,32 +198,64 @@ function LoginContent() {
   };
 
   if (twoFactorChallenge) {
-    const codeReady = useRecoveryCode ? Boolean(twoFactorCode.trim()) : twoFactorCode.length === 6;
+    const codeReady = useRecoveryCode
+      ? Boolean(twoFactorCode.trim())
+      : twoFactorCode.length === 6;
     return (
       <div className="animate-rise">
-        <button type="button" onClick={leaveChallenge} className="-ml-1 inline-flex items-center gap-2 rounded-md px-1 py-0.5 text-sm text-pine/70 hover:text-clay">
+        <button
+          type="button"
+          onClick={leaveChallenge}
+          className="-ml-1 inline-flex items-center gap-2 rounded-md px-1 py-0.5 text-sm text-pine/70 hover:text-clay"
+        >
           <ArrowLeft className="h-4 w-4" aria-hidden />
           Back to sign in
         </button>
 
-        <h1 className="mt-10 font-display text-3xl text-pine sm:mt-8">{useRecoveryCode ? "Use a recovery code" : "Enter your code"}</h1>
+        <h1 className="mt-10 font-display text-3xl text-pine sm:mt-8">
+          {useRecoveryCode ? "Use a recovery code" : "Enter your code"}
+        </h1>
         <p className="mt-2 text-sm leading-relaxed text-ink/60">
           {useRecoveryCode ? (
-            <>Enter one of the recovery codes you saved when you turned on two-factor. Each code works once.</>
+            <>
+              Enter one of the recovery codes you saved when you turned on
+              two-factor. Each code works once.
+            </>
           ) : (
-            <>Open your authenticator app and enter the 6-digit code for Hostayo{email ? <> (<span className="font-medium text-pine">{email}</span>)</> : null}.</>
+            <>
+              Open your authenticator app and enter the 6-digit code for Hostayo
+              {email ? (
+                <>
+                  {" "}
+                  (<span className="font-medium text-pine">{email}</span>)
+                </>
+              ) : null}
+              .
+            </>
           )}
         </p>
 
-        <form onSubmit={(event) => { event.preventDefault(); void verifyTwoFactor(); }} className="mt-8 space-y-6">
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            void verifyTwoFactor();
+          }}
+          className="mt-8 space-y-6"
+        >
           {error ? <AuthErrorBanner message={error} /> : null}
           {useRecoveryCode ? (
-            <div key={codeShake} className={cn(codeShake > 0 && "animate-shake")}>
+            <div
+              key={codeShake}
+              className={cn(codeShake > 0 && "animate-shake")}
+            >
               <Label htmlFor="two-factor-code">Recovery code</Label>
               <Input
                 id="two-factor-code"
                 value={twoFactorCode}
-                onChange={(event) => { setTwoFactorCode(event.target.value); setError(null); }}
+                onChange={(event) => {
+                  setTwoFactorCode(event.target.value);
+                  setError(null);
+                }}
                 autoComplete="one-time-code"
                 autoCapitalize="none"
                 spellCheck={false}
@@ -215,7 +266,10 @@ function LoginContent() {
               />
             </div>
           ) : (
-            <div key={codeShake} className={cn(codeShake > 0 && "animate-shake")}>
+            <div
+              key={codeShake}
+              className={cn(codeShake > 0 && "animate-shake")}
+            >
               <CodeInput
                 id="two-factor-code"
                 label="Authenticator code"
@@ -228,10 +282,17 @@ function LoginContent() {
                   if (next.length === 6) void verifyTwoFactor(next);
                 }}
               />
-              <p className="mt-3 text-center text-xs text-ink/50">Signs you in as soon as all six digits are in. Codes refresh every 30 seconds.</p>
+              <p className="mt-3 text-center text-xs text-ink/50">
+                Signs you in as soon as all six digits are in. Codes refresh
+                every 30 seconds.
+              </p>
             </div>
           )}
-          <Button type="submit" className="h-12 w-full text-base sm:h-11" disabled={pending || !codeReady}>
+          <Button
+            type="submit"
+            className="h-12 w-full text-base sm:h-11"
+            disabled={pending || !codeReady}
+          >
             {pending ? "Verifying…" : "Verify and sign in"}
           </Button>
         </form>
@@ -243,15 +304,32 @@ function LoginContent() {
         </div>
         <button
           type="button"
-          onClick={() => { setUseRecoveryCode(!useRecoveryCode); setTwoFactorCode(""); setError(null); setCodeShake(0); }}
+          onClick={() => {
+            setUseRecoveryCode(!useRecoveryCode);
+            setTwoFactorCode("");
+            setError(null);
+            setCodeShake(0);
+          }}
           className="mt-6 flex w-full items-center gap-3.5 rounded-xl border border-pine/12 bg-surface p-4 text-left transition-colors hover:border-pine/30"
         >
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-pine/[0.06] text-pine">
-            {useRecoveryCode ? <Smartphone className="h-5 w-5" aria-hidden /> : <KeyRound className="h-5 w-5" aria-hidden />}
+            {useRecoveryCode ? (
+              <Smartphone className="h-5 w-5" aria-hidden />
+            ) : (
+              <KeyRound className="h-5 w-5" aria-hidden />
+            )}
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-sm font-semibold text-pine">{useRecoveryCode ? "Use your authenticator app" : "Use a recovery code instead"}</span>
-            <span className="mt-0.5 block text-xs text-ink/55">{useRecoveryCode ? "Enter the 6-digit code from your phone." : "If you don’t have your phone with you."}</span>
+            <span className="block text-sm font-semibold text-pine">
+              {useRecoveryCode
+                ? "Use your authenticator app"
+                : "Use a recovery code instead"}
+            </span>
+            <span className="mt-0.5 block text-xs text-ink/55">
+              {useRecoveryCode
+                ? "Enter the 6-digit code from your phone."
+                : "If you don’t have your phone with you."}
+            </span>
           </span>
           <ChevronRight className="h-4 w-4 shrink-0 text-pine/40" aria-hidden />
         </button>
@@ -344,7 +422,10 @@ function LoginContent() {
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-pine/60">
               Hostayo demo
             </p>
-            <h2 id="demo-mode-title" className="mt-3 font-display text-3xl text-pine">
+            <h2
+              id="demo-mode-title"
+              className="mt-3 font-display text-3xl text-pine"
+            >
               You&apos;re entering demo mode.
             </h2>
             <p className="mt-4 text-sm leading-relaxed text-ink/70">
@@ -352,7 +433,9 @@ function LoginContent() {
               not add personal, guest, or payment information.
             </p>
             {error && (
-              <div className="mt-4"><AuthErrorBanner message={error} /></div>
+              <div className="mt-4">
+                <AuthErrorBanner message={error} />
+              </div>
             )}
             <div className="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <Link
@@ -375,7 +458,9 @@ function LoginContent() {
       )}
       {pending || demoStarting ? (
         <AuthLoadingOverlay
-          label={demoStarting ? "Opening your demo workspace…" : "Signing you in…"}
+          label={
+            demoStarting ? "Opening your demo workspace…" : "Signing you in…"
+          }
         />
       ) : null}
     </div>
@@ -386,7 +471,10 @@ function InvitationNotice() {
   return (
     <p className="mt-6 flex items-start gap-2 rounded-xl border border-pine/15 bg-sage/35 px-4 py-3 text-sm text-pine">
       <MailCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-      <span>Sign in with the email address your invitation was sent to. You’ll review it before joining.</span>
+      <span>
+        Sign in with the email address your invitation was sent to. You’ll
+        review it before joining.
+      </span>
     </p>
   );
 }

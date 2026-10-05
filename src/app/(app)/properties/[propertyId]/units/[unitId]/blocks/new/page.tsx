@@ -6,10 +6,18 @@ import { blockPanel } from "../../unit-actions";
 
 export const metadata: Metadata = { title: "Block dates" };
 
-export default async function NewUnitBlockPage({ params }: { params: Promise<{ propertyId: string; unitId: string }> }) {
+export default async function NewUnitBlockPage({
+  params,
+}: {
+  params: Promise<{ propertyId: string; unitId: string }>;
+}) {
   const membership = await requirePermission("properties.create");
   if (!membership) return <PermissionDenied />;
   const { propertyId, unitId } = await params;
-  const { form, ...panel } = await blockPanel(membership.organizationId, propertyId, unitId);
+  const { form, ...panel } = await blockPanel(
+    membership.organizationId,
+    propertyId,
+    unitId,
+  );
   return <RoutePage {...panel}>{form}</RoutePage>;
 }

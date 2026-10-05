@@ -1,6 +1,14 @@
 import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { requirePermission, type MembershipContext } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { PermissionDenied } from "@/components/app/permission-denied";
@@ -35,92 +43,231 @@ import { UnitEditForm } from "@/app/(app)/properties/[propertyId]/units/unit-edi
 import { BlockForms } from "@/app/(app)/properties/[propertyId]/units/block-forms";
 import { ChecklistTemplateEditor } from "@/app/(app)/properties/[propertyId]/units/checklist-template-editor";
 
-const navigation = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn(), redirect: vi.fn() }));
+const navigation = vi.hoisted(() => ({
+  push: vi.fn(),
+  replace: vi.fn(),
+  refresh: vi.fn(),
+  redirect: vi.fn(),
+}));
 vi.mock("react", async (importOriginal) => ({
-  ...await importOriginal<typeof import("react")>(),
+  ...(await importOriginal<typeof import("react")>()),
   useActionState: vi.fn(),
   useEffect: vi.fn(),
 }));
 vi.mock("next/navigation", () => ({
   useRouter: () => navigation,
   redirect: navigation.redirect,
-  notFound: () => { throw new Error("Not found"); },
+  notFound: () => {
+    throw new Error("Not found");
+  },
 }));
 vi.mock("@/lib/auth/session", () => ({ requirePermission: vi.fn() }));
-vi.mock("@/lib/db", () => ({ db: { query: { organizations: { findFirst: vi.fn() } }, select: vi.fn() } }));
-vi.mock("@/server/audit/service", () => ({ getAuditLogPage: vi.fn(), listAuditEvents: vi.fn() }));
+vi.mock("@/lib/db", () => ({
+  db: { query: { organizations: { findFirst: vi.fn() } }, select: vi.fn() },
+}));
+vi.mock("@/server/audit/service", () => ({
+  getAuditLogPage: vi.fn(),
+  listAuditEvents: vi.fn(),
+}));
 vi.mock("@/server/inventory/service", () => ({
-  listProperties: vi.fn(), listPropertyUnits: vi.fn(), listOrgUnits: vi.fn(), getPropertyOrThrow: vi.fn(),
-  getUnitOrThrow: vi.fn(), listUnitBlocks: vi.fn(), getUnitBlockOrThrow: vi.fn(),
+  listProperties: vi.fn(),
+  listPropertyUnits: vi.fn(),
+  listOrgUnits: vi.fn(),
+  getPropertyOrThrow: vi.fn(),
+  getUnitOrThrow: vi.fn(),
+  listUnitBlocks: vi.fn(),
+  getUnitBlockOrThrow: vi.fn(),
 }));
 vi.mock("@/server/inventory/availability", async (importOriginal) => ({
-  ...await importOriginal<typeof import("@/server/inventory/availability")>(),
+  ...(await importOriginal<typeof import("@/server/inventory/availability")>()),
   getOccupancySegments: vi.fn(async () => new Map()),
 }));
 vi.mock("@/server/inventory/amenities", () => ({
-  listAmenities: vi.fn(async () => []), listPropertyAmenities: vi.fn(async () => []), listUnitAmenities: vi.fn(async () => []),
+  listAmenities: vi.fn(async () => []),
+  listPropertyAmenities: vi.fn(async () => []),
+  listUnitAmenities: vi.fn(async () => []),
 }));
 vi.mock("@/app/(app)/settings/actions", () => ({
-  renameOrganization: vi.fn(), saveOrganizationProfile: vi.fn(), savePaymentInstructions: vi.fn(), inviteStaffAction: vi.fn(), removeStaffAction: vi.fn(),
-  createOrganizationJoinCodeAction: vi.fn(), reviewOrganizationJoinRequestAction: vi.fn(),
+  renameOrganization: vi.fn(),
+  saveOrganizationProfile: vi.fn(),
+  savePaymentInstructions: vi.fn(),
+  inviteStaffAction: vi.fn(),
+  removeStaffAction: vi.fn(),
+  createOrganizationJoinCodeAction: vi.fn(),
+  reviewOrganizationJoinRequestAction: vi.fn(),
 }));
 vi.mock("@/app/(app)/properties/actions", () => ({
-  createPropertyAction: vi.fn(), updatePropertyAction: vi.fn(), createUnitAction: vi.fn(),
-  updateUnitAction: vi.fn(), updateChecklistTemplateAction: vi.fn(), updateUnitStatusAction: vi.fn(), updateHouseRulesAction: vi.fn(),
-  deletePropertyAction: vi.fn(), deleteUnitAction: vi.fn(),
+  createPropertyAction: vi.fn(),
+  updatePropertyAction: vi.fn(),
+  createUnitAction: vi.fn(),
+  updateUnitAction: vi.fn(),
+  updateChecklistTemplateAction: vi.fn(),
+  updateUnitStatusAction: vi.fn(),
+  updateHouseRulesAction: vi.fn(),
+  deletePropertyAction: vi.fn(),
+  deleteUnitAction: vi.fn(),
 }));
 vi.mock("@/app/(app)/properties/[propertyId]/units/block-actions", () => ({
-  addUnitBlockAction: vi.fn(), updateUnitBlockAction: vi.fn(), removeUnitBlockAction: vi.fn(),
+  addUnitBlockAction: vi.fn(),
+  updateUnitBlockAction: vi.fn(),
+  removeUnitBlockAction: vi.fn(),
 }));
 
 const owner: MembershipContext = {
-  organizationId: "org-a", organizationName: "Test stays", organizationSlug: "test-stays", userId: "owner-a", role: "owner",
+  organizationId: "org-a",
+  organizationName: "Test stays",
+  organizationSlug: "test-stays",
+  userId: "owner-a",
+  role: "owner",
 };
 const property = {
-  id: "property-a", organizationId: owner.organizationId, name: "Test property", address: "Private address",
-  timezone: "Asia/Manila", checkInTime: "15:00", checkOutTime: "11:00", turnoverDurationMinutes: 120, houseRules: "Quiet after 10pm",
+  id: "property-a",
+  organizationId: owner.organizationId,
+  name: "Test property",
+  address: "Private address",
+  timezone: "Asia/Manila",
+  checkInTime: "15:00",
+  checkOutTime: "11:00",
+  turnoverDurationMinutes: 120,
+  houseRules: "Quiet after 10pm",
   imageUrl: null,
-  createdAt: new Date("2026-09-01T00:00:00Z"), updatedAt: new Date("2026-09-01T00:00:00Z"),
+  createdAt: new Date("2026-09-01T00:00:00Z"),
+  updatedAt: new Date("2026-09-01T00:00:00Z"),
   deletedAt: null,
 };
 const unit = {
-  id: "unit-a", organizationId: owner.organizationId, propertyId: property.id, name: "Test unit",
+  id: "unit-a",
+  organizationId: owner.organizationId,
+  propertyId: property.id,
+  name: "Test unit",
   publicSlug: "test-unit",
-  status: "active" as const, capacity: 2, bedrooms: 1, bathrooms: 1, defaultNightlyRateCents: 125_050, dayRates: {},
+  status: "active" as const,
+  capacity: 2,
+  bedrooms: 1,
+  bathrooms: 1,
+  defaultNightlyRateCents: 125_050,
+  dayRates: {},
   imageUrl: null,
-  description: null, imageGallery: [], guestHouseRules: [], wifiName: null, wifiPassword: null,
-  arrivalNotes: [], areaTips: [], checkoutSteps: [],
+  description: null,
+  imageGallery: [],
+  guestHouseRules: [],
+  wifiName: null,
+  wifiPassword: null,
+  arrivalNotes: [],
+  areaTips: [],
+  checkoutSteps: [],
   contactChannelIds: null,
-  cleaningFeeCents: 30_000, securityDepositCents: null, reservationFeeType: null, reservationFeeAmount: null, checkInTime: "15:00", checkOutTime: "11:00", extensionsEnabled: false, maxExtensionHours: 4, extensionHourlyRateCents: null, checklistTemplate: [{ label: "Clean room", required: true }],
-  createdAt: new Date("2026-09-01T00:00:00Z"), updatedAt: new Date("2026-09-01T00:00:00Z"),
+  cleaningFeeCents: 30_000,
+  securityDepositCents: null,
+  reservationFeeType: null,
+  reservationFeeAmount: null,
+  checkInTime: "15:00",
+  checkOutTime: "11:00",
+  extensionsEnabled: false,
+  maxExtensionHours: 4,
+  extensionHourlyRateCents: null,
+  checklistTemplate: [{ label: "Clean room", required: true }],
+  createdAt: new Date("2026-09-01T00:00:00Z"),
+  updatedAt: new Date("2026-09-01T00:00:00Z"),
   deletedAt: null,
 };
 const propertyHref = `/properties/${property.id}`;
 const unitHref = `${propertyHref}/units/${unit.id}`;
-const propertyParams = () => ({ params: Promise.resolve({ propertyId: property.id }) });
-const unitParams = () => ({ params: Promise.resolve({ propertyId: property.id, unitId: unit.id }) });
+const propertyParams = () => ({
+  params: Promise.resolve({ propertyId: property.id }),
+});
+const unitParams = () => ({
+  params: Promise.resolve({ propertyId: property.id, unitId: unit.id }),
+});
 
 const propertyPages = [
-  { name: "property edit", render: () => EditPropertyPage(propertyParams()), firstRead: inventory.getPropertyOrThrow },
-  { name: "unit create", render: () => NewUnitPage(propertyParams()), firstRead: inventory.getPropertyOrThrow },
-  { name: "house rules", render: () => HouseRulesPage(propertyParams()), firstRead: inventory.getPropertyOrThrow },
+  {
+    name: "property edit",
+    render: () => EditPropertyPage(propertyParams()),
+    firstRead: inventory.getPropertyOrThrow,
+  },
+  {
+    name: "unit create",
+    render: () => NewUnitPage(propertyParams()),
+    firstRead: inventory.getPropertyOrThrow,
+  },
+  {
+    name: "house rules",
+    render: () => HouseRulesPage(propertyParams()),
+    firstRead: inventory.getPropertyOrThrow,
+  },
 ];
 const unitPages = [
-  { name: "unit edit", render: () => EditUnitPage(unitParams()), firstRead: inventory.getPropertyOrThrow },
-  { name: "block create", render: () => NewUnitBlockPage(unitParams()), firstRead: inventory.getPropertyOrThrow },
-  { name: "checklist edit", render: () => EditChecklistPage(unitParams()), firstRead: inventory.getPropertyOrThrow },
-  { name: "unit status", render: () => UnitStatusPage(unitParams()), firstRead: inventory.getPropertyOrThrow },
-  { name: "block edit", render: () => EditUnitBlockPage({ params: Promise.resolve({ propertyId: property.id, unitId: unit.id, blockId: "block-a" }) }), firstRead: inventory.getPropertyOrThrow },
+  {
+    name: "unit edit",
+    render: () => EditUnitPage(unitParams()),
+    firstRead: inventory.getPropertyOrThrow,
+  },
+  {
+    name: "block create",
+    render: () => NewUnitBlockPage(unitParams()),
+    firstRead: inventory.getPropertyOrThrow,
+  },
+  {
+    name: "checklist edit",
+    render: () => EditChecklistPage(unitParams()),
+    firstRead: inventory.getPropertyOrThrow,
+  },
+  {
+    name: "unit status",
+    render: () => UnitStatusPage(unitParams()),
+    firstRead: inventory.getPropertyOrThrow,
+  },
+  {
+    name: "block edit",
+    render: () =>
+      EditUnitBlockPage({
+        params: Promise.resolve({
+          propertyId: property.id,
+          unitId: unit.id,
+          blockId: "block-a",
+        }),
+      }),
+    firstRead: inventory.getPropertyOrThrow,
+  },
 ];
 const newPages = [
-  { name: "audit logs", render: () => AuditLogsPage(), firstRead: getAuditLogPage },
-  { name: "organization edit", render: () => EditOrganizationPage(), firstRead: db.query.organizations.findFirst, hasPageHeading: false },
-  { name: "payment instructions edit", render: () => EditPaymentInstructionsPage(), firstRead: db.query.organizations.findFirst },
-  { name: "team invite", render: () => InviteTeamMemberPage(), firstRead: undefined },
-  { name: "property create", render: () => NewPropertyPage(), firstRead: undefined },
-  ...propertyPages, ...unitPages,
+  {
+    name: "audit logs",
+    render: () => AuditLogsPage(),
+    firstRead: getAuditLogPage,
+  },
+  {
+    name: "organization edit",
+    render: () => EditOrganizationPage(),
+    firstRead: db.query.organizations.findFirst,
+    hasPageHeading: false,
+  },
+  {
+    name: "payment instructions edit",
+    render: () => EditPaymentInstructionsPage(),
+    firstRead: db.query.organizations.findFirst,
+  },
+  {
+    name: "team invite",
+    render: () => InviteTeamMemberPage(),
+    firstRead: undefined,
+  },
+  {
+    name: "property create",
+    render: () => NewPropertyPage(),
+    firstRead: undefined,
+  },
+  ...propertyPages,
+  ...unitPages,
 ];
-const reads = [db.query.organizations.findFirst, db.select, getAuditLogPage, listAuditEvents, ...Object.values(inventory)];
+const reads = [
+  db.query.organizations.findFirst,
+  db.select,
+  getAuditLogPage,
+  listAuditEvents,
+  ...Object.values(inventory),
+];
 
 beforeAll(() => vi.stubGlobal("React", React));
 afterAll(() => vi.unstubAllGlobals());
@@ -129,14 +276,44 @@ beforeEach(() => {
   vi.mocked(React.useActionState).mockReturnValue([{}, vi.fn(), false]);
   vi.mocked(requirePermission).mockResolvedValue(owner);
   vi.mocked(db.query.organizations.findFirst).mockResolvedValue({
-    id: owner.organizationId, name: owner.organizationName, displayName: null, slug: owner.organizationSlug, tagline: null, publicListingEnabled: true, contactChannels: [], defaultTimezone: "Asia/Manila",
-    contactEmail: null, contactPhone: null, logoUrl: null, addressLine1: null, addressLine2: null,
-    city: null, municipality: null, province: null, region: null, country: "Philippines", businessAddress: null, legalName: null, taxId: null,
-    paymentInstructions: "Contact the owner for payment details", createdAt: new Date("2026-09-01T00:00:00Z"),
+    id: owner.organizationId,
+    name: owner.organizationName,
+    displayName: null,
+    slug: owner.organizationSlug,
+    tagline: null,
+    publicListingEnabled: true,
+    contactChannels: [],
+    defaultTimezone: "Asia/Manila",
+    contactEmail: null,
+    contactPhone: null,
+    logoUrl: null,
+    addressLine1: null,
+    addressLine2: null,
+    city: null,
+    municipality: null,
+    province: null,
+    region: null,
+    country: "Philippines",
+    businessAddress: null,
+    legalName: null,
+    taxId: null,
+    paymentInstructions: "Contact the owner for payment details",
+    createdAt: new Date("2026-09-01T00:00:00Z"),
     updatedAt: new Date("2026-09-01T00:00:00Z"),
   });
   vi.mocked(db.select).mockReturnValue({
-    from: () => ({ innerJoin: () => ({ where: async () => [{ membershipId: "member-a", name: "Team member", email: "staff@example.com", role: "staff" }] }) }),
+    from: () => ({
+      innerJoin: () => ({
+        where: async () => [
+          {
+            membershipId: "member-a",
+            name: "Team member",
+            email: "staff@example.com",
+            role: "staff",
+          },
+        ],
+      }),
+    }),
   } as unknown as ReturnType<typeof db.select>);
   vi.mocked(inventory.listProperties).mockResolvedValue([property]);
   vi.mocked(inventory.listPropertyUnits).mockResolvedValue([unit]);
@@ -145,65 +322,113 @@ beforeEach(() => {
   vi.mocked(inventory.getUnitOrThrow).mockResolvedValue(unit);
   vi.mocked(inventory.listUnitBlocks).mockResolvedValue([]);
   vi.mocked(inventory.getUnitBlockOrThrow).mockResolvedValue({
-    id: "block-a", organizationId: owner.organizationId, unitId: "unit-a", startDate: "2026-10-05", endDate: "2026-10-07",
-    reason: "AC repair", createdBy: "owner-a", createdAt: new Date("2026-09-01T00:00:00Z"),
+    id: "block-a",
+    organizationId: owner.organizationId,
+    unitId: "unit-a",
+    startDate: "2026-10-05",
+    endDate: "2026-10-07",
+    reason: "AC repair",
+    createdBy: "owner-a",
+    createdAt: new Date("2026-09-01T00:00:00Z"),
   } as Awaited<ReturnType<typeof inventory.getUnitBlockOrThrow>>);
-  vi.mocked(getAuditLogPage).mockResolvedValue({ events: [], page: 1, pageSize: 25, total: 0 });
+  vi.mocked(getAuditLogPage).mockResolvedValue({
+    events: [],
+    page: 1,
+    pageSize: 25,
+    total: 0,
+  });
 });
 
 describe("dedicated owner route boundaries", () => {
-  it.each(newPages)("denies direct non-owner access to $name before any reads", async ({ render }) => {
-    vi.mocked(requirePermission).mockResolvedValue(null);
-    const tree = await render();
-    expect(tree.type).toBe(PermissionDenied);
-    expect(requirePermission).toHaveBeenCalledOnce();
-    for (const read of reads) expect(read).not.toHaveBeenCalled();
-  });
+  it.each(newPages)(
+    "denies direct non-owner access to $name before any reads",
+    async ({ render }) => {
+      vi.mocked(requirePermission).mockResolvedValue(null);
+      const tree = await render();
+      expect(tree.type).toBe(PermissionDenied);
+      expect(requirePermission).toHaveBeenCalledOnce();
+      for (const read of reads) expect(read).not.toHaveBeenCalled();
+    },
+  );
 
   it.each(newPages)("renders $name after its own owner check", async (page) => {
     const { render, firstRead } = page;
-    const hasPageHeading = !("hasPageHeading" in page) || page.hasPageHeading !== false;
+    const hasPageHeading =
+      !("hasPageHeading" in page) || page.hasPageHeading !== false;
     const tree = await render();
     expect(tree.type).not.toBe(PermissionDenied);
     expect(requirePermission).toHaveBeenCalledOnce();
     if (firstRead) {
       expect(firstRead).toHaveBeenCalledOnce();
-      const ownerCheckOrder = vi.mocked(requirePermission).mock.invocationCallOrder[0];
+      const ownerCheckOrder =
+        vi.mocked(requirePermission).mock.invocationCallOrder[0];
       expect(ownerCheckOrder).toBeDefined();
-      expect(vi.mocked(firstRead).mock.invocationCallOrder[0]).toBeGreaterThan(ownerCheckOrder ?? Infinity);
+      expect(vi.mocked(firstRead).mock.invocationCallOrder[0]).toBeGreaterThan(
+        ownerCheckOrder ?? Infinity,
+      );
     }
     const html = renderToStaticMarkup(tree);
     if (hasPageHeading) expect(html).toContain("<h1");
     else expect(html).not.toContain("<h1");
   });
 
-  it.each([...propertyPages, ...unitPages])("scopes $name property reads to the trusted tenant", async ({ render }) => {
-    await render();
-    expect(inventory.getPropertyOrThrow).toHaveBeenCalledExactlyOnceWith(owner.organizationId, property.id);
-  });
+  it.each([...propertyPages, ...unitPages])(
+    "scopes $name property reads to the trusted tenant",
+    async ({ render }) => {
+      await render();
+      expect(inventory.getPropertyOrThrow).toHaveBeenCalledExactlyOnceWith(
+        owner.organizationId,
+        property.id,
+      );
+    },
+  );
 
-  it.each([...propertyPages, ...unitPages])("rejects inaccessible properties for $name", async ({ render }) => {
-    vi.mocked(inventory.getPropertyOrThrow).mockRejectedValue(new InventoryError("Property not found."));
-    await expect(render()).rejects.toThrow("Not found");
-    expect(inventory.getUnitOrThrow).not.toHaveBeenCalled();
-  });
+  it.each([...propertyPages, ...unitPages])(
+    "rejects inaccessible properties for $name",
+    async ({ render }) => {
+      vi.mocked(inventory.getPropertyOrThrow).mockRejectedValue(
+        new InventoryError("Property not found."),
+      );
+      await expect(render()).rejects.toThrow("Not found");
+      expect(inventory.getUnitOrThrow).not.toHaveBeenCalled();
+    },
+  );
 
-  it.each(unitPages)("scopes $name unit reads and rejects wrong-property units", async ({ render }) => {
-    vi.mocked(inventory.getUnitOrThrow).mockResolvedValue({ ...unit, propertyId: "other-property" });
-    await expect(render()).rejects.toThrow("Not found");
-    expect(inventory.getUnitOrThrow).toHaveBeenCalledExactlyOnceWith(owner.organizationId, unit.id);
-    expect(inventory.listUnitBlocks).not.toHaveBeenCalled();
-  });
+  it.each(unitPages)(
+    "scopes $name unit reads and rejects wrong-property units",
+    async ({ render }) => {
+      vi.mocked(inventory.getUnitOrThrow).mockResolvedValue({
+        ...unit,
+        propertyId: "other-property",
+      });
+      await expect(render()).rejects.toThrow("Not found");
+      expect(inventory.getUnitOrThrow).toHaveBeenCalledExactlyOnceWith(
+        owner.organizationId,
+        unit.id,
+      );
+      expect(inventory.listUnitBlocks).not.toHaveBeenCalled();
+    },
+  );
 
-  it.each(unitPages)("rejects inaccessible units for $name", async ({ render }) => {
-    vi.mocked(inventory.getUnitOrThrow).mockRejectedValue(new InventoryError("Unit not found."));
-    await expect(render()).rejects.toThrow("Not found");
-  });
+  it.each(unitPages)(
+    "rejects inaccessible units for $name",
+    async ({ render }) => {
+      vi.mocked(inventory.getUnitOrThrow).mockRejectedValue(
+        new InventoryError("Unit not found."),
+      );
+      await expect(render()).rejects.toThrow("Not found");
+    },
+  );
 
-  it.each(propertyPages)("does not hide unexpected read failures on $name", async ({ render }) => {
-    vi.mocked(inventory.getPropertyOrThrow).mockRejectedValue(new Error("Database unavailable"));
-    await expect(render()).rejects.toThrow("Database unavailable");
-  });
+  it.each(propertyPages)(
+    "does not hide unexpected read failures on $name",
+    async ({ render }) => {
+      vi.mocked(inventory.getPropertyOrThrow).mockRejectedValue(
+        new Error("Database unavailable"),
+      );
+      await expect(render()).rejects.toThrow("Database unavailable");
+    },
+  );
 });
 
 describe("read-only summaries and reusable tables", () => {
@@ -223,12 +448,20 @@ describe("read-only summaries and reusable tables", () => {
   });
 
   it("shows property details and its units without embedded forms", async () => {
-    const html = renderToStaticMarkup(await PropertyDetailPage(propertyParams()));
+    const html = renderToStaticMarkup(
+      await PropertyDetailPage(propertyParams()),
+    );
     expect(html).toContain("Private address");
     expect(html).toContain("Quiet after 10pm");
     expect(html).toContain("Test unit");
     expect(html).toContain("3 PM");
-    for (const href of [`${propertyHref}/edit`, `${propertyHref}/units/new`, `${propertyHref}/house-rules`, unitHref]) expect(html).toContain(`href="${href}"`);
+    for (const href of [
+      `${propertyHref}/edit`,
+      `${propertyHref}/units/new`,
+      `${propertyHref}/house-rules`,
+      unitHref,
+    ])
+      expect(html).toContain(`href="${href}"`);
     expect(html).not.toContain("<form");
   });
 
@@ -236,55 +469,184 @@ describe("read-only summaries and reusable tables", () => {
     const html = renderToStaticMarkup(await UnitDetailPage(unitParams()));
     expect(html).toContain("Clean room");
     expect(html).toContain("No current or upcoming blocks.");
-    for (const href of [`${unitHref}/edit`, `${unitHref}/blocks/new`, `${unitHref}/checklist/edit`, `${unitHref}/status`, `/reservations/new?unit=${unit.id}`]) expect(html).toContain(`href="${href}"`);
+    for (const href of [
+      `${unitHref}/edit`,
+      `${unitHref}/blocks/new`,
+      `${unitHref}/checklist/edit`,
+      `${unitHref}/status`,
+      `/reservations/new?unit=${unit.id}`,
+    ])
+      expect(html).toContain(`href="${href}"`);
     expect(html).not.toContain("<form");
     expect(html).not.toContain("<details");
-    expect(inventory.listUnitBlocks).toHaveBeenCalledWith(owner.organizationId, unit.id, expect.any(String));
+    expect(inventory.listUnitBlocks).toHaveBeenCalledWith(
+      owner.organizationId,
+      unit.id,
+      expect.any(String),
+    );
   });
 
   it("renders audit activity, target, details and actor context", async () => {
-    vi.mocked(getAuditLogPage).mockResolvedValue({ events: [
-      {
-        id: "audit-a", action: "guest_link.created", entity: "access_token", entityId: "token-a",
-        metadata: { reservationId: "reservation-a" }, actorUserId: "owner-a", actorName: "Owner Example",
-        createdAt: new Date("2026-09-01T00:00:00Z"),
-      },
-      {
-        id: "audit-b", action: "property.deleted", entity: "property", entityId: "property-a",
-        metadata: { name: "Beach House", deletedUnitCount: 2, deletedUnitNames: ["Suite A", "Suite B"] },
-        actorUserId: null, actorName: null, createdAt: new Date("2026-09-01T00:00:00Z"),
-      },
-      {
-        id: "audit-c", action: "payment_proof.submitted", entity: "payment_proof", entityId: "proof-a",
-        metadata: { reservationId: "reservation-a" }, actorUserId: null, actorName: null,
-        createdAt: new Date("2026-09-01T00:00:00Z"),
-      },
-    ], page: 1, pageSize: 25, total: 3 });
+    vi.mocked(getAuditLogPage).mockResolvedValue({
+      events: [
+        {
+          id: "audit-a",
+          action: "guest_link.created",
+          entity: "access_token",
+          entityId: "token-a",
+          metadata: { reservationId: "reservation-a" },
+          actorUserId: "owner-a",
+          actorName: "Owner Example",
+          createdAt: new Date("2026-09-01T00:00:00Z"),
+        },
+        {
+          id: "audit-b",
+          action: "property.deleted",
+          entity: "property",
+          entityId: "property-a",
+          metadata: {
+            name: "Beach House",
+            deletedUnitCount: 2,
+            deletedUnitNames: ["Suite A", "Suite B"],
+          },
+          actorUserId: null,
+          actorName: null,
+          createdAt: new Date("2026-09-01T00:00:00Z"),
+        },
+        {
+          id: "audit-c",
+          action: "payment_proof.submitted",
+          entity: "payment_proof",
+          entityId: "proof-a",
+          metadata: { reservationId: "reservation-a" },
+          actorUserId: null,
+          actorName: null,
+          createdAt: new Date("2026-09-01T00:00:00Z"),
+        },
+      ],
+      page: 1,
+      pageSize: 25,
+      total: 3,
+    });
     const html = renderToStaticMarkup(await AuditLogsPage());
-    expect(getAuditLogPage).toHaveBeenCalledExactlyOnceWith(owner.organizationId, { action: undefined, actor: undefined, startDate: undefined, endDate: undefined, page: 1 });
+    expect(getAuditLogPage).toHaveBeenCalledExactlyOnceWith(
+      owner.organizationId,
+      {
+        action: undefined,
+        actor: undefined,
+        startDate: undefined,
+        endDate: undefined,
+        page: 1,
+      },
+    );
     for (const label of [
-      "Time", "Activity", "Target", "Actor", "Guest link created", "Owner Example",
-      "Property deleted", "Beach House", "2 units archived", "Suite A, Suite B", "System", "Guest portal",
-    ]) expect(html).toContain(label);
+      "Time",
+      "Activity",
+      "Target",
+      "Actor",
+      "Guest link created",
+      "Owner Example",
+      "Property deleted",
+      "Beach House",
+      "2 units archived",
+      "Suite A, Suite B",
+      "System",
+      "Guest portal",
+    ])
+      expect(html).toContain(label);
     expect(html).toContain('dateTime="2026-09-01T00:00:00.000Z"');
     expect(html).toContain('data-slot="table"');
   });
 });
 
 const editors = [
-  { name: "organization", render: () => React.createElement(OrgNameForm, { defaultName: owner.organizationName }), destination: undefined },
-  { name: "payment instructions", render: () => React.createElement(PaymentInstructionsForm, { defaultValue: "" }), destination: undefined },
+  {
+    name: "organization",
+    render: () =>
+      React.createElement(OrgNameForm, { defaultName: owner.organizationName }),
+    destination: undefined,
+  },
+  {
+    name: "payment instructions",
+    render: () =>
+      React.createElement(PaymentInstructionsForm, { defaultValue: "" }),
+    destination: undefined,
+  },
   // Stays on the page so the one-time invitation link can be copied.
-  { name: "team invite", render: () => React.createElement(InviteTeamMemberForm), destination: undefined },
+  {
+    name: "team invite",
+    render: () => React.createElement(InviteTeamMemberForm),
+    destination: undefined,
+  },
 ];
 // These can open as a modal, so the save itself returns to the page (closing it).
 const returningEditors = [
-  { name: "new property", render: () => React.createElement(PropertyForm), action: propertyActions.createPropertyAction, result: { success: true, id: "property-new" }, destination: "/properties/property-new" },
-  { name: "edit property", render: () => React.createElement(PropertyForm, { propertyId: property.id }), action: propertyActions.updatePropertyAction, destination: propertyHref },
-  { name: "edit unit", render: () => React.createElement(UnitEditForm, { propertyId: property.id, unitId: unit.id, values: { name: unit.name, capacity: 2, bedrooms: 1, bathrooms: 1, nightlyRate: "1250.50", cleaningFee: "300", securityDeposit: "", reservationFeeType: "", reservationFeeAmount: "", checkInTime: "15:00", checkOutTime: "11:00", status: "active" } }), action: propertyActions.updateUnitAction, destination: unitHref },
-  { name: "new unit", render: () => React.createElement(UnitCreateForm, { propertyId: property.id }), action: propertyActions.createUnitAction, destination: propertyHref },
-  { name: "block", render: () => React.createElement(BlockForms, { propertyId: property.id, unitId: unit.id }), action: blockActions.addUnitBlockAction, destination: unitHref },
-  { name: "checklist", render: () => React.createElement(ChecklistTemplateEditor, { propertyId: property.id, unitId: unit.id, items: unit.checklistTemplate }), action: propertyActions.updateChecklistTemplateAction, destination: unitHref },
+  {
+    name: "new property",
+    render: () => React.createElement(PropertyForm),
+    action: propertyActions.createPropertyAction,
+    result: { success: true, id: "property-new" },
+    destination: "/properties/property-new",
+  },
+  {
+    name: "edit property",
+    render: () =>
+      React.createElement(PropertyForm, { propertyId: property.id }),
+    action: propertyActions.updatePropertyAction,
+    destination: propertyHref,
+  },
+  {
+    name: "edit unit",
+    render: () =>
+      React.createElement(UnitEditForm, {
+        propertyId: property.id,
+        unitId: unit.id,
+        values: {
+          name: unit.name,
+          capacity: 2,
+          bedrooms: 1,
+          bathrooms: 1,
+          nightlyRate: "1250.50",
+          cleaningFee: "300",
+          securityDeposit: "",
+          reservationFeeType: "",
+          reservationFeeAmount: "",
+          checkInTime: "15:00",
+          checkOutTime: "11:00",
+          status: "active",
+        },
+      }),
+    action: propertyActions.updateUnitAction,
+    destination: unitHref,
+  },
+  {
+    name: "new unit",
+    render: () =>
+      React.createElement(UnitCreateForm, { propertyId: property.id }),
+    action: propertyActions.createUnitAction,
+    destination: propertyHref,
+  },
+  {
+    name: "block",
+    render: () =>
+      React.createElement(BlockForms, {
+        propertyId: property.id,
+        unitId: unit.id,
+      }),
+    action: blockActions.addUnitBlockAction,
+    destination: unitHref,
+  },
+  {
+    name: "checklist",
+    render: () =>
+      React.createElement(ChecklistTemplateEditor, {
+        propertyId: property.id,
+        unitId: unit.id,
+        items: unit.checklistTemplate,
+      }),
+    action: propertyActions.updateChecklistTemplateAction,
+    destination: unitHref,
+  },
 ];
 
 function flushNavigationEffects() {
@@ -292,36 +654,58 @@ function flushNavigationEffects() {
 }
 
 describe("editor save navigation", () => {
-  it.each(editors)("handles a successful $name save", ({ render, destination }) => {
-    vi.mocked(React.useActionState).mockReturnValue([{ success: true }, vi.fn(), false]);
-    renderToStaticMarkup(render());
-    flushNavigationEffects();
-    if (destination) expect(navigation.push).toHaveBeenCalledExactlyOnceWith(destination);
-    else expect(navigation.push).not.toHaveBeenCalled();
-    expect(navigation.refresh).toHaveBeenCalledOnce();
-  });
+  it.each(editors)(
+    "handles a successful $name save",
+    ({ render, destination }) => {
+      vi.mocked(React.useActionState).mockReturnValue([
+        { success: true },
+        vi.fn(),
+        false,
+      ]);
+      renderToStaticMarkup(render());
+      flushNavigationEffects();
+      if (destination)
+        expect(navigation.push).toHaveBeenCalledExactlyOnceWith(destination);
+      else expect(navigation.push).not.toHaveBeenCalled();
+      expect(navigation.refresh).toHaveBeenCalledOnce();
+    },
+  );
 
-  it.each(returningEditors)("returns to the page after a successful $name save", async (editor) => {
-    const { render, action, destination } = editor;
-    const result: { success: boolean; id?: string } = ("result" in editor && editor.result) || { success: true };
-    vi.mocked(action).mockResolvedValue(result);
-    vi.stubGlobal("sessionStorage", { setItem: vi.fn() });
-    vi.stubGlobal("window", { dispatchEvent: vi.fn() });
-    renderToStaticMarkup(render());
-    const save = vi.mocked(React.useActionState).mock.calls[0]![0] as (state: object, form: FormData) => Promise<object>;
-    expect(await save({}, new FormData())).toEqual(result);
-    expect(navigation.replace).toHaveBeenCalledExactlyOnceWith(destination);
-    expect(navigation.refresh).toHaveBeenCalledOnce();
-  });
+  it.each(returningEditors)(
+    "returns to the page after a successful $name save",
+    async (editor) => {
+      const { render, action, destination } = editor;
+      const result: { success: boolean; id?: string } = ("result" in editor &&
+        editor.result) || { success: true };
+      vi.mocked(action).mockResolvedValue(result);
+      vi.stubGlobal("sessionStorage", { setItem: vi.fn() });
+      vi.stubGlobal("window", { dispatchEvent: vi.fn() });
+      renderToStaticMarkup(render());
+      const save = vi.mocked(React.useActionState).mock.calls[0]![0] as (
+        state: object,
+        form: FormData,
+      ) => Promise<object>;
+      expect(await save({}, new FormData())).toEqual(result);
+      expect(navigation.replace).toHaveBeenCalledExactlyOnceWith(destination);
+      expect(navigation.refresh).toHaveBeenCalledOnce();
+    },
+  );
 
-  it.each([...editors, ...returningEditors])("retains $name form errors without navigating", ({ render }) => {
-    vi.mocked(React.useActionState).mockReturnValue([{ error: "Check the submitted details." }, vi.fn(), false]);
-    const html = renderToStaticMarkup(render());
-    flushNavigationEffects();
-    expect(html).toContain("Check the submitted details.");
-    expect(html).toContain("<form");
-    expect(navigation.push).not.toHaveBeenCalled();
-    expect(navigation.replace).not.toHaveBeenCalled();
-    expect(navigation.refresh).not.toHaveBeenCalled();
-  });
+  it.each([...editors, ...returningEditors])(
+    "retains $name form errors without navigating",
+    ({ render }) => {
+      vi.mocked(React.useActionState).mockReturnValue([
+        { error: "Check the submitted details." },
+        vi.fn(),
+        false,
+      ]);
+      const html = renderToStaticMarkup(render());
+      flushNavigationEffects();
+      expect(html).toContain("Check the submitted details.");
+      expect(html).toContain("<form");
+      expect(navigation.push).not.toHaveBeenCalled();
+      expect(navigation.replace).not.toHaveBeenCalled();
+      expect(navigation.refresh).not.toHaveBeenCalled();
+    },
+  );
 });

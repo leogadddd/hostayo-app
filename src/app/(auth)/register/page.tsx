@@ -59,7 +59,9 @@ function RegisterContent() {
       return;
     }
     toast.success("Account created", {
-      description: invite ? "Let’s look at your invitation." : "Let’s get you set up.",
+      description: invite
+        ? "Let’s look at your invitation."
+        : "Let’s get you set up.",
     });
     router.push(afterAuthPath(invite, "/onboarding"));
     router.refresh();
@@ -76,7 +78,10 @@ function RegisterContent() {
       {invite ? (
         <p className="mt-6 flex items-start gap-2 rounded-xl border border-pine/15 bg-sage/35 px-4 py-3 text-sm text-pine">
           <MailCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-          <span>Use the email address your invitation was sent to, or it won’t be able to find your invitation.</span>
+          <span>
+            Use the email address your invitation was sent to, or it won’t be
+            able to find your invitation.
+          </span>
         </p>
       ) : null}
 

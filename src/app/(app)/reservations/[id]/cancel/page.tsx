@@ -6,16 +6,41 @@ import { CancelReservationForm } from "../cancel-reservation-form";
 
 export const metadata: Metadata = { title: "Cancel reservation" };
 
-export default async function CancelReservationPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function CancelReservationPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const membership = await requirePermission("reservations.delete");
   if (!membership) return <PermissionDenied />;
   const { id } = await params;
-  const { reservation, guest, unit } = await loadActionReservation(membership.organizationId, id);
-  const available = reservation.status === "hold" || reservation.status === "confirmed";
+  const { reservation, guest, unit } = await loadActionReservation(
+    membership.organizationId,
+    id,
+  );
+  const available =
+    reservation.status === "hold" || reservation.status === "confirmed";
   return (
-    <ReservationActionPage title={reservation.status === "hold" ? "Cancel hold" : "Cancel reservation"} description={`${guest.name} · ${unit.name}. Cancelling releases the dates for another guest.`} reservationId={id}
-      unavailable={available ? undefined : "Only a hold or confirmed booking can be cancelled."}>
-      {available ? <CancelReservationForm reservationId={id} label={reservation.status === "hold" ? "Cancel hold" : "Cancel reservation"} /> : null}
+    <ReservationActionPage
+      title={
+        reservation.status === "hold" ? "Cancel hold" : "Cancel reservation"
+      }
+      description={`${guest.name} · ${unit.name}. Cancelling releases the dates for another guest.`}
+      reservationId={id}
+      unavailable={
+        available
+          ? undefined
+          : "Only a hold or confirmed booking can be cancelled."
+      }
+    >
+      {available ? (
+        <CancelReservationForm
+          reservationId={id}
+          label={
+            reservation.status === "hold" ? "Cancel hold" : "Cancel reservation"
+          }
+        />
+      ) : null}
     </ReservationActionPage>
   );
 }

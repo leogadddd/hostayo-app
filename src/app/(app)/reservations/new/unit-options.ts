@@ -7,11 +7,17 @@ import type { UnitOption } from "./reservation-form";
 export function toUnitOption(
   unit: Unit,
   property: { id: string; name: string; imageUrl: string | null } | undefined,
-  { multipleProperties, showRates }: { multipleProperties: boolean; showRates: boolean },
+  {
+    multipleProperties,
+    showRates,
+  }: { multipleProperties: boolean; showRates: boolean },
 ): UnitOption {
   return {
     id: unit.id,
-    label: multipleProperties && property ? `${property.name} · ${unit.name}` : unit.name,
+    label:
+      multipleProperties && property
+        ? `${property.name} · ${unit.name}`
+        : unit.name,
     name: unit.name,
     propertyName: property?.name ?? null,
     imageUrl: unitOrPropertyPhotoSrc(unit, property),

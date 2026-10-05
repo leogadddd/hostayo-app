@@ -13,10 +13,15 @@ export interface RecentOrganization {
 
 export function readL1Recents(): RecentOrganization[] {
   try {
-    const parsed: unknown = JSON.parse(window.localStorage.getItem(RECENT_KEY) ?? "[]");
+    const parsed: unknown = JSON.parse(
+      window.localStorage.getItem(RECENT_KEY) ?? "[]",
+    );
     if (!Array.isArray(parsed)) return [];
     return parsed
-      .filter((item): item is RecentOrganization => typeof item?.id === "string" && typeof item?.name === "string")
+      .filter(
+        (item): item is RecentOrganization =>
+          typeof item?.id === "string" && typeof item?.name === "string",
+      )
       .slice(0, RECENT_LIMIT);
   } catch {
     return [];
@@ -27,7 +32,9 @@ export function writeL1Recents(items: RecentOrganization[]) {
   try {
     window.localStorage.setItem(
       RECENT_KEY,
-      JSON.stringify(items.slice(0, RECENT_LIMIT).map(({ id, name }) => ({ id, name }))),
+      JSON.stringify(
+        items.slice(0, RECENT_LIMIT).map(({ id, name }) => ({ id, name })),
+      ),
     );
   } catch {
     // Storage can be blocked (private windows); recents are only a convenience.
@@ -35,7 +42,10 @@ export function writeL1Recents(items: RecentOrganization[]) {
 }
 
 export function rememberL1Recent(item: RecentOrganization) {
-  writeL1Recents([item, ...readL1Recents().filter((recent) => recent.id !== item.id)]);
+  writeL1Recents([
+    item,
+    ...readL1Recents().filter((recent) => recent.id !== item.id),
+  ]);
 }
 
 export function clearL1Recents() {

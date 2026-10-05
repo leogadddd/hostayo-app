@@ -10,15 +10,26 @@ import { PlatformForm } from "../../platform-forms";
 
 export const metadata: Metadata = { title: "Edit booking platform" };
 
-export default async function EditPlatformPage({ params }: { params: Promise<{ platformId: string }> }) {
+export default async function EditPlatformPage({
+  params,
+}: {
+  params: Promise<{ platformId: string }>;
+}) {
   const membership = await requirePermission("platforms.update");
   if (!membership) return <PermissionDenied />;
   const { platformId } = await params;
-  const platform = (await listManagedPlatforms(membership.organizationId)).find((row) => row.id === platformId);
+  const platform = (await listManagedPlatforms(membership.organizationId)).find(
+    (row) => row.id === platformId,
+  );
   if (!platform) notFound();
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeading title={`Edit ${platform.name}`} description="Changes apply to new reservations, and only when the unit requires a down payment. Existing bookings keep their reservation fee." backHref="/settings/platforms" backLabel="Booking platforms" />
+      <PageHeading
+        title={`Edit ${platform.name}`}
+        description="Changes apply to new reservations, and only when the unit requires a down payment. Existing bookings keep their reservation fee."
+        backHref="/settings/platforms"
+        backLabel="Booking platforms"
+      />
       <Card className="bg-card">
         <CardBody>
           <PlatformForm

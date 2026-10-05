@@ -24,7 +24,10 @@ export function UnitStatusForm({
     `/properties/${propertyId}/units/${unitId}`,
     "Unit status updated.",
   );
-  const [state, formAction, pending] = useActionState<InventoryFormState, FormData>(save, {});
+  const [state, formAction, pending] = useActionState<
+    InventoryFormState,
+    FormData
+  >(save, {});
   useActionFeedback(state);
   const [status, setStatus] = useState<UnitStatus>(current);
 
@@ -54,16 +57,26 @@ export function UnitStatusForm({
               <span className="min-w-0">
                 <span className="block text-sm font-medium text-pine">
                   {UNIT_STATUS_LABELS[value]}
-                  {value === current ? <span className="font-normal text-ink/45"> · current</span> : null}
+                  {value === current ? (
+                    <span className="font-normal text-ink/45"> · current</span>
+                  ) : null}
                 </span>
-                <span className="block text-xs text-ink/55">{UNIT_STATUS_DESCRIPTIONS[value]}</span>
+                <span className="block text-xs text-ink/55">
+                  {UNIT_STATUS_DESCRIPTIONS[value]}
+                </span>
               </span>
             </label>
           ))}
         </div>
       </fieldset>
       <FieldError message={state.error} />
-      <Button type="submit" variant="clay" size="lg" className="w-full" disabled={pending || status === current}>
+      <Button
+        type="submit"
+        variant="clay"
+        size="lg"
+        className="w-full"
+        disabled={pending || status === current}
+      >
         {pending ? "Saving…" : "Save status"}
       </Button>
     </form>

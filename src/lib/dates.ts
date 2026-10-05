@@ -161,9 +161,7 @@ export function isValidMonth(value: string): boolean {
 /** Move a yyyy-mm month forward or backward, wrapping years. */
 export function shiftMonth(month: string, delta: number): string {
   const [year, monthNumber] = month.split("-").map(Number);
-  const cursor = new Date(
-    Date.UTC(year!, (monthNumber ?? 1) - 1 + delta, 1),
-  );
+  const cursor = new Date(Date.UTC(year!, (monthNumber ?? 1) - 1 + delta, 1));
   return cursor.toISOString().slice(0, 7);
 }
 
@@ -175,8 +173,19 @@ export function monthNightRange(month: string): {
   return { start: `${month}-01`, end: shiftMonth(month, 1) + "-01" };
 }
 
-const WITH_WEEKDAY = new Intl.DateTimeFormat("en-PH", { weekday: "short", month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
-const WITHOUT_WEEKDAY = new Intl.DateTimeFormat("en-PH", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+const WITH_WEEKDAY = new Intl.DateTimeFormat("en-PH", {
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+  timeZone: "UTC",
+});
+const WITHOUT_WEEKDAY = new Intl.DateTimeFormat("en-PH", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+  timeZone: "UTC",
+});
 
 /**
  * A date as people read it: "Today, Sep 24, 2026", "Tomorrow, Sep 25, 2026",
@@ -187,7 +196,13 @@ export function readableDate(date: string, today?: string | null): string {
   const value = new Date(`${date}T00:00:00Z`);
   if (today) {
     const relative =
-      date === today ? "Today" : date === addDaysLocal(today, 1) ? "Tomorrow" : date === addDaysLocal(today, -1) ? "Yesterday" : null;
+      date === today
+        ? "Today"
+        : date === addDaysLocal(today, 1)
+          ? "Tomorrow"
+          : date === addDaysLocal(today, -1)
+            ? "Yesterday"
+            : null;
     if (relative) return `${relative}, ${WITHOUT_WEEKDAY.format(value)}`;
   }
   return WITH_WEEKDAY.format(value);

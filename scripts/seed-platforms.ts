@@ -11,10 +11,14 @@ import { seedDefaultPlatforms } from "@/server/reservations/platforms";
  * existed. Idempotent.
  */
 async function main() {
-  const orgs = await db.select({ id: organizations.id, name: organizations.name }).from(organizations);
+  const orgs = await db
+    .select({ id: organizations.id, name: organizations.name })
+    .from(organizations);
   for (const org of orgs) {
     const added = await seedDefaultPlatforms(db, org.id);
-    console.log(`${org.name}: ${added} platform${added === 1 ? "" : "s"} added`);
+    console.log(
+      `${org.name}: ${added} platform${added === 1 ? "" : "s"} added`,
+    );
   }
   process.exit(0);
 }

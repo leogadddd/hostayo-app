@@ -56,12 +56,9 @@ export const propertyInputSchema = z.object({
     .trim()
     .max(300, "Address must be 300 characters or fewer.")
     .optional(),
-  timezone: z
-    .string()
-    .trim()
-    .refine(isValidTimeZone, {
-      message: "Use a valid IANA timezone like Asia/Manila.",
-    }),
+  timezone: z.string().trim().refine(isValidTimeZone, {
+    message: "Use a valid IANA timezone like Asia/Manila.",
+  }),
   checkInTime: z
     .string()
     .refine(isValidHmTime, { message: "Use a 24-hour time like 15:00." }),
@@ -80,60 +77,104 @@ export const propertyInputSchema = z.object({
 // Input callers may omit this field; Zod supplies the two-hour default.
 export type PropertyInput = z.input<typeof propertyInputSchema>;
 
-export const unitInputSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(2, "Unit name needs at least 2 characters.")
-    .max(80, "Unit name must be 80 characters or fewer."),
-  capacity: z
-    .number()
-    .int("Capacity must be a whole number.")
-    .min(1, "Capacity must be at least 1.")
-    .max(50, "Capacity must be 50 or fewer."),
-  bedrooms: z
-    .number()
-    .int("Bedrooms must be a whole number.")
-    .min(0, "Bedrooms cannot be negative.")
-    .max(20, "Bedrooms must be 20 or fewer."),
-  bathrooms: z
-    .number()
-    .min(0.5, "Bathrooms must be at least 0.5.")
-    .max(20, "Bathrooms must be 20 or fewer."),
-  defaultNightlyRateCents: centavosField("Nightly rate"),
-  // Optional so a partial update (e.g. a status change) keeps the stored rates.
-  dayRates: z
-    .partialRecord(z.enum(["0", "1", "2", "3", "4", "5", "6"]), centavosField("Day rate"))
-    .optional(),
-  cleaningFeeCents: centavosField("Cleaning fee").nullable(),
-  securityDepositCents: centavosField("Security deposit").nullable(),
-  // Optional so a partial update keeps the stored fee; null clears it.
-  reservationFeeType: z.enum(RESERVATION_FEE_TYPES).nullable().optional(),
-  reservationFeeAmount: z.number().int().nullable().optional(),
-  // Late check-out (src/lib/extensions.ts). Optional so a partial update keeps them.
-  extensionsEnabled: z.boolean().optional(),
-  maxExtensionHours: z.number().int("Use whole hours for the late check-out limit.").min(1, "Allow at least 1 late check-out hour.").max(12, "Allow at most 12 late check-out hours.").optional(),
-  extensionHourlyRateCents: centavosField("Late check-out rate").nullable().optional(),
-  checkInTime: z.string().default("15:00").refine(isValidHmTime, { message: "Use a 24-hour arrival time like 15:00." }),
-  checkOutTime: z.string().default("11:00").refine(isValidHmTime, { message: "Use a 24-hour departure time like 11:00." }),
-  status: z.enum(UNIT_STATUSES),
-  imageUrl: z.string().max(7_000_000, "The image is too large.").optional(),
-  // Omitted preserves the unit's setting; [] deliberately hides all channels.
-  contactChannelIds: z.array(z.string().uuid("Choose a valid contact channel.")).max(10).optional(),
-}).superRefine((value, ctx) => {
-  if (value.reservationFeeType === undefined) return;
-  const amount = value.reservationFeeAmount ?? null;
-  if (value.reservationFeeType === null) {
-    if (amount !== null) ctx.addIssue({ code: "custom", message: "Choose how the reservation fee is set.", path: ["reservationFeeType"] });
-    return;
-  }
-  if (value.reservationFeeType === "fixed" && (amount === null || amount <= 0)) {
-    ctx.addIssue({ code: "custom", message: "Enter the reservation fee amount.", path: ["reservationFeeAmount"] });
-  }
-  if (value.reservationFeeType === "percent" && (amount === null || amount < 1 || amount > 10_000)) {
-    ctx.addIssue({ code: "custom", message: "Use a percentage between 0.01% and 100%.", path: ["reservationFeeAmount"] });
-  }
-});
+export const unitInputSchema = z
+  .object({
+    name: z
+      .string()
+      .trim()
+      .min(2, "Unit name needs at least 2 characters.")
+      .max(80, "Unit name must be 80 characters or fewer."),
+    capacity: z
+      .number()
+      .int("Capacity must be a whole number.")
+      .min(1, "Capacity must be at least 1.")
+      .max(50, "Capacity must be 50 or fewer."),
+    bedrooms: z
+      .number()
+      .int("Bedrooms must be a whole number.")
+      .min(0, "Bedrooms cannot be negative.")
+      .max(20, "Bedrooms must be 20 or fewer."),
+    bathrooms: z
+      .number()
+      .min(0.5, "Bathrooms must be at least 0.5.")
+      .max(20, "Bathrooms must be 20 or fewer."),
+    defaultNightlyRateCents: centavosField("Nightly rate"),
+    // Optional so a partial update (e.g. a status change) keeps the stored rates.
+    dayRates: z
+      .partialRecord(
+        z.enum(["0", "1", "2", "3", "4", "5", "6"]),
+        centavosField("Day rate"),
+      )
+      .optional(),
+    cleaningFeeCents: centavosField("Cleaning fee").nullable(),
+    securityDepositCents: centavosField("Security deposit").nullable(),
+    // Optional so a partial update keeps the stored fee; null clears it.
+    reservationFeeType: z.enum(RESERVATION_FEE_TYPES).nullable().optional(),
+    reservationFeeAmount: z.number().int().nullable().optional(),
+    // Late check-out (src/lib/extensions.ts). Optional so a partial update keeps them.
+    extensionsEnabled: z.boolean().optional(),
+    maxExtensionHours: z
+      .number()
+      .int("Use whole hours for the late check-out limit.")
+      .min(1, "Allow at least 1 late check-out hour.")
+      .max(12, "Allow at most 12 late check-out hours.")
+      .optional(),
+    extensionHourlyRateCents: centavosField("Late check-out rate")
+      .nullable()
+      .optional(),
+    checkInTime: z
+      .string()
+      .default("15:00")
+      .refine(isValidHmTime, {
+        message: "Use a 24-hour arrival time like 15:00.",
+      }),
+    checkOutTime: z
+      .string()
+      .default("11:00")
+      .refine(isValidHmTime, {
+        message: "Use a 24-hour departure time like 11:00.",
+      }),
+    status: z.enum(UNIT_STATUSES),
+    imageUrl: z.string().max(7_000_000, "The image is too large.").optional(),
+    // Omitted preserves the unit's setting; [] deliberately hides all channels.
+    contactChannelIds: z
+      .array(z.string().uuid("Choose a valid contact channel."))
+      .max(10)
+      .optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.reservationFeeType === undefined) return;
+    const amount = value.reservationFeeAmount ?? null;
+    if (value.reservationFeeType === null) {
+      if (amount !== null)
+        ctx.addIssue({
+          code: "custom",
+          message: "Choose how the reservation fee is set.",
+          path: ["reservationFeeType"],
+        });
+      return;
+    }
+    if (
+      value.reservationFeeType === "fixed" &&
+      (amount === null || amount <= 0)
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Enter the reservation fee amount.",
+        path: ["reservationFeeAmount"],
+      });
+    }
+    if (
+      value.reservationFeeType === "percent" &&
+      (amount === null || amount < 1 || amount > 10_000)
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Use a percentage between 0.01% and 100%.",
+        path: ["reservationFeeAmount"],
+      });
+    }
+  });
 
 export type UnitInput = z.infer<typeof unitInputSchema>;
 

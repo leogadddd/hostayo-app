@@ -15,11 +15,15 @@ const databaseUrl = connectionString;
 
 async function confirmReset(databaseName: string): Promise<boolean> {
   if (!stdin.isTTY || !stdout.isTTY) {
-    throw new Error("Database reset requires an interactive terminal confirmation.");
+    throw new Error(
+      "Database reset requires an interactive terminal confirmation.",
+    );
   }
 
   const confirmation = `RESET ${databaseName}`;
-  console.warn(`\nThis permanently deletes every table and record in database "${databaseName}".`);
+  console.warn(
+    `\nThis permanently deletes every table and record in database "${databaseName}".`,
+  );
   const prompt = createInterface({ input: stdin, output: stdout });
   try {
     const answer = await prompt.question(`Type ${confirmation} to continue: `);
@@ -31,8 +35,9 @@ async function confirmReset(databaseName: string): Promise<boolean> {
 
 async function main() {
   const url = new URL(databaseUrl);
-  const databaseName = decodeURIComponent(url.pathname.slice(1)) || "the configured database";
-  if (!await confirmReset(databaseName)) {
+  const databaseName =
+    decodeURIComponent(url.pathname.slice(1)) || "the configured database";
+  if (!(await confirmReset(databaseName))) {
     console.log("Database reset cancelled.");
     return;
   }
@@ -52,13 +57,18 @@ async function main() {
     // the shared, clearly fake demo workspace too, including its persisted
     // is_demo_account marker.
     await seedDemoData();
-    console.log("Database reset, migrated, and seeded with the shared demo workspace.");
+    console.log(
+      "Database reset, migrated, and seeded with the shared demo workspace.",
+    );
   } finally {
     await client.end();
   }
 }
 
 void main().catch((error) => {
-  console.error("Database reset failed:", error instanceof Error ? error.message : error);
+  console.error(
+    "Database reset failed:",
+    error instanceof Error ? error.message : error,
+  );
   process.exitCode = 1;
 });

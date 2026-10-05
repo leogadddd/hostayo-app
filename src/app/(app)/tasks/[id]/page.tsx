@@ -7,12 +7,24 @@ import { TurnoverRun } from "./turnover-run";
 
 export const metadata: Metadata = { title: "Turnover task" };
 
-export default async function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function TaskDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
   const membership = await requirePermission("tasks.view");
   if (!membership) return <PermissionDenied />;
-  const { task, unitName, propertyName, guestName, items, openDamage, assessment, nextCheckIn } =
-    await getTaskDetail(membership.organizationId, id);
+  const {
+    task,
+    unitName,
+    propertyName,
+    guestName,
+    items,
+    openDamage,
+    assessment,
+    nextCheckIn,
+  } = await getTaskDetail(membership.organizationId, id);
 
   return (
     <TurnoverRun
@@ -39,10 +51,18 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
         estimatedAmountCents: report.estimatedAmountCents,
       }))}
       canMarkReady={assessment.canMarkReady}
-      nextCheckIn={nextCheckIn ? { guestName: nextCheckIn.guestName, checkInDate: nextCheckIn.checkInDate } : null}
+      nextCheckIn={
+        nextCheckIn
+          ? {
+              guestName: nextCheckIn.guestName,
+              checkInDate: nextCheckIn.checkInDate,
+            }
+          : null
+      }
       permissions={{
         work: task.status === "open" && can(membership, "tasks.update"),
-        reportDamage: task.status === "open" && can(membership, "damage.create"),
+        reportDamage:
+          task.status === "open" && can(membership, "damage.create"),
         resolveDamage: can(membership, "damage.update"),
         viewReservation: can(membership, "reservations.view"),
       }}

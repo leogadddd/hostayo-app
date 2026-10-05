@@ -6,10 +6,18 @@ import { paymentPanel } from "../../money-actions";
 
 export const metadata: Metadata = { title: "Record payment" };
 
-export default async function NewPaymentPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function NewPaymentPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const membership = await requirePermission("payments.create");
   if (!membership) return <PermissionDenied />;
   const { id } = await params;
   const { form, ...panel } = await paymentPanel(membership.organizationId, id);
-  return <ReservationActionPage {...panel} reservationId={id}>{form}</ReservationActionPage>;
+  return (
+    <ReservationActionPage {...panel} reservationId={id}>
+      {form}
+    </ReservationActionPage>
+  );
 }

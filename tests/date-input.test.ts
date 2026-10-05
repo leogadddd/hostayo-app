@@ -25,7 +25,14 @@ describe("readableDate", () => {
 
 describe("DateInput", () => {
   it("shows a readable date and submits yyyy-mm-dd", () => {
-    const html = renderToStaticMarkup(h(DateInput, { name: "paidDate", defaultValue: "2026-09-28", today: "2026-09-24", required: true }));
+    const html = renderToStaticMarkup(
+      h(DateInput, {
+        name: "paidDate",
+        defaultValue: "2026-09-28",
+        today: "2026-09-24",
+        required: true,
+      }),
+    );
     expect(html).toContain("Mon, Sep 28, 2026");
     expect(html).toContain('name="paidDate"');
     expect(html).toContain('value="2026-09-28"');
@@ -33,12 +40,16 @@ describe("DateInput", () => {
   });
 
   it("says Today for today's date", () => {
-    const html = renderToStaticMarkup(h(DateInput, { value: "2026-09-24", today: "2026-09-24" }));
+    const html = renderToStaticMarkup(
+      h(DateInput, { value: "2026-09-24", today: "2026-09-24" }),
+    );
     expect(html).toContain("Today, Sep 24, 2026");
   });
 
   it("shows the placeholder when empty", () => {
-    const html = renderToStaticMarkup(h(DateInput, { name: "startDate", placeholder: "Any", clearable: true }));
+    const html = renderToStaticMarkup(
+      h(DateInput, { name: "startDate", placeholder: "Any", clearable: true }),
+    );
     expect(html).toContain("Any");
     expect(html).not.toContain("Clear date");
   });

@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
-import { UnderConstruction, UNDER_CONSTRUCTION } from "@/components/app/under-construction";
+import {
+  UnderConstruction,
+  UNDER_CONSTRUCTION,
+} from "@/components/app/under-construction";
 import { requirePermission } from "@/lib/auth/session";
 import { todayInTimeZone } from "@/lib/dates";
 import { listOrgUnits, listProperties } from "@/server/inventory/service";
@@ -12,9 +15,18 @@ import { ExpenseForm } from "../expense-form";
 export const metadata: Metadata = { title: "Record expense" };
 
 export default async function NewExpensePage() {
-  if (UNDER_CONSTRUCTION.expenses) return <UnderConstruction title="Record expense" description="We’re reworking expenses. Recording and reviewing costs will be back here soon." />;
+  if (UNDER_CONSTRUCTION.expenses)
+    return (
+      <UnderConstruction
+        title="Record expense"
+        description="We’re reworking expenses. Recording and reviewing costs will be back here soon."
+      />
+    );
   const membership = await requirePermission("expenses.create");
-  if (!membership) return <PermissionDenied description="Only the organization owner can record expenses." />;
+  if (!membership)
+    return (
+      <PermissionDenied description="Only the organization owner can record expenses." />
+    );
 
   const [properties, units] = await Promise.all([
     listProperties(membership.organizationId),
@@ -22,18 +34,35 @@ export default async function NewExpensePage() {
   ]);
   const unitsByProperty: Record<string, { id: string; name: string }[]> = {};
   for (const unit of units) {
-    (unitsByProperty[unit.propertyId] ??= []).push({ id: unit.id, name: unit.name });
+    (unitsByProperty[unit.propertyId] ??= []).push({
+      id: unit.id,
+      name: unit.name,
+    });
   }
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeading title="Record expense" description="Keep operating costs and capital spending organized by property." backHref="/expenses" backLabel="Back to expenses" />
+      <PageHeading
+        title="Record expense"
+        description="Keep operating costs and capital spending organized by property."
+        backHref="/expenses"
+        backLabel="Back to expenses"
+      />
       {properties.length === 0 ? (
-        <EmptyState title="Add a property first" description="Expenses need a property. Set up a property in Settings before recording spending." />
+        <EmptyState
+          title="Add a property first"
+          description="Expenses need a property. Set up a property in Settings before recording spending."
+        />
       ) : (
-        <Card><CardBody>
-          <ExpenseForm properties={properties.map(({ id, name }) => ({ id, name }))} unitsByProperty={unitsByProperty} defaultPaidDate={todayInTimeZone("Asia/Manila")} />
-        </CardBody></Card>
+        <Card>
+          <CardBody>
+            <ExpenseForm
+              properties={properties.map(({ id, name }) => ({ id, name }))}
+              unitsByProperty={unitsByProperty}
+              defaultPaidDate={todayInTimeZone("Asia/Manila")}
+            />
+          </CardBody>
+        </Card>
       )}
     </div>
   );

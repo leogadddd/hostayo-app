@@ -1,11 +1,22 @@
 "use client";
 
-import { useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+import {
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { CalendarDays, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { addDaysLocal, readableDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 
-const MONTH_LABEL = new Intl.DateTimeFormat("en-PH", { month: "long", year: "numeric", timeZone: "UTC" });
+const MONTH_LABEL = new Intl.DateTimeFormat("en-PH", {
+  month: "long",
+  year: "numeric",
+  timeZone: "UTC",
+});
 const DAY_NAMES = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
 function browserToday() {
@@ -29,7 +40,10 @@ function shiftMonth(month: string, delta: number) {
 /** Sunday-first weeks covering the month, including neighbouring days. */
 function monthGrid(month: string): string[] {
   const first = `${month}-01`;
-  const start = addDaysLocal(first, -new Date(`${first}T00:00:00Z`).getUTCDay());
+  const start = addDaysLocal(
+    first,
+    -new Date(`${first}T00:00:00Z`).getUTCDay(),
+  );
   return Array.from({ length: 42 }, (_, index) => addDaysLocal(start, index));
 }
 
@@ -79,7 +93,9 @@ export function DateInput({
   const browserDay = useSyncExternalStore(subscribeDay, browserToday, noToday);
   const today = todayProp ?? browserDay;
   const [open, setOpen] = useState(false);
-  const [month, setMonth] = useState((current || today || browserToday()).slice(0, 7));
+  const [month, setMonth] = useState(
+    (current || today || browserToday()).slice(0, 7),
+  );
   const wrapperRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -89,7 +105,8 @@ export function DateInput({
     if (value === undefined) setInternal(next);
     onChange?.(next);
   };
-  const allowed = (date: string) => (!min || date >= min) && (!max || date <= max);
+  const allowed = (date: string) =>
+    (!min || date >= min) && (!max || date <= max);
 
   // The calendar opens as a popover in the browser's top layer, so it sits
   // above modals and is never clipped by a scrolling container. It is placed
@@ -103,9 +120,15 @@ export function DateInput({
       const rect = trigger.getBoundingClientRect();
       const width = popover.offsetWidth;
       const height = popover.offsetHeight;
-      const left = Math.min(Math.max(8, rect.left), window.innerWidth - width - 8);
+      const left = Math.min(
+        Math.max(8, rect.left),
+        window.innerWidth - width - 8,
+      );
       const fitsBelow = window.innerHeight - rect.bottom >= height + 12;
-      const top = fitsBelow || rect.top < height + 12 ? rect.bottom + 6 : rect.top - height - 6;
+      const top =
+        fitsBelow || rect.top < height + 12
+          ? rect.bottom + 6
+          : rect.top - height - 6;
       popover.style.left = `${left}px`;
       popover.style.top = `${Math.max(8, top)}px`;
     };
@@ -126,7 +149,9 @@ export function DateInput({
     };
     document.addEventListener("pointerdown", onPointer);
     // Put focus on the chosen day (or today) so arrow keys work straight away.
-    gridRef.current?.querySelector<HTMLButtonElement>("[data-focus='true']")?.focus();
+    gridRef.current
+      ?.querySelector<HTMLButtonElement>("[data-focus='true']")
+      ?.focus();
     return () => document.removeEventListener("pointerdown", onPointer);
   }, [open]);
 
@@ -139,7 +164,12 @@ export function DateInput({
     set(date);
     setOpen(false);
   };
-  const focusDate = current && current.startsWith(month) ? current : today && today.startsWith(month) ? today : `${month}-01`;
+  const focusDate =
+    current && current.startsWith(month)
+      ? current
+      : today && today.startsWith(month)
+        ? today
+        : `${month}-01`;
 
   return (
     <div
@@ -203,19 +233,31 @@ export function DateInput({
           className="fixed inset-auto m-0 w-72 rounded-xl border border-pine/15 bg-surface p-3 text-ink shadow-xl"
         >
           <div className="mb-2 flex items-center justify-between">
-            <button type="button" onClick={() => setMonth(shiftMonth(month, -1))} aria-label="Previous month" className="rounded-md p-1.5 text-pine hover:bg-pine-mist">
+            <button
+              type="button"
+              onClick={() => setMonth(shiftMonth(month, -1))}
+              aria-label="Previous month"
+              className="rounded-md p-1.5 text-pine hover:bg-pine-mist"
+            >
               <ChevronLeft className="h-4 w-4" aria-hidden />
             </button>
             <p className="text-sm font-medium text-pine" aria-live="polite">
               {MONTH_LABEL.format(new Date(`${month}-01T00:00:00Z`))}
             </p>
-            <button type="button" onClick={() => setMonth(shiftMonth(month, 1))} aria-label="Next month" className="rounded-md p-1.5 text-pine hover:bg-pine-mist">
+            <button
+              type="button"
+              onClick={() => setMonth(shiftMonth(month, 1))}
+              aria-label="Next month"
+              className="rounded-md p-1.5 text-pine hover:bg-pine-mist"
+            >
               <ChevronRight className="h-4 w-4" aria-hidden />
             </button>
           </div>
           <div className="grid grid-cols-7 text-center text-[10px] font-semibold uppercase tracking-wider text-ink/40">
             {DAY_NAMES.map((day) => (
-              <span key={day} className="py-1">{day}</span>
+              <span key={day} className="py-1">
+                {day}
+              </span>
             ))}
           </div>
           <div
@@ -225,12 +267,21 @@ export function DateInput({
             onKeyDown={(event) => {
               const target = event.target as HTMLElement;
               const date = target.dataset.date;
-              const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[event.key];
+              const step = {
+                ArrowLeft: -1,
+                ArrowRight: 1,
+                ArrowUp: -7,
+                ArrowDown: 7,
+              }[event.key];
               if (!date || step === undefined) return;
               event.preventDefault();
               const next = addDaysLocal(date, step);
               if (!next.startsWith(month)) setMonth(next.slice(0, 7));
-              requestAnimationFrame(() => gridRef.current?.querySelector<HTMLButtonElement>(`[data-date='${next}']`)?.focus());
+              requestAnimationFrame(() =>
+                gridRef.current
+                  ?.querySelector<HTMLButtonElement>(`[data-date='${next}']`)
+                  ?.focus(),
+              );
             }}
           >
             {monthGrid(month).map((date) => {
@@ -258,7 +309,8 @@ export function DateInput({
                         : inMonth
                           ? "text-pine hover:bg-pine-mist"
                           : "text-ink/30 hover:bg-pine-mist/60",
-                    disabled && "cursor-not-allowed opacity-30 hover:bg-transparent",
+                    disabled &&
+                      "cursor-not-allowed opacity-30 hover:bg-transparent",
                   )}
                 >
                   {Number(date.slice(8))}
@@ -285,7 +337,14 @@ export function DateInput({
                 ))}
               </div>
               {clearable && current ? (
-                <button type="button" onClick={() => { set(""); setOpen(false); }} className="text-xs text-ink/50 hover:text-clay-deep">
+                <button
+                  type="button"
+                  onClick={() => {
+                    set("");
+                    setOpen(false);
+                  }}
+                  className="text-xs text-ink/50 hover:text-clay-deep"
+                >
                   Clear
                 </button>
               ) : null}

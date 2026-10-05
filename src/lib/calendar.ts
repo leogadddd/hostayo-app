@@ -17,7 +17,11 @@ export interface CalendarEvent extends CalendarInterval {
   expiresAt?: Date | null;
   guestCount?: number;
   actualCheckoutAt?: Date | null;
-  platform?: { name: string; logoUrl: string | null; color: string | null } | null;
+  platform?: {
+    name: string;
+    logoUrl: string | null;
+    color: string | null;
+  } | null;
   platformReference?: string | null;
   guestId?: string;
   guestEmail?: string | null;
@@ -44,29 +48,33 @@ export function calendarEventsForUnit(
 ): CalendarEvent[] {
   return segments.flatMap((segment): CalendarEvent[] => {
     if (segment.kind === "block") {
-      return [{
-        id: `block:${segment.id}`,
-        unitId,
-        kind: "block",
-        startDate: segment.startDate,
-        endDate: segment.endDate,
-        title: "Unit unavailable",
-        description: segment.reason,
-      }];
+      return [
+        {
+          id: `block:${segment.id}`,
+          unitId,
+          kind: "block",
+          startDate: segment.startDate,
+          endDate: segment.endDate,
+          title: "Unit unavailable",
+          description: segment.reason,
+        },
+      ];
     }
     if (segment.kind === "turnover") {
-      return [{
-        id: `turnover:${segment.id}`,
-        unitId,
-        kind: "turnover",
-        startDate: segment.startDate,
-        endDate: segment.endDate,
-        title: "Turnover",
-        description: `Turnover ${segment.startTime}–${segment.endTime}`,
-        reservationId: segment.reservationId,
-        startTime: segment.startTime,
-        endTime: segment.endTime,
-      }];
+      return [
+        {
+          id: `turnover:${segment.id}`,
+          unitId,
+          kind: "turnover",
+          startDate: segment.startDate,
+          endDate: segment.endDate,
+          title: "Turnover",
+          description: `Turnover ${segment.startTime}–${segment.endTime}`,
+          reservationId: segment.reservationId,
+          startTime: segment.startTime,
+          endTime: segment.endTime,
+        },
+      ];
     }
     const stay: CalendarEvent = {
       id: `stay:${segment.id}`,
@@ -112,32 +120,45 @@ export function layoutMonthEvents<T extends CalendarInterval>(
     const start = weekDays[0]!;
     const end = addDaysLocal(start, 7);
     const candidates = events
-      .filter((event) => event.startDate < event.endDate && event.startDate < end && event.endDate > start)
+      .filter(
+        (event) =>
+          event.startDate < event.endDate &&
+          event.startDate < end &&
+          event.endDate > start,
+      )
       .map((event) => ({
         event,
         clippedStart: event.startDate < start ? start : event.startDate,
         clippedEnd: event.endDate > end ? end : event.endDate,
       }))
-      .sort((a, b) =>
-        a.clippedStart.localeCompare(b.clippedStart) ||
-        b.clippedEnd.localeCompare(a.clippedEnd) ||
-        a.event.id.localeCompare(b.event.id),
+      .sort(
+        (a, b) =>
+          a.clippedStart.localeCompare(b.clippedStart) ||
+          b.clippedEnd.localeCompare(a.clippedEnd) ||
+          a.event.id.localeCompare(b.event.id),
       );
     const laneEnds: string[] = [];
-    const placements: WeekEvent<T>[] = candidates.map(({ event, clippedStart, clippedEnd }) => {
-      let lane = laneEnds.findIndex((lastEnd) => lastEnd <= clippedStart);
-      if (lane === -1) lane = laneEnds.length;
-      laneEnds[lane] = clippedEnd;
-      return {
-        event,
-        startColumn: weekDays.indexOf(clippedStart),
-        span: listNights(clippedStart, clippedEnd).length,
-        lane,
-        continuesBefore: event.startDate < start,
-        continuesAfter: event.endDate > end,
-      };
+    const placements: WeekEvent<T>[] = candidates.map(
+      ({ event, clippedStart, clippedEnd }) => {
+        let lane = laneEnds.findIndex((lastEnd) => lastEnd <= clippedStart);
+        if (lane === -1) lane = laneEnds.length;
+        laneEnds[lane] = clippedEnd;
+        return {
+          event,
+          startColumn: weekDays.indexOf(clippedStart),
+          span: listNights(clippedStart, clippedEnd).length,
+          lane,
+          continuesBefore: event.startDate < start,
+          continuesAfter: event.endDate > end,
+        };
+      },
+    );
+    weeks.push({
+      start,
+      days: weekDays,
+      events: placements,
+      laneCount: laneEnds.length,
     });
-    weeks.push({ start, days: weekDays, events: placements, laneCount: laneEnds.length });
   }
   return weeks;
 }
@@ -161,12 +182,17 @@ export interface WeekBar<T extends BarInterval> {
 }
 
 function daysFrom(from: string, to: string): number {
-  return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000);
+  return Math.round(
+    (Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) /
+      86_400_000,
+  );
 }
 
 function dayFraction(time: string | undefined): number {
   const match = time ? /^(\d{2}):(\d{2})/.exec(time) : null;
-  return match ? Math.min(1, (Number(match[1]) * 60 + Number(match[2])) / 1440) : 0.5;
+  return match
+    ? Math.min(1, (Number(match[1]) * 60 + Number(match[2])) / 1440)
+    : 0.5;
 }
 
 // Keeps a same-day early departure visible as a sliver.
@@ -177,37 +203,64 @@ const MIN_TIMED_WIDTH = 0.15;
 export const MIN_BAR_WIDTH = 0.55;
 
 /** Widen a short piece inside [0, 7], growing away from the week edge it's cut at. */
-function widen(start: number, end: number, continuesBefore: boolean, continuesAfter: boolean) {
+function widen(
+  start: number,
+  end: number,
+  continuesBefore: boolean,
+  continuesAfter: boolean,
+) {
   if (end - start >= MIN_BAR_WIDTH) return { start, end };
-  if (continuesAfter && !continuesBefore) return { start: Math.max(0, end - MIN_BAR_WIDTH), end };
+  if (continuesAfter && !continuesBefore)
+    return { start: Math.max(0, end - MIN_BAR_WIDTH), end };
   const grown = { start, end: start + MIN_BAR_WIDTH };
   return grown.end > 7 ? { start: 7 - MIN_BAR_WIDTH, end: 7 } : grown;
 }
 
 /** Month layout with time-accurate edges for stays and whole days for blocks. */
-export function layoutMonthBars<T extends BarInterval>(month: string, events: readonly T[]) {
+export function layoutMonthBars<T extends BarInterval>(
+  month: string,
+  events: readonly T[],
+) {
   const range = monthGridRange(month);
   const days = listNights(range.start, range.end);
   const spans = events.map((event) => {
     if (!event.timed) {
-      return { event, start: daysFrom(range.start, event.startDate), end: daysFrom(range.start, event.endDate) };
+      return {
+        event,
+        start: daysFrom(range.start, event.startDate),
+        end: daysFrom(range.start, event.endDate),
+      };
     }
-    const start = daysFrom(range.start, event.startDate) + dayFraction(event.startTime);
-    const end = daysFrom(range.start, event.endDate) + dayFraction(event.endTime);
+    const start =
+      daysFrom(range.start, event.startDate) + dayFraction(event.startTime);
+    const end =
+      daysFrom(range.start, event.endDate) + dayFraction(event.endTime);
     return { event, start, end: Math.max(end, start + MIN_TIMED_WIDTH) };
   });
   const weeks = [];
   for (let offset = 0; offset < days.length; offset += 7) {
     const weekEnd = offset + 7;
     const candidates = spans
-      .filter(({ start, end }) => start < end && start < weekEnd && end > offset)
+      .filter(
+        ({ start, end }) => start < end && start < weekEnd && end > offset,
+      )
       .map(({ event, start, end }) => {
         const continuesBefore = start < offset;
         const continuesAfter = end > weekEnd;
-        const shown = widen(Math.max(start, offset) - offset, Math.min(end, weekEnd) - offset, continuesBefore, continuesAfter);
+        const shown = widen(
+          Math.max(start, offset) - offset,
+          Math.min(end, weekEnd) - offset,
+          continuesBefore,
+          continuesAfter,
+        );
         return { event, ...shown, continuesBefore, continuesAfter };
       })
-      .sort((a, b) => a.start - b.start || b.end - a.end || a.event.id.localeCompare(b.event.id));
+      .sort(
+        (a, b) =>
+          a.start - b.start ||
+          b.end - a.end ||
+          a.event.id.localeCompare(b.event.id),
+      );
     const laneEnds: number[] = [];
     const bars: WeekBar<T>[] = candidates.map((bar) => {
       let lane = laneEnds.findIndex((lastEnd) => lastEnd <= bar.start);
@@ -215,7 +268,12 @@ export function layoutMonthBars<T extends BarInterval>(month: string, events: re
       laneEnds[lane] = bar.end;
       return { ...bar, lane };
     });
-    weeks.push({ start: days[offset]!, days: days.slice(offset, offset + 7), bars, laneCount: laneEnds.length });
+    weeks.push({
+      start: days[offset]!,
+      days: days.slice(offset, offset + 7),
+      bars,
+      laneCount: laneEnds.length,
+    });
   }
   return weeks;
 }
@@ -249,7 +307,10 @@ export function layoutTimelineBars<T extends BarInterval & { unitId: string }>(
         let end = daysFrom(range.start, event.endDate);
         if (event.timed) {
           start += dayFraction(event.startTime);
-          end = Math.max(end + dayFraction(event.endTime), start + MIN_TIMED_WIDTH);
+          end = Math.max(
+            end + dayFraction(event.endTime),
+            start + MIN_TIMED_WIDTH,
+          );
         }
         return { event, start, end };
       })
@@ -260,13 +321,26 @@ export function layoutTimelineBars<T extends BarInterval & { unitId: string }>(
         let shownStart = Math.max(start, 0);
         let shownEnd = Math.min(end, total);
         if (shownEnd - shownStart < MIN_BAR_WIDTH) {
-          if (continuesAfter && !continuesBefore) shownStart = Math.max(0, shownEnd - MIN_BAR_WIDTH);
+          if (continuesAfter && !continuesBefore)
+            shownStart = Math.max(0, shownEnd - MIN_BAR_WIDTH);
           else shownEnd = Math.min(total, shownStart + MIN_BAR_WIDTH);
-          if (shownEnd - shownStart < MIN_BAR_WIDTH) shownStart = shownEnd - MIN_BAR_WIDTH;
+          if (shownEnd - shownStart < MIN_BAR_WIDTH)
+            shownStart = shownEnd - MIN_BAR_WIDTH;
         }
-        return { event, start: shownStart, end: shownEnd, continuesBefore, continuesAfter };
+        return {
+          event,
+          start: shownStart,
+          end: shownEnd,
+          continuesBefore,
+          continuesAfter,
+        };
       })
-      .sort((a, b) => a.start - b.start || b.end - a.end || a.event.id.localeCompare(b.event.id));
+      .sort(
+        (a, b) =>
+          a.start - b.start ||
+          b.end - a.end ||
+          a.event.id.localeCompare(b.event.id),
+      );
     const laneEnds: number[] = [];
     const bars: TimelineBar<T>[] = candidates.map((bar) => {
       let lane = laneEnds.findIndex((lastEnd) => lastEnd <= bar.start);

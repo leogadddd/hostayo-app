@@ -12,10 +12,28 @@ import { useActionFeedback } from "@/hooks/use-action-feedback";
 import { useSaveAndReturn } from "@/hooks/use-save-and-return";
 import type { InventoryFormState } from "./actions";
 import { AmenityPicker, type AmenityOption } from "./amenity-picker";
-import { FormAside, FormLayout, FormSection, PesoInput, PhotoField, useFormValues } from "./form-kit";
-import { DayRatesFields, LateCheckoutFields, ReservationFeeFields, StayTimesFields, type ReservationFeeChoice } from "./unit-pricing-fields";
+import {
+  FormAside,
+  FormLayout,
+  FormSection,
+  PesoInput,
+  PhotoField,
+  useFormValues,
+} from "./form-kit";
+import {
+  DayRatesFields,
+  LateCheckoutFields,
+  ReservationFeeFields,
+  StayTimesFields,
+  type ReservationFeeChoice,
+} from "./unit-pricing-fields";
 import { stayLengthHours, stayLengthLabel } from "@/lib/stay-times";
-import { dayRateSummary, WEEKDAYS, type DayRates, type Weekday } from "@/lib/rates";
+import {
+  dayRateSummary,
+  WEEKDAYS,
+  type DayRates,
+  type Weekday,
+} from "@/lib/rates";
 import { UnitStatusBadge } from "./inventory-display";
 import { timeLabel, UnitPhoto } from "../calendar/availability/stay-display";
 import { ChannelIcon } from "@/components/public/contact-channel-list";
@@ -71,7 +89,10 @@ export function UnitForm({
   selectedAmenityIds = [],
   contactChannels = [],
 }: {
-  action: (state: InventoryFormState, formData: FormData) => Promise<InventoryFormState>;
+  action: (
+    state: InventoryFormState,
+    formData: FormData,
+  ) => Promise<InventoryFormState>;
   destination: string;
   successMessage: string;
   values: UnitFormValues;
@@ -83,7 +104,10 @@ export function UnitForm({
   contactChannels?: ContactChannel[];
 }) {
   const save = useSaveAndReturn(action, destination, successMessage);
-  const [state, formAction, pending] = useActionState<InventoryFormState, FormData>(save, {});
+  const [state, formAction, pending] = useActionState<
+    InventoryFormState,
+    FormData
+  >(save, {});
   useActionFeedback(state);
   const formRef = useRef<HTMLFormElement>(null);
   const { values: live, read } = useFormValues(formRef);
@@ -111,14 +135,21 @@ export function UnitForm({
   }
   let regularCents = 0;
   try {
-    regularCents = pesosToCentavos(live.nightlyRate ?? values.nightlyRate ?? "") || 0;
+    regularCents =
+      pesosToCentavos(live.nightlyRate ?? values.nightlyRate ?? "") || 0;
   } catch (error) {
     if (!(error instanceof MoneyParseError)) throw error;
   }
   const dayRateLines = dayRateSummary(regularCents, liveDayRates, formatPHP);
 
   return (
-    <form ref={formRef} action={formAction} onInput={read} onChange={read} onClick={read}>
+    <form
+      ref={formRef}
+      action={formAction}
+      onInput={read}
+      onChange={read}
+      onClick={read}
+    >
       <FormLayout
         aside={
           <FormAside
@@ -127,19 +158,51 @@ export function UnitForm({
                 <UnitPhoto src={photo} className="aspect-[16/10]" />
                 <div className="p-5">
                   <UnitStatusBadge status={status} />
-                  <p className="mt-3 truncate font-display text-2xl text-pine">{name}</p>
-                  {propertyName ? <p className="mt-0.5 truncate text-sm text-ink/55">{propertyName}</p> : null}
+                  <p className="mt-3 truncate font-display text-2xl text-pine">
+                    {name}
+                  </p>
+                  {propertyName ? (
+                    <p className="mt-0.5 truncate text-sm text-ink/55">
+                      {propertyName}
+                    </p>
+                  ) : null}
                   <dl className="mt-4 space-y-2 text-sm">
-                    <PreviewRow icon={Users} label="Sleeps" value={`${capacity} · ${bedrooms} bed · ${bathrooms} bath`} />
+                    <PreviewRow
+                      icon={Users}
+                      label="Sleeps"
+                      value={`${capacity} · ${bedrooms} bed · ${bathrooms} bath`}
+                    />
                     <PreviewRow
                       icon={Wallet}
                       label="Per night"
                       value={rate ?? "Not set"}
-                      detail={[...dayRateLines, cleaning ? `+ ${cleaning} cleaning` : ""].filter(Boolean).join(" · ") || undefined}
+                      detail={
+                        [
+                          ...dayRateLines,
+                          cleaning ? `+ ${cleaning} cleaning` : "",
+                        ]
+                          .filter(Boolean)
+                          .join(" · ") || undefined
+                      }
                     />
-                    <PreviewRow icon={LogIn} label="Check-in from" value={timeLabel(checkIn)} />
-                    <PreviewRow icon={LogOut} label="Check-out by" value={timeLabel(checkOut)} detail="Next day" />
-                    <PreviewRow icon={Clock} label="Stay" value={stayLengthLabel(stayLengthHours(checkIn, checkOut))} />
+                    <PreviewRow
+                      icon={LogIn}
+                      label="Check-in from"
+                      value={timeLabel(checkIn)}
+                    />
+                    <PreviewRow
+                      icon={LogOut}
+                      label="Check-out by"
+                      value={timeLabel(checkOut)}
+                      detail="Next day"
+                    />
+                    <PreviewRow
+                      icon={Clock}
+                      label="Stay"
+                      value={stayLengthLabel(
+                        stayLengthHours(checkIn, checkOut),
+                      )}
+                    />
                   </dl>
                 </div>
               </>
@@ -152,20 +215,41 @@ export function UnitForm({
           />
         }
       >
-        <FormSection title="The basics" description="A room, studio or villa that guests book on its own.">
+        <FormSection
+          title="The basics"
+          description="A room, studio or villa that guests book on its own."
+        >
           <div className="space-y-4">
             <div>
               <Label htmlFor="unit-name">Unit name</Label>
-              <Input id="unit-name" name="name" defaultValue={values.name} required minLength={2} maxLength={80} placeholder="e.g. Unit 12B" />
+              <Input
+                id="unit-name"
+                name="name"
+                defaultValue={values.name}
+                required
+                minLength={2}
+                maxLength={80}
+                placeholder="e.g. Unit 12B"
+              />
             </div>
             <div>
               <p className="mb-1.5 text-sm font-medium text-ink">Cover photo</p>
-              <PhotoField currentSrc={values.imageUrl ?? null} onPreview={onPreview} />
+              <PhotoField
+                currentSrc={values.imageUrl ?? null}
+                onPreview={onPreview}
+              />
             </div>
           </div>
         </FormSection>
 
-        <FormSection title="Status" description={editing ? "Changing the status never cancels existing bookings." : "Only active units take new holds and reservations."}>
+        <FormSection
+          title="Status"
+          description={
+            editing
+              ? "Changing the status never cancels existing bookings."
+              : "Only active units take new holds and reservations."
+          }
+        >
           <fieldset>
             <legend className="sr-only">Unit status</legend>
             <div className="flex flex-wrap gap-2">
@@ -174,7 +258,9 @@ export function UnitForm({
                   key={value}
                   className={cn(
                     "cursor-pointer rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-clay",
-                    status === value ? "border-primary bg-primary text-white" : "border-pine/15 bg-surface text-pine hover:border-pine/35",
+                    status === value
+                      ? "border-primary bg-primary text-white"
+                      : "border-pine/15 bg-surface text-pine hover:border-pine/35",
                   )}
                 >
                   <input
@@ -189,82 +275,184 @@ export function UnitForm({
                 </label>
               ))}
             </div>
-            <p className="mt-3 text-sm text-ink/60">{UNIT_STATUS_DESCRIPTIONS[status]}</p>
+            <p className="mt-3 text-sm text-ink/60">
+              {UNIT_STATUS_DESCRIPTIONS[status]}
+            </p>
           </fieldset>
         </FormSection>
 
-        <FormSection title="Space" description="How many people it sleeps and its rooms.">
+        <FormSection
+          title="Space"
+          description="How many people it sleeps and its rooms."
+        >
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
               <Label htmlFor="unit-capacity">Guests</Label>
-              <Input id="unit-capacity" name="capacity" type="number" min={1} max={50} defaultValue={values.capacity} required />
+              <Input
+                id="unit-capacity"
+                name="capacity"
+                type="number"
+                min={1}
+                max={50}
+                defaultValue={values.capacity}
+                required
+              />
             </div>
             <div>
               <Label htmlFor="unit-bedrooms">Bedrooms</Label>
-              <Input id="unit-bedrooms" name="bedrooms" type="number" min={0} max={20} defaultValue={values.bedrooms} required />
+              <Input
+                id="unit-bedrooms"
+                name="bedrooms"
+                type="number"
+                min={0}
+                max={20}
+                defaultValue={values.bedrooms}
+                required
+              />
             </div>
             <div>
               <Label htmlFor="unit-bathrooms">Bathrooms</Label>
-              <Input id="unit-bathrooms" name="bathrooms" type="number" min={0.5} max={20} step={0.5} defaultValue={values.bathrooms} required />
+              <Input
+                id="unit-bathrooms"
+                name="bathrooms"
+                type="number"
+                min={0.5}
+                max={20}
+                step={0.5}
+                defaultValue={values.bathrooms}
+                required
+              />
             </div>
           </div>
         </FormSection>
 
-        <FormSection title="Pricing" description="Defaults for new reservations. Each booking's charges can still be adjusted.">
+        <FormSection
+          title="Pricing"
+          description="Defaults for new reservations. Each booking's charges can still be adjusted."
+        >
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
               <Label htmlFor="unit-rate">Nightly rate</Label>
-              <PesoInput id="unit-rate" name="nightlyRate" defaultValue={values.nightlyRate} placeholder="5,500" />
+              <PesoInput
+                id="unit-rate"
+                name="nightlyRate"
+                defaultValue={values.nightlyRate}
+                placeholder="5,500"
+              />
             </div>
             <div>
               <Label htmlFor="unit-cleaning">
-                Cleaning fee <span className="font-normal text-ink/45">(optional)</span>
+                Cleaning fee{" "}
+                <span className="font-normal text-ink/45">(optional)</span>
               </Label>
-              <PesoInput id="unit-cleaning" name="cleaningFee" defaultValue={values.cleaningFee} placeholder="500" />
+              <PesoInput
+                id="unit-cleaning"
+                name="cleaningFee"
+                defaultValue={values.cleaningFee}
+                placeholder="500"
+              />
             </div>
             <div>
               <Label htmlFor="unit-deposit">
-                Deposit <span className="font-normal text-ink/45">(refundable)</span>
+                Deposit{" "}
+                <span className="font-normal text-ink/45">(refundable)</span>
               </Label>
-              <PesoInput id="unit-deposit" name="securityDeposit" defaultValue={values.securityDeposit} placeholder="2,000" />
+              <PesoInput
+                id="unit-deposit"
+                name="securityDeposit"
+                defaultValue={values.securityDeposit}
+                placeholder="2,000"
+              />
             </div>
           </div>
           <div className="mt-4">
-            <DayRatesFields defaults={values.dayRates ?? {}} regularRate={live.nightlyRate ?? values.nightlyRate} />
+            <DayRatesFields
+              defaults={values.dayRates ?? {}}
+              regularRate={live.nightlyRate ?? values.nightlyRate}
+            />
           </div>
           <div className="mt-4">
-            <ReservationFeeFields defaultType={values.reservationFeeType} defaultAmount={values.reservationFeeAmount} />
+            <ReservationFeeFields
+              defaultType={values.reservationFeeType}
+              defaultAmount={values.reservationFeeAmount}
+            />
           </div>
           <div className="mt-4">
-            <LateCheckoutFields defaultEnabled={values.extensionsEnabled ?? false} defaultMaxHours={values.maxExtensionHours ?? "4"} defaultRate={values.extensionHourlyRate ?? ""} />
+            <LateCheckoutFields
+              defaultEnabled={values.extensionsEnabled ?? false}
+              defaultMaxHours={values.maxExtensionHours ?? "4"}
+              defaultRate={values.extensionHourlyRate ?? ""}
+            />
           </div>
         </FormSection>
 
-        <FormSection title="Stay times" description="Set the check-in time and how long a stay lasts; check-out fills itself in. Turnover cleaning starts at check-out.">
-          <StayTimesFields defaultCheckIn={values.checkInTime} defaultCheckOut={values.checkOutTime} />
+        <FormSection
+          title="Stay times"
+          description="Set the check-in time and how long a stay lasts; check-out fills itself in. Turnover cleaning starts at check-out."
+        >
+          <StayTimesFields
+            defaultCheckIn={values.checkInTime}
+            defaultCheckOut={values.checkOutTime}
+          />
         </FormSection>
 
-        <FormSection title="Amenities" description="What guests get inside the unit, like towels, toiletries and kitchen tools.">
-          <AmenityPicker scope="unit" options={amenityOptions} defaultSelected={selectedAmenityIds} />
+        <FormSection
+          title="Amenities"
+          description="What guests get inside the unit, like towels, toiletries and kitchen tools."
+        >
+          <AmenityPicker
+            scope="unit"
+            options={amenityOptions}
+            defaultSelected={selectedAmenityIds}
+          />
         </FormSection>
 
-        <FormSection title="Guest contact options" description="Choose which of your enabled contact channels guests see for this unit. They can use these when asking about dates.">
+        <FormSection
+          title="Guest contact options"
+          description="Choose which of your enabled contact channels guests see for this unit. They can use these when asking about dates."
+        >
           {contactChannels.length ? (
             <fieldset className="space-y-2">
-              <legend className="sr-only">Contact channels shown for this unit</legend>
+              <legend className="sr-only">
+                Contact channels shown for this unit
+              </legend>
               {contactChannels.map((channel) => {
-                const selected = values.contactChannelIds === null || values.contactChannelIds?.includes(channel.id);
+                const selected =
+                  values.contactChannelIds === null ||
+                  values.contactChannelIds?.includes(channel.id);
                 return (
-                  <label key={channel.id} className="flex cursor-pointer items-center gap-3 rounded-lg border border-pine/12 bg-surface px-3 py-2.5 has-[:checked]:border-pine has-[:checked]:bg-pine-mist">
-                    <input type="checkbox" name="contactChannelId" value={channel.id} defaultChecked={selected} className="h-4 w-4 accent-[var(--color-primary)]" />
-                    <ChannelIcon kind={channel.kind} className="h-7 w-7 rounded-md" />
-                    <span className="min-w-0"><span className="block text-sm font-medium text-pine">{channelName(channel)}</span><span className="block truncate text-xs text-ink/55">{channel.value}</span></span>
+                  <label
+                    key={channel.id}
+                    className="flex cursor-pointer items-center gap-3 rounded-lg border border-pine/12 bg-surface px-3 py-2.5 has-[:checked]:border-pine has-[:checked]:bg-pine-mist"
+                  >
+                    <input
+                      type="checkbox"
+                      name="contactChannelId"
+                      value={channel.id}
+                      defaultChecked={selected}
+                      className="h-4 w-4 accent-[var(--color-primary)]"
+                    />
+                    <ChannelIcon
+                      kind={channel.kind}
+                      className="h-7 w-7 rounded-md"
+                    />
+                    <span className="min-w-0">
+                      <span className="block text-sm font-medium text-pine">
+                        {channelName(channel)}
+                      </span>
+                      <span className="block truncate text-xs text-ink/55">
+                        {channel.value}
+                      </span>
+                    </span>
                   </label>
                 );
               })}
             </fieldset>
           ) : (
-            <p className="rounded-lg bg-pine-mist px-3 py-3 text-sm text-ink/65">Add contact channels in Settings before choosing which ones to show here.</p>
+            <p className="rounded-lg bg-pine-mist px-3 py-3 text-sm text-ink/65">
+              Add contact channels in Settings before choosing which ones to
+              show here.
+            </p>
           )}
         </FormSection>
       </FormLayout>
@@ -272,7 +460,17 @@ export function UnitForm({
   );
 }
 
-function PreviewRow({ icon: Icon, label, value, detail }: { icon: typeof Users; label: string; value: string; detail?: string }) {
+function PreviewRow({
+  icon: Icon,
+  label,
+  value,
+  detail,
+}: {
+  icon: typeof Users;
+  label: string;
+  value: string;
+  detail?: string;
+}) {
   return (
     <div className="flex items-start justify-between gap-3">
       <dt className="flex items-center gap-2 text-ink/55">
@@ -281,7 +479,9 @@ function PreviewRow({ icon: Icon, label, value, detail }: { icon: typeof Users; 
       </dt>
       <dd className="text-right">
         <span className="font-medium text-pine">{value}</span>
-        {detail ? <span className="block text-xs text-ink/50">{detail}</span> : null}
+        {detail ? (
+          <span className="block text-xs text-ink/50">{detail}</span>
+        ) : null}
       </dd>
     </div>
   );
