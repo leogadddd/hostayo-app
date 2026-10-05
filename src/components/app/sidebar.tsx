@@ -313,7 +313,7 @@ export function AppHeader({
         />
       </div>
       <div className="flex shrink-0 items-center gap-5">
-        {props.organizationSlug ? <SharePublicLink href={`/h/${encodeURIComponent(props.organizationSlug)}`} title={`${props.organizationName} public page`} label="Share" size="sm" className="lg:h-[3.25rem] lg:px-4" /> : null}
+        {props.organizationSlug ? <SharePublicLink href={`/h/${encodeURIComponent(props.organizationSlug)}`} title={`${props.organizationName} public page`} label="Share" size="md" /> : null}
         <LiveClock initialNow={initialNow} />
         <AccountMenu
           userName={props.userName}
