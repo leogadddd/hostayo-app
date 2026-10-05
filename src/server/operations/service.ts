@@ -1,8 +1,9 @@
 import "server-only";
 
-import { and, asc, count, desc, eq, gte, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, gte, isNull, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
+  accessTokens,
   auditEvents,
   damageReports,
   guests,
@@ -36,6 +37,9 @@ import {
 } from "./validation";
 
 export { OperationsError } from "./validation";
+
+/** How long the guest link keeps working after check-out. */
+const GUEST_LINK_CHECKOUT_GRACE_MS = 60 * 60 * 1000;
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
@@ -189,6 +193,20 @@ export async function checkOut(input: {
     if (!updated) {
       throw new ReservationError("Failed to check out the reservation.");
     }
+    // The guest link stays usable for a short grace period after check-out
+    // (receipts, final balance), then expires. Never extends a sooner expiry.
+    const linkCutoff = new Date(Math.max(actualCheckoutAt.getTime(), Date.now()) + GUEST_LINK_CHECKOUT_GRACE_MS);
+    await tx
+      .update(accessTokens)
+      .set({ expiresAt: sql`least(${accessTokens.expiresAt}, ${linkCutoff.toISOString()}::timestamptz)` })
+      .where(
+        and(
+          eq(accessTokens.reservationId, reservation.id),
+          eq(accessTokens.organizationId, input.organizationId),
+          isNull(accessTokens.revokedAt),
+          gt(accessTokens.expiresAt, new Date()),
+        ),
+      );
     await insertTransition(tx, {
       organizationId: input.organizationId,
       reservationId: reservation.id,

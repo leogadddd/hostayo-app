@@ -64,7 +64,10 @@ export async function createGuestLink(input: {
   actorUserId: string;
   reservationId: string;
 }): Promise<{ tokenId: string; token: string }> {
-  await getReservationDetail(input.organizationId, input.reservationId);
+  const { reservation } = await getReservationDetail(input.organizationId, input.reservationId);
+  if (["checked_out", "cancelled", "expired"].includes(reservation.status)) {
+    throw new ReservationError("A welcome link can't be created once the stay has ended or been cancelled.", "reservationId");
+  }
 
   return db.transaction(async (tx) => {
     const now = new Date();

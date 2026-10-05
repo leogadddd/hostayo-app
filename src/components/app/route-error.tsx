@@ -13,9 +13,12 @@ import { Button } from "@/components/ui/button";
 export function RouteError({
   error,
   reset,
+  showDashboardLink = true,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
+  /** Off for public pages, where guests have no dashboard to go to. */
+  showDashboardLink?: boolean;
 }) {
   const router = useRouter();
   const [retrying, startRetry] = useTransition();
@@ -60,9 +63,11 @@ export function RouteError({
         >
           {retrying ? "Retrying…" : "Try again"}
         </Button>
-        <Button type="button" variant="ghost" onClick={() => router.push("/dashboard")}>
-          Go to dashboard
-        </Button>
+        {showDashboardLink && (
+          <Button type="button" variant="ghost" onClick={() => router.push("/dashboard")}>
+            Go to dashboard
+          </Button>
+        )}
       </div>
     </div>
   );

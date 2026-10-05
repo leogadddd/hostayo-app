@@ -316,7 +316,6 @@ export async function createGuestLinkAction(
       actorUserId: membership.userId,
       reservationId,
     });
-    revalidatePath(`/reservations/${reservationId}`);
     return { token: link.token, tokenId: link.tokenId };
   } catch (error) {
     if (error instanceof ReservationError || error instanceof PermissionError) {

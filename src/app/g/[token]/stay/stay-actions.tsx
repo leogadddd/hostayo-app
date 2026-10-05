@@ -1,12 +1,11 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
-import { Check, CircleCheck, Copy, Eye, EyeOff, Hammer, LogOut, MapPinned, Phone, Wifi, X } from "lucide-react";
+import { Check, CircleCheck, Compass, Copy, CreditCard, Eye, EyeOff, Hammer, KeyRound, LogOut, MapPin, Phone, ScrollText, Wifi, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { Label, Select, Textarea } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 import { guestCheckOutAction, guestDamageReportAction } from "./actions";
 
 const DAMAGE_AREAS = ["Bedroom", "Bathroom", "Kitchen", "Living area", "Outdoor or terrace", "Appliance or fixture", "Something else"];
@@ -53,45 +52,16 @@ export function WifiCard({ name, password }: { name: string; password: string | 
   );
 }
 
-export function StayActions({ token, unitName, checkoutTime, steps, initiallyCheckedOut }: {
+export function StayActions({ token, unitName, checkoutTime, initiallyCheckedOut }: {
   token: string;
   unitName: string;
   checkoutTime: string;
-  steps: string[];
   initiallyCheckedOut: boolean;
 }) {
   const [checkedOut, setCheckedOut] = useState(initiallyCheckedOut);
-  const [done, setDone] = useState<Record<number, boolean>>({});
-  const doneCount = steps.filter((_, index) => done[index]).length;
 
   return (
     <div className="space-y-4">
-      <section aria-labelledby="leaving-heading" className="rounded-xl border border-pine/12 bg-linen p-5 shadow-[0_2px_8px_rgba(32,58,53,0.035)]">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h2 id="leaving-heading" className="font-display text-xl text-pine">Before you leave</h2>
-            <p className="mt-1 text-sm text-ink/60">Checkout is at {checkoutTime}. A few small things help us get ready for the next guest.</p>
-          </div>
-          <span className="shrink-0 rounded-full bg-pine-mist px-2.5 py-0.5 text-xs font-medium text-pine">{doneCount}/{steps.length}</span>
-        </div>
-        <ul className="mt-4 space-y-1">
-          {steps.map((step, index) => (
-            <li key={step}>
-              <label className="flex cursor-pointer items-start gap-3 rounded-lg px-2 py-2 hover:bg-pine-mist/50">
-                <input
-                  type="checkbox"
-                  checked={!!done[index]}
-                  disabled={checkedOut}
-                  onChange={(event) => setDone((current) => ({ ...current, [index]: event.target.checked }))}
-                  className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--color-primary)]"
-                />
-                <span className={cn("text-sm leading-relaxed text-ink/80", done[index] && "text-ink/45 line-through")}>{step}</span>
-              </label>
-            </li>
-          ))}
-        </ul>
-      </section>
-
       {checkedOut ? (
         <div role="status" className="rounded-xl border border-moss/40 bg-sage/50 p-6 text-center">
           <CircleCheck className="mx-auto h-9 w-9 text-moss" aria-hidden />
@@ -101,6 +71,7 @@ export function StayActions({ token, unitName, checkoutTime, steps, initiallyChe
       ) : (
         <section aria-labelledby="actions-heading" className="rounded-xl border border-pine/12 bg-linen p-5 shadow-[0_2px_8px_rgba(32,58,53,0.035)]">
           <h2 id="actions-heading" className="font-display text-xl text-pine">Need something?</h2>
+          <p className="mt-1 text-sm text-ink/60">Checkout is at {checkoutTime}.</p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <ReportDamage token={token} unitName={unitName} />
             <ConfirmationDialog
@@ -120,7 +91,6 @@ export function StayActions({ token, unitName, checkoutTime, steps, initiallyChe
               }}
             />
           </div>
-          {doneCount < steps.length ? <p className="mt-3 text-xs text-ink/50">Tip: tick off the list above first so nothing gets missed.</p> : null}
         </section>
       )}
     </div>
@@ -201,19 +171,22 @@ function ReportDamage({ token, unitName }: { token: string; unitName: string }) 
   );
 }
 
-export function QuickLinks({ wifi, mapUrl, phone }: { wifi: boolean; mapUrl: string | null; phone: string | null }) {
-  const items = [
-    wifi ? { href: "#wifi", icon: Wifi, label: "Wi-Fi" } : null,
-    mapUrl ? { href: mapUrl, icon: MapPinned, label: "Directions" } : null,
-    phone ? { href: `tel:${phone.replace(/\s/g, "")}`, icon: Phone, label: "Call host" } : null,
-  ].filter(Boolean) as { href: string; icon: typeof Wifi; label: string }[];
+const QUICK_LINK_ICONS = { directions: MapPin, booking: CreditCard, wifi: Wifi, arrival: KeyRound, rules: ScrollText, area: Compass, phone: Phone } as const;
+
+export type QuickLinkKey = keyof typeof QUICK_LINK_ICONS;
+
+export function QuickLinks({ items }: { items: { key: QuickLinkKey; href: string; label: string }[] }) {
+  if (items.length === 0) return null;
   return (
-    <nav aria-label="Quick links" className="grid grid-cols-3 gap-3">
-      {items.map(({ href, icon: Icon, label }) => (
-        <a key={label} href={href} className="flex flex-col items-center gap-2 rounded-xl border border-pine/12 bg-linen px-2 py-4 text-sm font-medium text-pine shadow-[0_2px_8px_rgba(32,58,53,0.035)] transition hover:border-pine/30 hover:bg-pine-mist/50">
-          <Icon className="h-5 w-5" aria-hidden />{label}
-        </a>
-      ))}
+    <nav aria-label="Quick links" className="grid grid-cols-3 gap-2.5 sm:grid-cols-4">
+      {items.map(({ key, href, label }) => {
+        const Icon = QUICK_LINK_ICONS[key];
+        return (
+          <a key={key} href={href} className="flex flex-col items-center gap-1.5 rounded-xl border border-pine/12 bg-linen px-2 py-3.5 text-center text-xs font-medium text-pine shadow-[0_2px_8px_rgba(32,58,53,0.035)] transition hover:border-pine/30 hover:bg-pine-mist/50 sm:text-sm">
+            <Icon className="h-5 w-5" aria-hidden />{label}
+          </a>
+        );
+      })}
     </nav>
   );
 }

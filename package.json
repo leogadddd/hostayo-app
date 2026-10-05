@@ -4,7 +4,7 @@
   "private": true,
   "description": "Hostayo — a calmer way to run your stays. Direct-booking operations for small Philippine short-stay operators.",
   "scripts": {
-    "dev": "next dev --webpack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
@@ -21,6 +21,7 @@
     "seed:demo:reset": "tsx --tsconfig tsconfig.scripts.json scripts/reset-demo.ts",
     "seed:development": "tsx --tsconfig tsconfig.scripts.json scripts/seed-development.ts",
     "seed:casa-alon": "tsx --tsconfig tsconfig.scripts.json scripts/seed-casa-alon.ts",
+    "seed:unit-details": "tsx --tsconfig tsconfig.scripts.json scripts/seed-unit-details.ts",
     "seed:amenities": "tsx --tsconfig tsconfig.scripts.json scripts/seed-amenities.ts",
     "seed:platforms": "tsx --tsconfig tsconfig.scripts.json scripts/seed-platforms.ts",
     "seed:reservation-platforms": "tsx --tsconfig tsconfig.scripts.json scripts/seed-reservation-platforms.ts",

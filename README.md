@@ -11,7 +11,7 @@ delivered in vertical slices (0–5). Brand palette: Pine `#203A35`, Paper
 ## Stack
 
 - Next.js (App Router) + TypeScript strict
-- PostgreSQL 16 via Docker Compose
+- PostgreSQL 16 and Redis 7 via Docker Compose
 - Drizzle ORM + drizzle-kit migrations
 - Better Auth (email + password)
 - Tailwind CSS v4 · Vitest
@@ -55,7 +55,7 @@ For role-based development, run `npm run seed:development`. It creates the
 | `npm run dev` / `build` / `start` | Next.js app |
 | `npm run lint` / `typecheck` / `test` | Quality gates |
 | `npm run test:integration` | Real PostgreSQL acceptance tests (dedicated `hostayo_test` database) |
-| `npm run db:up` / `db:down` | Start/stop PostgreSQL |
+| `npm run db:up` / `db:down` | Start/stop PostgreSQL and Redis |
 | `npm run db:generate` / `db:migrate` | Drizzle migration workflow (see *Database schema changes* in `CLAUDE.md`) |
 | `npm run seed:demo` | Idempotent fake demo workspace |
 | `npm run seed:demo:reset` | Delete and recreate only the shared demo workspace |

@@ -905,6 +905,15 @@ export default async function ReservationDetailPage({
                   New reservation
                 </Link>
               ) : null}
+              {reservation.status === "checked_out" && canReportDamage ? (
+                <Link
+                  href={`${href}/damage/new`}
+                  className={buttonClassName("outline", "md", "w-full justify-between")}
+                >
+                  Report damage
+                  <Plus className="h-4 w-4" aria-hidden />
+                </Link>
+              ) : null}
               {liveHold && !canConfirmHold ? (
                 <p className="text-sm text-ink/60">
                   Someone who can confirm bookings will confirm or cancel this hold.
@@ -913,7 +922,7 @@ export default async function ReservationDetailPage({
             </div>
           </section>
 
-          {can(membership, "guests.update") ? (
+          {can(membership, "guests.update") && !["checked_out", "cancelled", "expired"].includes(reservation.status) ? (
             <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)]">
               <h2 className="font-display text-lg text-pine">Welcome link</h2>
               <div className="mt-4">

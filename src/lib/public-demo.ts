@@ -9,9 +9,10 @@ import { cache } from "react";
 import { and, eq, isNull } from "drizzle-orm";
 import type { ContactChannel } from "@/lib/contact-channels";
 import { db } from "@/lib/db";
-import { organizations, properties, units } from "@/lib/db/schema";
+import { guests, organizations, properties, reservations, units } from "@/lib/db/schema";
 import { listPropertyAmenities, listUnitAmenities } from "@/server/inventory/amenities";
 import { getOccupancySegments } from "@/server/inventory/availability";
+import { findActiveGuestToken } from "@/server/reservations/guest-link";
 
 export interface PublicAmenity {
   name: string;
@@ -288,23 +289,55 @@ export async function getPublicUnit(hostSlug: string, unitSlug: string) {
 }
 
 export async function getGuestStay(token: string): Promise<GuestStay | null> {
-  // The demo has one explicit link. Keeping this check here prevents arbitrary
-  // URLs from looking like valid stays while the production loader is swapped
-  // in for access-token queries.
-  if (token !== "demo-stay") return null;
-  const host = await getPublicHost("casa-alon");
-  const unit = host?.units[0];
+  const activeToken = await findActiveGuestToken(token);
+  if (!activeToken) return null;
+
+  const [reservation] = await db
+    .select({
+      guestName: guests.name,
+      checkInDate: reservations.checkInDate,
+      checkOutDate: reservations.checkOutDate,
+      status: reservations.status,
+      hostSlug: organizations.slug,
+      unitId: units.id,
+      address: properties.address,
+    })
+    .from(reservations)
+    .innerJoin(guests, and(
+      eq(reservations.guestId, guests.id),
+      eq(reservations.organizationId, guests.organizationId),
+    ))
+    .innerJoin(units, and(
+      eq(reservations.unitId, units.id),
+      eq(reservations.organizationId, units.organizationId),
+    ))
+    .innerJoin(properties, and(
+      eq(units.propertyId, properties.id),
+      eq(units.organizationId, properties.organizationId),
+    ))
+    .innerJoin(organizations, eq(reservations.organizationId, organizations.id))
+    .where(and(
+      eq(reservations.id, activeToken.reservationId),
+      eq(reservations.organizationId, activeToken.organizationId),
+    ))
+    .limit(1);
+  if (!reservation) return null;
+
+  const host = await getPublicHost(reservation.hostSlug);
+  const unit = host?.units.find(({ id }) => id === reservation.unitId);
   if (!host || !unit) return null;
-  const today = todayISO();
+
   return {
     token,
-    guestName: "Bea Garcia",
+    guestName: reservation.guestName,
     host,
     unit,
-    address: "Corong-Corong Road, El Nido, Palawan",
-    mapUrl: "https://maps.google.com",
-    checkInDate: addDays(today, -1),
-    checkOutDate: addDays(today, 2),
-    status: "checked_in",
+    address: reservation.address ?? unit.location,
+    mapUrl: null,
+    checkInDate: reservation.checkInDate,
+    checkOutDate: reservation.checkOutDate,
+    status: reservation.status === "checked_in" || reservation.status === "checked_out"
+      ? reservation.status
+      : "confirmed",
   };
 }

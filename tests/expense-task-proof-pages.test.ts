@@ -6,6 +6,7 @@ import { listProperties, listOrgUnits } from "@/server/inventory/service";
 import { listExpenses } from "@/server/expenses/service";
 import { getTaskDetail, markTaskReady, resolveDamageReport, updateTaskNotes } from "@/server/operations/service";
 import { getGuestViewByToken, type GuestView } from "@/server/reservations/guest-link";
+import { getGuestStay } from "@/lib/public-demo";
 import { submitGuestPaymentProof } from "@/server/payments/service";
 import { PermissionDenied } from "@/components/app/permission-denied";
 import { Table } from "@/components/ui/table";
@@ -53,6 +54,7 @@ vi.mock("@/server/operations/service", () => ({
   setTaskItemCompleted: vi.fn(), OperationsError: class extends Error {},
 }));
 vi.mock("@/server/reservations/guest-link", () => ({ getGuestViewByToken: vi.fn() }));
+vi.mock("@/lib/public-demo", () => ({ getGuestStay: vi.fn() }));
 vi.mock("@/server/payments/service", () => ({ submitGuestPaymentProof: vi.fn() }));
 
 const owner: MembershipContext = {
@@ -82,6 +84,18 @@ function guestFixture(status = "confirmed"): GuestView {
     pendingProofs: 0, paymentInstructions: null, houseRules: null,
   };
 }
+function guestStayFixture() {
+  return {
+    guestName: "Guest Example", checkInDate: "2026-09-20", checkOutDate: "2026-09-23", status: "confirmed",
+    address: "Property A, Philippines", mapUrl: null,
+    host: { displayName: "Test host", channels: [] },
+    unit: {
+      id: "unit-a", name: "Unit A", propertyName: "Property A", capacity: 2, bedrooms: 1, bathrooms: 1,
+      checkInTime: "15:00", checkOutTime: "11:00", description: "", wifiName: null, wifiPassword: null,
+      unitAmenities: [], propertyAmenities: [], guestHouseRules: [], arrivalNotes: [], areaTips: [], checkoutSteps: [],
+    },
+  } as unknown as Awaited<ReturnType<typeof getGuestStay>>;
+}
 function elements(node: React.ReactNode): React.ReactElement<Record<string, unknown>>[] {
   if (Array.isArray(node)) return node.flatMap(elements);
   if (!React.isValidElement<Record<string, unknown>>(node)) return [];
@@ -105,6 +119,7 @@ beforeEach(() => {
   vi.mocked(listProperties).mockResolvedValue([]);
   vi.mocked(listOrgUnits).mockResolvedValue([]);
   vi.mocked(listExpenses).mockResolvedValue([]);
+  vi.mocked(getGuestStay).mockResolvedValue(guestStayFixture());
 });
 
 describe("dedicated expense page", () => {

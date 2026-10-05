@@ -2,6 +2,12 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Development routes are compiled on demand. Keep recently used routes in
+  // memory longer so returning to a screen after a short break is instant.
+  onDemandEntries: {
+    maxInactiveAge: 60 * 60 * 1000,
+    pagesBufferLength: 10,
+  },
   async headers() {
     // Vercel provides TLS. These headers add browser-side defense in depth for
     // every application response without changing the development experience.
