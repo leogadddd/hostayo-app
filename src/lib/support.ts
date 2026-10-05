@@ -1,7 +1,8 @@
 /** Where people reach the Hostayo team. Shown in Settings → Support and on the legal pages. */
 export const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "";
-export const SUPPORT_FACEBOOK_URL = "https://www.facebook.com/profile.php?id=61594931963512";
-export const SUPPORT_INSTAGRAM_URL = "https://www.instagram.com/hostayoph/";
+export const SUPPORT_FACEBOOK_URL =
+  "https://www.facebook.com/profile.php?id=61594931963512";
+export const SUPPORT_INSTAGRAM_URL = "https://www.instagram.com/hostayo/";
 export const SUPPORT_INSTAGRAM_HANDLE = "@hostayoph";
 
 export const PROBLEM_CATEGORIES = [
@@ -27,14 +28,22 @@ export interface ProblemReportContext {
  * Builds a mailto link carrying the report and the context we'd otherwise
  * have to ask for, so a report is useful on the first message.
  */
-export function problemReportMailto({ category, page, details, context, browser }: {
+export function problemReportMailto({
+  category,
+  page,
+  details,
+  context,
+  browser,
+}: {
   category: ProblemCategory;
   page: string;
   details: string;
   context: ProblemReportContext;
   browser: string;
 }): string {
-  const label = PROBLEM_CATEGORIES.find((item) => item.value === category)?.label ?? category;
+  const label =
+    PROBLEM_CATEGORIES.find((item) => item.value === category)?.label ??
+    category;
   const subject = `[Hostayo] ${label}${page ? ` — ${page}` : ""}`;
   const body = [
     details.trim(),
