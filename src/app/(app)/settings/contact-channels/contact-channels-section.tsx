@@ -1,14 +1,13 @@
-import type { Metadata } from "next";
-import { requirePermission } from "@/lib/auth/session";
-import { PermissionDenied } from "@/components/app/permission-denied";
+import type { MembershipContext } from "@/lib/auth/session";
 import { getOrganizationContactChannels } from "@/server/orgs/service";
 import { ContactChannelsEditor } from "./contact-channels-editor";
 
-export const metadata: Metadata = { title: "Contact channels" };
-
-export default async function ContactChannelsPage() {
-  const membership = await requirePermission("organization.update");
-  if (!membership) return <PermissionDenied />;
+/** Caller must have checked `organization.update`. */
+export async function ContactChannelsSection({
+  membership,
+}: {
+  membership: MembershipContext;
+}) {
   const channels = await getOrganizationContactChannels(
     membership.organizationId,
   );

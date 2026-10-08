@@ -9,8 +9,8 @@ import { PageHeading } from "./page-heading";
  * stay in place behind this switch; set an entry to false to bring it back.
  */
 export const UNDER_CONSTRUCTION = {
-  expenses: true,
-  reports: true,
+  expenses: false,
+  reports: false,
 } as const;
 
 export function UnderConstruction({

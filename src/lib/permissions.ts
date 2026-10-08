@@ -118,7 +118,11 @@ export const PERMISSION_AREAS = [
   {
     area: "expenses",
     label: "Expenses",
-    actions: { view: "See expenses", create: "Record expenses" },
+    actions: {
+      view: "See expenses",
+      create: "Record expenses",
+      update: "Edit and void expenses",
+    },
   },
   {
     area: "reports",

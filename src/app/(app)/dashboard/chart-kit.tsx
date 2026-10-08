@@ -25,6 +25,8 @@ export const CATEGORY_COLORS: Record<string, string> = {
   supplies: CHART.sageDeep,
   maintenance: CHART.sand,
   internet: CHART.pineSoft,
+  subscriptions: "#7b6fa8",
+  condo_dues: "#4f8a9b",
   platform_fees: CHART.clay,
   renovation: "var(--color-chart-renovation)",
   other: "var(--color-chart-other)",

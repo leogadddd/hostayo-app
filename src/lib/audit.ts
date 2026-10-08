@@ -19,6 +19,7 @@ const ENTITY_LABELS: Record<string, string> = {
   payment_entry: "Payment",
   payment_proof: "Payment proof",
   property: "Property",
+  recurring_expense: "Recurring bill",
   refund_entry: "Refund",
   reservation: "Reservation",
   task: "Turnover task",

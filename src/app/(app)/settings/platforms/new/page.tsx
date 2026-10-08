@@ -16,7 +16,7 @@ export default async function NewPlatformPage() {
       <PageHeading
         title="Add booking platform"
         description="A channel your bookings come from, like TikTok or a travel agent. It's added to the end of the reservation form's list."
-        backHref="/settings/platforms"
+        backHref="/settings/general"
         backLabel="Booking platforms"
       />
       <Card className="bg-card">

@@ -101,6 +101,10 @@ vi.mock("@/server/inventory/service", () => ({
   listUnitBlocks: vi.fn(),
   listOrgUnits: vi.fn(),
 }));
+// Plain function (not vi.fn) so resetAllMocks keeps it returning no bills.
+vi.mock("@/server/expenses/recurring", () => ({
+  listDueRecurring: async () => [],
+}));
 vi.mock("@/server/expenses/service", () => ({ listExpenses: vi.fn() }));
 vi.mock("@/server/reports/service", () => ({
   getReport: vi.fn(),

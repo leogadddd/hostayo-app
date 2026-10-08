@@ -66,7 +66,7 @@ export function PlatformForm({
   submitLabel: string;
   successMessage: string;
 }) {
-  const save = useSaveAndReturn(action, "/settings/platforms", successMessage);
+  const save = useSaveAndReturn(action, "/settings/general", successMessage);
   const [state, formAction, pending] = useActionState<
     PlatformFormState,
     FormData
@@ -161,7 +161,7 @@ export function PlatformForm({
           {pending ? "Saving…" : submitLabel}
         </Button>
         <Link
-          href="/settings/platforms"
+          href="/settings/general"
           className={buttonClassName("ghost", "md")}
         >
           Cancel

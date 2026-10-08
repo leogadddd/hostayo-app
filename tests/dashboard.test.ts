@@ -139,9 +139,18 @@ const report = {
     capitalSpendingCents: 0,
     netOperatingCashCents: 725_000,
     propertyBreakdown: [],
+    unitBreakdown: [],
+    channelBreakdown: [],
+    revparCents: null,
+    avgLengthOfStayNights: null,
+    bookingCount: 0,
+    cancelledStayCount: 0,
+    cancellationRate: null,
   },
   properties: [{ id: "property-a", name: "Riverside Residences" }],
   propertyNames: new Map([["property-a", "Riverside Residences"]]),
+  unitNames: new Map(),
+  platformNames: new Map(),
   timezone: "Asia/Manila",
 };
 

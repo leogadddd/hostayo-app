@@ -42,7 +42,7 @@ function platformFromForm(formData: FormData): PlatformInput {
 }
 
 function revalidatePlatforms() {
-  revalidatePath("/settings/platforms");
+  revalidatePath("/settings/general");
   revalidatePath("/reservations");
   revalidatePath("/reservations/new");
 }

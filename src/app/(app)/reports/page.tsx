@@ -4,6 +4,8 @@ import {
   UNDER_CONSTRUCTION,
 } from "@/components/app/under-construction";
 import type { Metadata } from "next";
+import { ChevronDown, Download } from "lucide-react";
+import { PageHeading } from "@/components/app/page-heading";
 import { PermissionDenied } from "@/components/app/permission-denied";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -21,7 +23,9 @@ import { requirePermission } from "@/lib/auth/session";
 import { addDaysLocal, monthNightRange, todayInTimeZone } from "@/lib/dates";
 import { formatPHP } from "@/lib/money";
 import type { ReportSummary } from "@/lib/reporting";
+import { getDashboardSeries } from "@/server/reports/dashboard";
 import { getReport, ReportError } from "@/server/reports/service";
+import { ReportCharts, type ReportChartsData } from "./report-charts";
 import { listProperties } from "@/server/inventory/service";
 
 export const metadata: Metadata = { title: "Reports" };
@@ -65,45 +69,6 @@ function Metric({
       </p>
       <p className="mt-0.5 text-xs text-ink/50">{basis}</p>
     </div>
-  );
-}
-
-function HorizontalBars({
-  title,
-  items,
-  formatValue,
-}: {
-  title: string;
-  items: { label: string; value: number; tone: string }[];
-  formatValue: (value: number) => string;
-}) {
-  const max = Math.max(1, ...items.map((item) => Math.abs(item.value)));
-  return (
-    <Card>
-      <CardHeader>
-        <h3 className="font-display text-lg text-pine">{title}</h3>
-      </CardHeader>
-      <CardBody className="space-y-4">
-        {items.map((item) => (
-          <div key={item.label}>
-            <div className="mb-1 flex justify-between gap-3 text-sm">
-              <span className="text-ink/70">{item.label}</span>
-              <span className="shrink-0 font-medium tabular-nums text-pine">
-                {formatValue(item.value)}
-              </span>
-            </div>
-            <div className="h-3 overflow-hidden rounded-full bg-pine-mist/60">
-              <div
-                className={`h-full rounded-full ${item.tone}`}
-                style={{
-                  width: `${Math.max(0, Math.min(100, (Math.abs(item.value) / max) * 100))}%`,
-                }}
-              />
-            </div>
-          </div>
-        ))}
-      </CardBody>
-    </Card>
   );
 }
 
@@ -155,6 +120,19 @@ export default async function ReportsPage({
         : "The report could not be generated.";
   }
 
+  const series = result
+    ? await getDashboardSeries(
+        membership.organizationId,
+        { from, to },
+        propertyFilter || undefined,
+      ).catch(() => null)
+    : null;
+  const exportQuery = new URLSearchParams({
+    from,
+    to,
+    ...(propertyFilter ? { property: propertyFilter } : {}),
+  }).toString();
+
   const hasFilters = Boolean(
     readParam("from") || readParam("to") || propertyFilter,
   );
@@ -165,14 +143,11 @@ export default async function ReportsPage({
   })();
 
   return (
-    <div className="mx-auto max-w-5xl">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="font-display text-3xl text-pine">Reports</h1>
-          <p className="mt-1 text-sm text-ink/60">
-            Cash, bookings and occupancy — each metric labeled with its basis.
-          </p>
-        </div>
+    <div className="min-w-0 overflow-hidden">
+      <PageHeading
+        title="Reports"
+        description="Cash, bookings and occupancy — each metric labeled with its basis."
+      >
         {result ? (
           <p className="text-sm text-ink/60">
             {periodLabel} · {result.timezone} cash basis ·{" "}
@@ -180,9 +155,9 @@ export default async function ReportsPage({
             {result.summary.activeUnitCount === 1 ? "unit" : "units"} active
           </p>
         ) : null}
-      </div>
+      </PageHeading>
 
-      <form method="GET" className="mt-5 flex flex-wrap items-end gap-3">
+      <form method="GET" className="flex flex-wrap items-end gap-3">
         <div className="min-w-44">
           <Label htmlFor="filter-property">Property</Label>
           <Select
@@ -222,6 +197,37 @@ export default async function ReportsPage({
         >
           Run report
         </button>
+        {result ? (
+          <details className="group relative ml-auto">
+            <summary className="inline-flex h-10 cursor-pointer list-none items-center gap-2 rounded-lg border border-pine/25 px-4 text-sm font-medium text-pine hover:border-pine/50 hover:bg-pine-mist/60 [&::-webkit-details-marker]:hidden">
+              <Download className="h-4 w-4" aria-hidden />
+              Export CSV
+              <ChevronDown
+                className="h-4 w-4 transition-transform group-open:rotate-180"
+                aria-hidden
+              />
+            </summary>
+            <div className="absolute right-0 z-10 mt-2 w-64 rounded-xl border border-pine/12 bg-surface p-1.5 shadow-[0_12px_32px_rgba(22,41,37,0.14)]">
+              {[
+                ["bookings", "Bookings", "One row per stay checking in"],
+                ["payments", "Payments & refunds", "Cash ledger by date"],
+                ["expenses", "Expenses", "By category, property and unit"],
+              ].map(([type, label, hint]) => (
+                <a
+                  key={type}
+                  href={`/api/reports/export?type=${type}&${exportQuery}`}
+                  download
+                  className="block rounded-lg px-3 py-2 hover:bg-pine-mist/60"
+                >
+                  <span className="block text-sm font-medium text-pine">
+                    {label}
+                  </span>
+                  <span className="block text-xs text-ink/55">{hint}</span>
+                </a>
+              ))}
+            </div>
+          </details>
+        ) : null}
         {hasFilters ? (
           <a
             href="/reports"
@@ -240,6 +246,23 @@ export default async function ReportsPage({
         <ReportBody
           summary={result.summary}
           propertyNames={result.propertyNames}
+          unitNames={result.unitNames}
+          platformNames={result.platformNames}
+          chartData={{
+            days: series?.days ?? [],
+            categories: series?.categories ?? [],
+            units: result.summary.unitBreakdown.map((row) => ({
+              name: result!.unitNames.get(row.unitId) ?? "Unknown unit",
+              accommodationCents: row.accommodationBookedCents,
+            })),
+            channels: result.summary.channelBreakdown.map((row) => ({
+              name: row.platformId
+                ? (result!.platformNames.get(row.platformId) ?? "Unknown")
+                : "Direct / unspecified",
+              accommodationCents: row.accommodationBookedCents,
+              bookings: row.bookings,
+            })),
+          }}
         />
       ) : null}
     </div>
@@ -249,14 +272,22 @@ export default async function ReportsPage({
 function ReportBody({
   summary,
   propertyNames,
+  unitNames,
+  platformNames,
+  chartData,
 }: {
   summary: ReportSummary;
   propertyNames: Map<string, string>;
+  unitNames: Map<string, string>;
+  platformNames: Map<string, string>;
+  chartData: ReportChartsData;
 }) {
   const cashBasis = "payments received in period";
   const stayBasis = "stays overlapping the period";
   return (
     <div className="mt-6 space-y-6">
+      <ReportCharts data={chartData} />
+
       <section aria-labelledby="cash-heading">
         <Card>
           <CardHeader className="flex flex-wrap items-center justify-between gap-2">
@@ -315,47 +346,6 @@ function ReportBody({
         </Card>
       </section>
 
-      <section aria-label="Report charts" className="grid gap-6 lg:grid-cols-2">
-        <HorizontalBars
-          title="Cash movement"
-          formatValue={formatPHP}
-          items={[
-            {
-              label: "Booking payments",
-              value: summary.bookingCollectedCents,
-              tone: "bg-primary",
-            },
-            {
-              label: "Operating expenses",
-              value: summary.operatingExpensesCents,
-              tone: "bg-clay",
-            },
-            {
-              label: "Booking refunds",
-              value: summary.bookingRefundedCents,
-              tone: "bg-refund",
-            },
-            {
-              label: "Net operating cash",
-              value: summary.netOperatingCashCents,
-              tone:
-                summary.netOperatingCashCents < 0
-                  ? "bg-clay-strong"
-                  : "bg-sage-deep",
-            },
-          ]}
-        />
-        <HorizontalBars
-          title="Occupancy by property"
-          formatValue={(value) => formatPercent(value / 100)}
-          items={summary.propertyBreakdown.map((row) => ({
-            label: propertyNames.get(row.propertyId) ?? "Unknown property",
-            value: (row.occupancyRate ?? 0) * 100,
-            tone: "bg-sage-deep",
-          }))}
-        />
-      </section>
-
       <section aria-labelledby="booked-heading">
         <Card>
           <CardHeader className="flex flex-wrap items-center justify-between gap-2">
@@ -404,6 +394,40 @@ function ReportBody({
                   summary.avgAccommodationRateCents === null
                     ? "—"
                     : formatPHP(summary.avgAccommodationRateCents)
+                }
+              />
+              <Metric
+                label="RevPAR"
+                basis="accommodation booked ÷ bookable nights"
+                value={
+                  summary.revparCents === null
+                    ? "—"
+                    : formatPHP(summary.revparCents)
+                }
+              />
+              <Metric
+                label="Average length of stay"
+                basis="nights per stay checking in this period"
+                value={
+                  summary.avgLengthOfStayNights === null
+                    ? "—"
+                    : `${summary.avgLengthOfStayNights.toFixed(1)} nights`
+                }
+              />
+              <Metric
+                label="Bookings"
+                basis="stays checking in this period, excluding cancelled"
+                value={String(summary.bookingCount)}
+              />
+              <Metric
+                label="Cancellation rate"
+                basis={`${summary.cancelledStayCount} cancelled ÷ all bookings by check-in date`}
+                value={formatPercent(summary.cancellationRate)}
+                tone={
+                  summary.cancellationRate !== null &&
+                  summary.cancellationRate > 0.2
+                    ? "danger"
+                    : "default"
                 }
               />
             </div>
@@ -502,6 +526,134 @@ function ReportBody({
                         {row.avgAccommodationRateCents === null
                           ? "—"
                           : formatPHP(row.avgAccommodationRateCents)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardBody>
+        </Card>
+      </section>
+
+      <section aria-labelledby="channel-heading">
+        <Card>
+          <CardHeader>
+            <h2 id="channel-heading" className="font-display text-lg text-pine">
+              Bookings by channel
+            </h2>
+          </CardHeader>
+          <CardBody className="p-0">
+            {summary.channelBreakdown.length === 0 ? (
+              <p className="px-6 py-5 text-sm text-ink/60">
+                No stays in this period.
+              </p>
+            ) : (
+              <Table aria-labelledby="channel-heading">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead scope="col">Channel</TableHead>
+                    <TableHead scope="col" className="text-right">
+                      Bookings
+                    </TableHead>
+                    <TableHead scope="col" className="text-right">
+                      Nights
+                    </TableHead>
+                    <TableHead scope="col" className="text-right">
+                      Accommodation booked
+                    </TableHead>
+                    <TableHead scope="col" className="text-right">
+                      Share
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {summary.channelBreakdown.map((row) => (
+                    <TableRow key={row.platformId ?? "direct"}>
+                      <TableCell className="text-pine">
+                        {row.platformId
+                          ? (platformNames.get(row.platformId) ?? "Unknown")
+                          : "Direct / unspecified"}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums text-ink/70">
+                        {row.bookings}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums text-ink/70">
+                        {row.nights}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums text-ink/70">
+                        {formatPHP(row.accommodationBookedCents)}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums font-medium text-pine">
+                        {formatPercent(row.revenueShare)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardBody>
+        </Card>
+      </section>
+
+      <section aria-labelledby="unit-heading">
+        <Card>
+          <CardHeader>
+            <h2 id="unit-heading" className="font-display text-lg text-pine">
+              Performance by unit
+            </h2>
+          </CardHeader>
+          <CardBody className="p-0">
+            {summary.unitBreakdown.length === 0 ? (
+              <p className="px-6 py-5 text-sm text-ink/60">
+                No units in scope for this report.
+              </p>
+            ) : (
+              <Table aria-labelledby="unit-heading">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead scope="col">Unit</TableHead>
+                    <TableHead scope="col" className="text-right">
+                      Occupancy
+                    </TableHead>
+                    <TableHead scope="col" className="text-right">
+                      Nights
+                    </TableHead>
+                    <TableHead scope="col" className="text-right">
+                      Avg rate / night
+                    </TableHead>
+                    <TableHead scope="col" className="text-right">
+                      RevPAR
+                    </TableHead>
+                    <TableHead scope="col" className="text-right">
+                      Accommodation booked
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {summary.unitBreakdown.map((row) => (
+                    <TableRow key={row.unitId}>
+                      <TableCell className="text-pine">
+                        {unitNames.get(row.unitId) ?? "Unknown unit"}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums font-medium text-pine">
+                        {formatPercent(row.occupancyRate)}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums text-ink/70">
+                        {row.occupiedNights} / {row.bookableNights}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums text-ink/70">
+                        {row.avgAccommodationRateCents === null
+                          ? "—"
+                          : formatPHP(row.avgAccommodationRateCents)}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums text-ink/70">
+                        {row.revparCents === null
+                          ? "—"
+                          : formatPHP(row.revparCents)}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums text-ink/70">
+                        {formatPHP(row.accommodationBookedCents)}
                       </TableCell>
                     </TableRow>
                   ))}

@@ -27,7 +27,7 @@ export default async function EditPlatformPage({
       <PageHeading
         title={`Edit ${platform.name}`}
         description="Changes apply to new reservations, and only when the unit requires a down payment. Existing bookings keep their reservation fee."
-        backHref="/settings/platforms"
+        backHref="/settings/general"
         backLabel="Booking platforms"
       />
       <Card className="bg-card">

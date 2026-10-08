@@ -81,6 +81,10 @@ vi.mock("@/server/inventory/service", () => ({
   listProperties: vi.fn(),
   listOrgUnits: vi.fn(),
 }));
+// Plain function (not vi.fn) so resetAllMocks keeps it returning no bills.
+vi.mock("@/server/expenses/recurring", () => ({
+  listDueRecurring: async () => [],
+}));
 vi.mock("@/server/expenses/service", () => ({
   listExpenses: vi.fn(),
   createExpense: vi.fn(),
@@ -245,7 +249,9 @@ beforeEach(() => {
 
 describe("dedicated expense page", () => {
   it("denies staff before protected property and unit reads", async () => {
-    expect((await NewExpensePage()).type).toBe(PermissionDenied);
+    const tree = await NewExpensePage();
+    expect(tree.props.unavailable).toMatch(/owner/);
+    expect(hasForm(tree, ExpenseForm)).toBe(false);
     expect(listProperties).not.toHaveBeenCalled();
     expect(listOrgUnits).not.toHaveBeenCalled();
   });
@@ -275,7 +281,8 @@ describe("dedicated expense page", () => {
     ] as Awaited<ReturnType<typeof listExpenses>>);
     const tree = await ExpensesPage({ searchParams: Promise.resolve({}) });
     expect(hasForm(tree, ExpenseForm)).toBe(false);
-    expect(links(tree)).toContain("/expenses/new");
+    // New and edit open as a modal over the list, via a query parameter.
+    expect(links(tree)).toContain("/expenses?new=1");
     expect(hasForm(tree, Table)).toBe(true);
     expect(listOrgUnits).not.toHaveBeenCalled();
   });

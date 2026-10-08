@@ -307,10 +307,10 @@ const HELP_TOPICS: readonly { question: string; answer: ReactNode }[] = [
       <>
         Yes, under{" "}
         <Link
-          href="/settings/platforms"
+          href="/settings/general"
           className="font-medium text-pine underline underline-offset-4"
         >
-          Settings → Booking platforms
+          Settings → General
         </Link>
         . Built-in platforms and ones already used on a reservation are archived
         instead of deleted, so past bookings keep their history.

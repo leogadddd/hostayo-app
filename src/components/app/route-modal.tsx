@@ -14,6 +14,7 @@ export function RouteModal({
   description,
   unavailable,
   wide = false,
+  closeHref,
   children,
 }: {
   title: string;
@@ -21,6 +22,11 @@ export function RouteModal({
   unavailable?: string;
   /** Room for long forms such as adding a unit. */
   wide?: boolean;
+  /**
+   * For a modal opened from a query string on its list page: where closing
+   * goes. Without it, closing steps back to the page that opened the modal.
+   */
+  closeHref?: string;
   children?: ReactNode;
 }) {
   const router = useRouter();
@@ -37,7 +43,7 @@ export function RouteModal({
       ref={dialog}
       aria-labelledby={titleId}
       aria-describedby={descriptionId}
-      onClose={() => router.back()}
+      onClose={() => (closeHref ? router.replace(closeHref) : router.back())}
       onClick={(event) => {
         if (event.target === event.currentTarget) dialog.current?.close();
       }}

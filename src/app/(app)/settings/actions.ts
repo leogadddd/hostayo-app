@@ -192,7 +192,7 @@ export async function saveContactChannelsAction(
   } catch (error) {
     return toFormError(error);
   }
-  revalidatePath("/settings/contact-channels");
+  revalidatePath("/settings/general");
   revalidatePath("/h/[host]", "page");
   revalidatePath("/h/[host]/[unit]", "page");
   return { success: true };

@@ -1,10 +1,8 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import { requirePermission } from "@/lib/auth/session";
+import type { MembershipContext } from "@/lib/auth/session";
 import { can } from "@/lib/permissions";
 import { listManagedPlatforms } from "@/server/reservations/platforms";
-import { PermissionDenied } from "@/components/app/permission-denied";
 import { PlatformLogo } from "@/components/app/platform-badge";
 import { Badge } from "@/components/ui/badge";
 import { buttonClassName } from "@/components/ui/button";
@@ -19,11 +17,12 @@ import {
 } from "@/components/ui/table";
 import { PlatformRowActions, RestorePlatformButton } from "./platform-forms";
 
-export const metadata: Metadata = { title: "Booking platforms" };
-
-export default async function PlatformSettingsPage() {
-  const membership = await requirePermission("platforms.view");
-  if (!membership) return <PermissionDenied />;
+/** Caller must have checked `platforms.view`. */
+export async function PlatformsSection({
+  membership,
+}: {
+  membership: MembershipContext;
+}) {
   const platforms = await listManagedPlatforms(membership.organizationId);
   const active = platforms.filter((platform) => platform.isActive);
   const removed = platforms.filter((platform) => !platform.isActive);

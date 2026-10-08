@@ -35,6 +35,8 @@ export interface ReportStayInput {
   checkInDate: string;
   checkOutDate: string;
   status: ReservationStatus;
+  /** Booking platform; null/absent for direct or pre-platform stays. */
+  platformId?: string | null;
 }
 
 export interface ReportChargeInput {
@@ -76,6 +78,8 @@ export interface ReportComputationInput {
   /** All-time deposit position: collected − refunded − deducted. */
   depositsPosition: DepositsPositionInput;
   periodExpenses: readonly ReportExpenseInput[];
+  /** Cancelled stays whose check-in falls in the period. */
+  cancelledStayCount?: number;
 }
 
 export interface PropertyOccupancyRow {
@@ -85,6 +89,28 @@ export interface PropertyOccupancyRow {
   occupancyRate: number | null;
   accommodationBookedCents: number;
   avgAccommodationRateCents: number | null;
+}
+
+export interface UnitPerformanceRow {
+  unitId: string;
+  occupiedNights: number;
+  bookableNights: number;
+  occupancyRate: number | null;
+  accommodationBookedCents: number;
+  avgAccommodationRateCents: number | null;
+  /** Accommodation booked per bookable night. */
+  revparCents: number | null;
+}
+
+export interface ChannelPerformanceRow {
+  /** Null groups direct and unattributed stays. */
+  platformId: string | null;
+  /** Stays checking in during the period. */
+  bookings: number;
+  nights: number;
+  accommodationBookedCents: number;
+  /** Share of accommodation booked, 0–1. */
+  revenueShare: number | null;
 }
 
 export interface ReportSummary {
@@ -98,6 +124,15 @@ export interface ReportSummary {
   bookableNights: number;
   occupancyRate: number | null;
   avgAccommodationRateCents: number | null;
+  /** Accommodation booked per bookable night. */
+  revparCents: number | null;
+  /** Mean nights of stays checking in during the period. */
+  avgLengthOfStayNights: number | null;
+  /** Stays checking in during the period (excludes cancelled). */
+  bookingCount: number;
+  cancelledStayCount: number;
+  /** Cancelled ÷ (cancelled + booked), by check-in date. */
+  cancellationRate: number | null;
   bookingCollectedCents: number;
   depositCollectedCents: number;
   bookingRefundedCents: number;
@@ -108,6 +143,8 @@ export interface ReportSummary {
   capitalSpendingCents: number;
   netOperatingCashCents: number;
   propertyBreakdown: PropertyOccupancyRow[];
+  unitBreakdown: UnitPerformanceRow[];
+  channelBreakdown: ChannelPerformanceRow[];
 }
 
 export function computeReport(input: ReportComputationInput): ReportSummary {
@@ -145,6 +182,7 @@ export function computeReport(input: ReportComputationInput): ReportSummary {
   }
 
   const bookableByProperty = new Map<string, number>();
+  const bookableByUnit = new Map<string, number>();
   let bookableNights = 0;
   for (const unit of bookableUnits) {
     const blocked = blockedNightsByUnit.get(unit.id);
@@ -153,6 +191,7 @@ export function computeReport(input: ReportComputationInput): ReportSummary {
       if (!blocked?.has(night)) available += 1;
     }
     bookableNights += available;
+    bookableByUnit.set(unit.id, available);
     bookableByProperty.set(
       unit.propertyId,
       (bookableByProperty.get(unit.propertyId) ?? 0) + available,
@@ -162,6 +201,11 @@ export function computeReport(input: ReportComputationInput): ReportSummary {
   const bookableUnitIds = new Set(bookableUnits.map((unit) => unit.id));
   const occupiedByProperty = new Map<string, number>();
   const stayNightsByProperty = new Map<string, number>();
+  const occupiedByUnit = new Map<string, number>();
+  const channelNights = new Map<string | null, number>();
+  const channelBookings = new Map<string | null, number>();
+  let bookingCount = 0;
+  let lengthOfStayTotal = 0;
   let occupiedNights = 0;
   let totalStayNights = 0;
   for (const stay of input.stays) {
@@ -171,6 +215,13 @@ export function computeReport(input: ReportComputationInput): ReportSummary {
     const end = stay.checkOutDate < to ? stay.checkOutDate : to;
     const nights = countNights(start, end);
     totalStayNights += nights;
+    const channel = stay.platformId ?? null;
+    channelNights.set(channel, (channelNights.get(channel) ?? 0) + nights);
+    if (stay.checkInDate >= from && stay.checkInDate < to) {
+      bookingCount += 1;
+      lengthOfStayTotal += countNights(stay.checkInDate, stay.checkOutDate);
+      channelBookings.set(channel, (channelBookings.get(channel) ?? 0) + 1);
+    }
     stayNightsByProperty.set(
       stay.propertyId,
       (stayNightsByProperty.get(stay.propertyId) ?? 0) + nights,
@@ -186,10 +237,16 @@ export function computeReport(input: ReportComputationInput): ReportSummary {
       stay.propertyId,
       (occupiedByProperty.get(stay.propertyId) ?? 0) + occupied,
     );
+    occupiedByUnit.set(
+      stay.unitId,
+      (occupiedByUnit.get(stay.unitId) ?? 0) + occupied,
+    );
   }
 
   const stayById = new Map(input.stays.map((stay) => [stay.id, stay]));
   const accommodationByProperty = new Map<string, number>();
+  const accommodationByUnit = new Map<string, number>();
+  const accommodationByChannel = new Map<string | null, number>();
   let accommodationBookedCents = 0;
   let oneTimeBookedCents = 0;
   for (const charge of input.charges) {
@@ -220,6 +277,15 @@ export function computeReport(input: ReportComputationInput): ReportSummary {
       accommodationByProperty.set(
         stay.propertyId,
         (accommodationByProperty.get(stay.propertyId) ?? 0) + amount,
+      );
+      accommodationByUnit.set(
+        stay.unitId,
+        (accommodationByUnit.get(stay.unitId) ?? 0) + amount,
+      );
+      const channel = stay.platformId ?? null;
+      accommodationByChannel.set(
+        channel,
+        (accommodationByChannel.get(channel) ?? 0) + amount,
       );
     } else {
       if (stay.checkInDate < from || stay.checkInDate >= to) continue;
@@ -283,6 +349,51 @@ export function computeReport(input: ReportComputationInput): ReportSummary {
   }
   propertyBreakdown.sort((a, b) => a.propertyId.localeCompare(b.propertyId));
 
+  const unitBreakdown: UnitPerformanceRow[] = input.units.map((unit) => {
+    const occupied = occupiedByUnit.get(unit.id) ?? 0;
+    const bookable = bookableByUnit.get(unit.id) ?? 0;
+    const accommodation = accommodationByUnit.get(unit.id) ?? 0;
+    return {
+      unitId: unit.id,
+      occupiedNights: occupied,
+      bookableNights: bookable,
+      occupancyRate: bookable === 0 ? null : occupied / bookable,
+      accommodationBookedCents: accommodation,
+      avgAccommodationRateCents:
+        occupied === 0 ? null : Math.round(accommodation / occupied),
+      revparCents: bookable === 0 ? null : Math.round(accommodation / bookable),
+    };
+  });
+  unitBreakdown.sort(
+    (a, b) =>
+      b.accommodationBookedCents - a.accommodationBookedCents ||
+      a.unitId.localeCompare(b.unitId),
+  );
+
+  const channelKeys = new Set<string | null>([
+    ...channelNights.keys(),
+    ...accommodationByChannel.keys(),
+  ]);
+  const channelBreakdown: ChannelPerformanceRow[] = [...channelKeys].map(
+    (platformId) => {
+      const accommodation = accommodationByChannel.get(platformId) ?? 0;
+      return {
+        platformId,
+        bookings: channelBookings.get(platformId) ?? 0,
+        nights: channelNights.get(platformId) ?? 0,
+        accommodationBookedCents: accommodation,
+        revenueShare:
+          accommodationBookedCents === 0
+            ? null
+            : accommodation / accommodationBookedCents,
+      };
+    },
+  );
+  channelBreakdown.sort(
+    (a, b) => b.accommodationBookedCents - a.accommodationBookedCents,
+  );
+  const cancelledStayCount = input.cancelledStayCount ?? 0;
+
   return {
     from,
     to,
@@ -298,6 +409,18 @@ export function computeReport(input: ReportComputationInput): ReportSummary {
       totalStayNights === 0
         ? null
         : Math.round(accommodationBookedCents / totalStayNights),
+    revparCents:
+      bookableNights === 0
+        ? null
+        : Math.round(accommodationBookedCents / bookableNights),
+    avgLengthOfStayNights:
+      bookingCount === 0 ? null : lengthOfStayTotal / bookingCount,
+    bookingCount,
+    cancelledStayCount,
+    cancellationRate:
+      bookingCount + cancelledStayCount === 0
+        ? null
+        : cancelledStayCount / (bookingCount + cancelledStayCount),
     bookingCollectedCents,
     depositCollectedCents,
     bookingRefundedCents,
@@ -312,6 +435,8 @@ export function computeReport(input: ReportComputationInput): ReportSummary {
     netOperatingCashCents:
       bookingCollectedCents - bookingRefundedCents - operatingExpensesCents,
     propertyBreakdown,
+    unitBreakdown,
+    channelBreakdown,
   };
 }
 

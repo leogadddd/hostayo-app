@@ -3,8 +3,6 @@ import {
   Globe2,
   KeyRound,
   LifeBuoy,
-  MessageCircle,
-  Share2,
   ShieldCheck,
   SlidersHorizontal,
   UserRound,
@@ -33,18 +31,6 @@ export const SETTINGS_NAVIGATION: readonly {
     href: "/settings/organization",
     label: "Organization",
     icon: Building2,
-    requires: "organization.update",
-  },
-  {
-    href: "/settings/platforms",
-    label: "Booking platforms",
-    icon: Share2,
-    requires: "platforms.view",
-  },
-  {
-    href: "/settings/contact-channels",
-    label: "Contact channels",
-    icon: MessageCircle,
     requires: "organization.update",
   },
   {

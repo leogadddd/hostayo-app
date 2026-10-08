@@ -19,7 +19,7 @@ export function UnitForm({ defaultName }: { defaultName: string }) {
   const router = useRouter();
   useEffect(() => {
     if (!state.success) return;
-    router.push("/onboarding/welcome");
+    router.replace("/onboarding/welcome");
     router.refresh();
   }, [state.success, router]);
 

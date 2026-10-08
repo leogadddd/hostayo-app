@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, eq, gte, inArray, lt, sql } from "drizzle-orm";
+import { and, eq, gte, inArray, isNull, lt, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   depositDeductions,
@@ -12,6 +12,7 @@ import {
   unitBlocks,
   units,
   expenses,
+  bookingPlatforms,
 } from "@/lib/db/schema";
 import { isLocalDate, localDateTimeToUtc, rangesOverlap } from "@/lib/dates";
 import {
@@ -40,6 +41,8 @@ export interface ReportResult {
   summary: ReportSummary;
   properties: { id: string; name: string }[];
   propertyNames: Map<string, string>;
+  unitNames: Map<string, string>;
+  platformNames: Map<string, string>;
   timezone: string;
 }
 
@@ -136,6 +139,7 @@ export async function getReport(
       checkInDate: reservations.checkInDate,
       checkOutDate: reservations.checkOutDate,
       status: reservations.status,
+      platformId: reservations.platformId,
     })
     .from(reservations)
     .innerJoin(
@@ -242,8 +246,13 @@ export async function getReport(
     eq(expenses.organizationId, organizationId),
     gte(expenses.paidDate, from),
     lt(expenses.paidDate, to),
+    isNull(expenses.voidedAt),
   ];
-  if (propertyId) expenseConditions.push(eq(expenses.propertyId, propertyId));
+  // Spending with no property is business-wide: only an explicit property
+  // choice leaves it out, not the automatic scoping of a one-property org.
+  if (filters.propertyId) {
+    expenseConditions.push(eq(expenses.propertyId, filters.propertyId));
+  }
   const periodExpenseRowsPromise = db
     .select({
       amountCents: expenses.amountCents,
@@ -336,6 +345,36 @@ export async function getReport(
       and(eq(depositDeductions.organizationId, organizationId), propertyScope),
     );
 
+  const cancelledRowsPromise = db
+    .select({
+      total: sql`count(*)`.mapWith(Number),
+    })
+    .from(reservations)
+    .innerJoin(
+      units,
+      and(
+        eq(reservations.unitId, units.id),
+        eq(reservations.organizationId, units.organizationId),
+      ),
+    )
+    .where(
+      and(
+        eq(reservations.organizationId, organizationId),
+        eq(reservations.status, "cancelled"),
+        gte(reservations.checkInDate, from),
+        lt(reservations.checkInDate, to),
+        propertyScope,
+      ),
+    );
+  const unitNamesPromise = db
+    .select({ id: units.id, name: units.name })
+    .from(units)
+    .where(and(...unitConditions));
+  const platformNamesPromise = db
+    .select({ id: bookingPlatforms.id, name: bookingPlatforms.name })
+    .from(bookingPlatforms)
+    .where(eq(bookingPlatforms.organizationId, organizationId));
+
   const [
     blockRows,
     stayRows,
@@ -346,6 +385,9 @@ export async function getReport(
     depositCollected,
     depositRefunded,
     depositDeducted,
+    cancelledRows,
+    unitNameRows,
+    platformNameRows,
   ] = await Promise.all([
     blockRowsPromise,
     stayRowsPromise,
@@ -356,6 +398,9 @@ export async function getReport(
     depositCollectedPromise,
     depositRefundedPromise,
     depositDeductedPromise,
+    cancelledRowsPromise,
+    unitNamesPromise,
+    platformNamesPromise,
   ]);
 
   const stayIds = stayRows.map((stay) => stay.id);
@@ -396,12 +441,15 @@ export async function getReport(
       deductedCents: depositDeducted[0]?.total ?? 0,
     },
     periodExpenses: periodExpenseRows,
+    cancelledStayCount: cancelledRows[0]?.total ?? 0,
   });
 
   return {
     summary,
     properties: orgProperties.map((p) => ({ id: p.id, name: p.name })),
     propertyNames,
+    unitNames: new Map(unitNameRows.map((u) => [u.id, u.name])),
+    platformNames: new Map(platformNameRows.map((p) => [p.id, p.name])),
     timezone,
   };
 }

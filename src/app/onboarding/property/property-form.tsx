@@ -23,7 +23,7 @@ export function PropertyForm({
   const router = useRouter();
   useEffect(() => {
     if (!state.success) return;
-    router.push("/onboarding/unit");
+    router.replace("/onboarding/unit");
     router.refresh();
   }, [state.success, router]);
 

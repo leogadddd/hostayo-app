@@ -66,6 +66,8 @@ export const EXPENSE_CATEGORY_LABELS: Record<ExpenseCategory, string> = {
   supplies: "Supplies",
   maintenance: "Maintenance",
   internet: "Internet",
+  subscriptions: "Subscriptions",
+  condo_dues: "Condo dues",
   platform_fees: "Platform fees",
   renovation: "Renovation",
   other: "Other",

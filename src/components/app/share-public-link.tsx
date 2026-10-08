@@ -16,8 +16,10 @@ export function SharePublicLink({
   title,
   label = "Share",
   size = "md",
+  hideLabelOnMobile = false,
   className,
 }: {
+  hideLabelOnMobile?: boolean;
   href: string;
   title: string;
   label?: string;
@@ -56,7 +58,9 @@ export function SharePublicLink({
       ) : (
         <Share2 className="h-4 w-4" aria-hidden />
       )}
-      {copied ? "Link copied" : label}
+      <span className={hideLabelOnMobile ? "hidden sm:inline" : undefined}>
+        {copied ? "Link copied" : label}
+      </span>
       <span className="sr-only" role="status">
         {copied ? "Link copied" : ""}
       </span>

@@ -43,7 +43,11 @@ export default async function OnboardingWelcomePage() {
       </p>
 
       <StepNav backHref={unit ? "/onboarding/unit" : nextOnboardingPath(state)}>
-        <Link href="/dashboard" className={buttonClassName("clay", "lg")}>
+        <Link
+          href="/dashboard"
+          replace
+          className={buttonClassName("clay", "lg")}
+        >
           Go to dashboard
           <ArrowRight className="h-4 w-4" aria-hidden />
         </Link>

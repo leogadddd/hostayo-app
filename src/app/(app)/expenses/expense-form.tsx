@@ -16,12 +16,34 @@ import {
 } from "@/components/ui/input";
 import { EXPENSE_CATEGORY_LABELS } from "@/lib/labels";
 import type { ExpenseCategory } from "@/lib/db/schema";
-import { createExpenseAction, type ExpenseFormState } from "./actions";
+import { centavosToPesosInput } from "@/lib/money";
+import { PAYMENT_METHOD_LABELS } from "@/lib/labels";
+import type { PaymentMethod } from "@/lib/db/schema";
+import {
+  createExpenseAction,
+  updateExpenseAction,
+  type ExpenseFormState,
+} from "./actions";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
 
 export interface PropertyOption {
   id: string;
   name: string;
+}
+
+/** What the edit page pre-fills; absent when recording a new expense. */
+export interface ExpenseFormValues {
+  id: string;
+  propertyId: string | null;
+  unitId: string | null;
+  amountCents: number;
+  paidDate: string;
+  category: string;
+  classification: "operating" | "capital";
+  payee: string | null;
+  paymentMethod: PaymentMethod | null;
+  description: string;
+  hasReceipt: boolean;
 }
 
 const EXPENSE_CATEGORIES = Object.keys(
@@ -32,26 +54,40 @@ export function ExpenseForm({
   properties,
   unitsByProperty,
   defaultPaidDate,
+  expense,
+  doneHref = "/expenses",
 }: {
   properties: PropertyOption[];
   unitsByProperty: Record<string, { id: string; name: string }[]>;
   defaultPaidDate: string;
+  expense?: ExpenseFormValues;
+  /** Where to go after saving, and what Cancel does. */
+  doneHref?: string;
 }) {
+  const editing = Boolean(expense);
   const router = useRouter();
   const [state, formAction, pending] = useActionState<
     ExpenseFormState,
     FormData
   >(async (previous, formData) => {
-    const result = await createExpenseAction(previous, formData);
+    const result = expense
+      ? await updateExpenseAction(expense.id, previous, formData)
+      : await createExpenseAction(previous, formData);
     if (result.success) {
-      toast.success("Expense recorded.");
-      router.push("/expenses");
+      toast.success(editing ? "Expense updated." : "Expense recorded.");
+      router.replace(doneHref);
       router.refresh();
     }
     return result;
   }, {});
   useActionFeedback(state);
-  const [propertyId, setPropertyId] = useState(properties[0]?.id ?? "");
+  const [propertyId, setPropertyId] = useState(
+    expense
+      ? (expense.propertyId ?? "")
+      : properties.length === 1
+        ? properties[0]!.id
+        : "",
+  );
 
   const unitOptions = unitsByProperty[propertyId] ?? [];
 
@@ -76,14 +112,14 @@ export function ExpenseForm({
       ) : (
         <form action={formAction} className="space-y-3">
           <div>
-            <Label htmlFor="expense-property">Property</Label>
+            <Label htmlFor="expense-property">Property (optional)</Label>
             <Select
               id="expense-property"
               name="propertyId"
               value={propertyId}
               onChange={(event) => setPropertyId(event.target.value)}
-              required
             >
+              <option value="">No specific property</option>
               {properties.map((property) => (
                 <option key={property.id} value={property.id}>
                   {property.name}
@@ -93,8 +129,16 @@ export function ExpenseForm({
           </div>
           <div>
             <Label htmlFor="expense-unit">Unit (optional)</Label>
-            <Select id="expense-unit" name="unitId" defaultValue="">
-              <option value="">Whole property / no specific unit</option>
+            <Select
+              key={propertyId}
+              id="expense-unit"
+              name="unitId"
+              disabled={!propertyId}
+              defaultValue={
+                propertyId === expense?.propertyId ? (expense.unitId ?? "") : ""
+              }
+            >
+              <option value="">No specific unit</option>
               {unitOptions.map((unit) => (
                 <option key={unit.id} value={unit.id}>
                   {unit.name}
@@ -110,6 +154,9 @@ export function ExpenseForm({
                 name="amountPesos"
                 inputMode="decimal"
                 placeholder="e.g. 1,200"
+                defaultValue={
+                  expense ? centavosToPesosInput(expense.amountCents) : ""
+                }
                 required
               />
             </div>
@@ -118,7 +165,7 @@ export function ExpenseForm({
               <DateInput
                 id="expense-date"
                 name="paidDate"
-                defaultValue={defaultPaidDate}
+                defaultValue={expense?.paidDate ?? defaultPaidDate}
                 required
               />
             </div>
@@ -129,7 +176,7 @@ export function ExpenseForm({
               <Select
                 id="expense-category"
                 name="category"
-                defaultValue="cleaning"
+                defaultValue={expense?.category ?? "cleaning"}
               >
                 {EXPENSE_CATEGORIES.map((category) => (
                   <option key={category} value={category}>
@@ -143,10 +190,37 @@ export function ExpenseForm({
               <Select
                 id="expense-classification"
                 name="classification"
-                defaultValue="operating"
+                defaultValue={expense?.classification ?? "operating"}
               >
                 <option value="operating">Operating (day-to-day)</option>
                 <option value="capital">Capital (improvement)</option>
+              </Select>
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="expense-payee">Paid to (optional)</Label>
+              <Input
+                id="expense-payee"
+                name="payee"
+                maxLength={120}
+                defaultValue={expense?.payee ?? ""}
+                placeholder="e.g. Netflix, Ate Mel, Meralco"
+              />
+            </div>
+            <div>
+              <Label htmlFor="expense-method">Paid via (optional)</Label>
+              <Select
+                id="expense-method"
+                name="paymentMethod"
+                defaultValue={expense?.paymentMethod ?? ""}
+              >
+                <option value="">Not recorded</option>
+                {Object.entries(PAYMENT_METHOD_LABELS).map(([key, label]) => (
+                  <option key={key} value={key}>
+                    {label}
+                  </option>
+                ))}
               </Select>
             </div>
           </div>
@@ -159,16 +233,57 @@ export function ExpenseForm({
               minLength={2}
               maxLength={300}
               placeholder="e.g. Deep clean after checkout — paid cleaner in cash."
+              defaultValue={expense?.description ?? ""}
               className="min-h-16"
             />
+          </div>
+          <div>
+            <Label htmlFor="expense-receipt">
+              {expense?.hasReceipt
+                ? "Replace receipt"
+                : "Receipt photo (optional)"}
+            </Label>
+            <Input
+              id="expense-receipt"
+              name="receipt"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              capture="environment"
+            />
+            <p className="mt-1 text-xs text-ink/55">
+              JPG, PNG or WebP up to 4 MB. On a phone this opens the camera.
+            </p>
+            {expense?.hasReceipt ? (
+              <div className="mt-2 flex flex-wrap items-center gap-4 text-sm">
+                <a
+                  href={`/api/expenses/${expense.id}/receipt`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-pine underline"
+                >
+                  View current receipt
+                </a>
+                <label className="inline-flex items-center gap-2 text-ink/70">
+                  <input type="checkbox" name="removeReceipt" />
+                  Remove it
+                </label>
+              </div>
+            ) : null}
           </div>
           <FieldError message={state.error} />
           <div className="flex flex-wrap items-center gap-4">
             <Button type="submit" variant="clay" disabled={pending}>
-              {pending ? "Recording…" : "Record expense"}
+              {pending
+                ? editing
+                  ? "Saving…"
+                  : "Recording…"
+                : editing
+                  ? "Save changes"
+                  : "Record expense"}
             </Button>
             <Link
-              href="/expenses"
+              href={doneHref}
+              replace
               className="text-sm text-pine hover:underline"
             >
               Cancel

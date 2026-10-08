@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   date,
   foreignKey,
@@ -203,11 +204,73 @@ export const EXPENSE_CATEGORIES = [
   "supplies",
   "maintenance",
   "internet",
+  "subscriptions",
+  "condo_dues",
   "platform_fees",
   "renovation",
   "other",
 ] as const;
 export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];
+
+export const CADENCE_VALUES = ["weekly", "monthly", "yearly"] as const;
+export const recurringCadence = pgEnum("recurring_cadence", CADENCE_VALUES);
+
+/**
+ * A bill that comes back on a schedule (Netflix, condo dues, internet). It
+ * never posts by itself: when `nextDueDate` arrives the owner confirms it,
+ * which records an ordinary expense, or skips it. Either way it moves on.
+ */
+export const recurringExpenses = pgTable(
+  "recurring_expenses",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    // Null for bills that belong to the whole business (a Netflix account).
+    propertyId: uuid("property_id"),
+    unitId: uuid("unit_id"),
+    description: text("description").notNull(),
+    category: text("category").notNull(),
+    classification: expenseClassification("classification")
+      .notNull()
+      .default("operating"),
+    payee: text("payee"),
+    paymentMethod: paymentMethod("payment_method"),
+    // What it usually costs; the owner can change it when confirming.
+    amountCents: integer("amount_cents").notNull(),
+    cadence: recurringCadence("cadence").notNull(),
+    // First due date; every later one is counted from it.
+    anchorDate: date("anchor_date").notNull(),
+    nextDueDate: date("next_due_date").notNull(),
+    endDate: date("end_date"),
+    isActive: boolean("is_active").notNull().default(true),
+    createdBy: text("created_by").references(() => user.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("recurring_expenses_organization_id_unique").on(
+      table.organizationId,
+      table.id,
+    ),
+    check("recurring_expenses_amount_positive", sql`${table.amountCents} > 0`),
+    foreignKey({
+      columns: [table.organizationId, table.propertyId],
+      foreignColumns: [properties.organizationId, properties.id],
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.organizationId, table.unitId],
+      foreignColumns: [units.organizationId, units.id],
+    }).onDelete("set null"),
+  ],
+);
 
 export const expenses = pgTable(
   "expenses",
@@ -216,7 +279,8 @@ export const expenses = pgTable(
     organizationId: uuid("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
-    propertyId: uuid("property_id").notNull(),
+    // Null for spending that isn't tied to one property (a Netflix account).
+    propertyId: uuid("property_id"),
     unitId: uuid("unit_id"),
     amountCents: integer("amount_cents").notNull(),
     category: text("category").notNull(),
@@ -225,10 +289,28 @@ export const expenses = pgTable(
       .notNull()
       .default("operating"),
     paidDate: date("paid_date").notNull(),
+    // Who was paid (a vendor, a cleaner, "Netflix") and how.
+    payee: text("payee"),
+    paymentMethod: paymentMethod("payment_method"),
+    // Object-storage key of the receipt photo (org/<org>/photos/<uuid>).
+    receiptKey: text("receipt_key"),
+    // Mistakes are voided, never deleted; voided rows drop out of every total.
+    // Set when a recurring bill was confirmed into this expense; the pair is
+    // unique so a bill can't be confirmed twice for the same due date.
+    recurringExpenseId: uuid("recurring_expense_id"),
+    recurringDueDate: date("recurring_due_date"),
+    voidedAt: timestamp("voided_at", { withTimezone: true }),
+    voidedBy: text("voided_by").references(() => user.id, {
+      onDelete: "set null",
+    }),
+    voidReason: text("void_reason"),
     createdBy: text("created_by").references(() => user.id, {
       onDelete: "set null",
     }),
     createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
   },
@@ -238,6 +320,17 @@ export const expenses = pgTable(
       table.id,
     ),
     check("expenses_amount_positive", sql`${table.amountCents} > 0`),
+    uniqueIndex("expenses_recurring_due_unique").on(
+      table.recurringExpenseId,
+      table.recurringDueDate,
+    ),
+    foreignKey({
+      columns: [table.organizationId, table.recurringExpenseId],
+      foreignColumns: [
+        recurringExpenses.organizationId,
+        recurringExpenses.id,
+      ],
+    }).onDelete("set null"),
     foreignKey({
       columns: [table.organizationId, table.propertyId],
       foreignColumns: [properties.organizationId, properties.id],

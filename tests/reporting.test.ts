@@ -418,3 +418,73 @@ describe("computeReport cash view", () => {
     ).toThrow();
   });
 });
+
+describe("computeReport performance breakdowns", () => {
+  it("splits revenue by unit and channel and derives RevPAR, stay length and cancellations", () => {
+    const AIRBNB = "99999999-9999-9999-9999-999999999999";
+    const summary = computeReport(
+      baseInput({
+        stays: [
+          {
+            id: STAY_1,
+            unitId: UNIT_1,
+            propertyId: PROPERTY_A,
+            checkInDate: "2026-09-10",
+            checkOutDate: "2026-09-12",
+            status: "checked_out",
+            platformId: AIRBNB,
+          },
+          {
+            id: STAY_2,
+            unitId: UNIT_2,
+            propertyId: PROPERTY_A,
+            checkInDate: "2026-09-20",
+            checkOutDate: "2026-09-24",
+            status: "confirmed",
+          },
+        ],
+        charges: [
+          {
+            reservationId: STAY_1,
+            type: "accommodation",
+            quantity: 2,
+            unitAmountCents: 300_000,
+            isRefundableDeposit: false,
+          },
+          {
+            reservationId: STAY_2,
+            type: "accommodation",
+            quantity: 4,
+            unitAmountCents: 200_000,
+            isRefundableDeposit: false,
+          },
+        ],
+        cancelledStayCount: 2,
+      }),
+    );
+    expect(summary.bookingCount).toBe(2);
+    expect(summary.avgLengthOfStayNights).toBe(3);
+    expect(summary.cancellationRate).toBe(0.5);
+    // 30 days x 2 active units = 60 bookable nights; 1,400,000 booked.
+    expect(summary.revparCents).toBe(Math.round(1_400_000 / 60));
+    expect(summary.channelBreakdown).toEqual([
+      expect.objectContaining({
+        platformId: null,
+        bookings: 1,
+        accommodationBookedCents: 800_000,
+      }),
+      expect.objectContaining({
+        platformId: AIRBNB,
+        bookings: 1,
+        accommodationBookedCents: 600_000,
+      }),
+    ]);
+    expect(summary.unitBreakdown[0]).toEqual(
+      expect.objectContaining({
+        unitId: UNIT_2,
+        occupiedNights: 4,
+        accommodationBookedCents: 800_000,
+      }),
+    );
+  });
+});

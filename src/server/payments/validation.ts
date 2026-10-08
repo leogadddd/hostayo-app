@@ -78,7 +78,7 @@ export const submitProofSchema = z.object({
 export type SubmitProofInput = z.infer<typeof submitProofSchema>;
 
 export const createExpenseSchema = z.object({
-  propertyId: z.string().uuid("Choose a property."),
+  propertyId: z.string().uuid().optional(),
   unitId: z.string().uuid().optional(),
   amountPesos: z.string().trim().min(1, "Enter the amount paid."),
   category: z.enum(EXPENSE_CATEGORIES, {
@@ -93,6 +93,63 @@ export const createExpenseSchema = z.object({
   paidDate: z.string().refine(isLocalDate, {
     message: "Use a real calendar date (yyyy-mm-dd).",
   }),
+  payee: z
+    .string()
+    .trim()
+    .max(120, "Paid to must be 120 characters or fewer.")
+    .optional(),
+  paymentMethod: z.enum(PAYMENT_METHODS).optional(),
 });
 
 export type CreateExpenseInput = z.infer<typeof createExpenseSchema>;
+
+export const voidExpenseSchema = z.object({
+  reason: z
+    .string()
+    .trim()
+    .min(2, "Say why this expense is being voided.")
+    .max(300, "Reason must be 300 characters or fewer."),
+});
+
+export const recurringExpenseSchema = z.object({
+  propertyId: z.string().uuid().optional(),
+  unitId: z.string().uuid().optional(),
+  amountPesos: z.string().trim().min(1, "Enter the usual amount."),
+  category: z.enum(EXPENSE_CATEGORIES, {
+    message: "Choose an expense category.",
+  }),
+  description: z
+    .string()
+    .trim()
+    .min(2, "Name the bill.")
+    .max(300, "Name must be 300 characters or fewer."),
+  classification: z.enum(["operating", "capital"]),
+  payee: z
+    .string()
+    .trim()
+    .max(120, "Paid to must be 120 characters or fewer.")
+    .optional(),
+  paymentMethod: z.enum(PAYMENT_METHODS).optional(),
+  cadence: z.enum(["weekly", "monthly", "yearly"], {
+    message: "Choose how often it repeats.",
+  }),
+  // The first due date when creating; the next due date when editing.
+  dueDate: z.string().refine(isLocalDate, {
+    message: "Use a real calendar date (yyyy-mm-dd).",
+  }),
+  endDate: z
+    .string()
+    .refine(isLocalDate, { message: "Use a real calendar date (yyyy-mm-dd)." })
+    .optional(),
+});
+
+export type RecurringExpenseInput = z.infer<typeof recurringExpenseSchema>;
+
+export const confirmRecurringSchema = z.object({
+  dueDate: z.string().refine(isLocalDate),
+  amountPesos: z.string().trim().optional(),
+  paidDate: z
+    .string()
+    .refine(isLocalDate, { message: "Use a real calendar date (yyyy-mm-dd)." })
+    .optional(),
+});

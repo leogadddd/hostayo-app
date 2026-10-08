@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, desc, eq, gte, inArray, lt, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNull, lt, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   expenses,
@@ -145,12 +145,38 @@ export async function listPendingProofs(organizationId: string) {
     .orderBy(desc(paymentProofs.createdAt));
 }
 
-/** Day-by-day cash, spending and occupancy for [from, to), organization-wide. */
+/**
+ * Day-by-day cash, spending and occupancy for [from, to), organization-wide,
+ * or for one property when `propertyId` is given.
+ */
 export async function getDashboardSeries(
   organizationId: string,
   range: { from: string; to: string },
+  propertyId?: string,
 ): Promise<DashboardSeries> {
   const { from, to } = range;
+  const scopedUnits = propertyId
+    ? db
+        .select({ id: units.id })
+        .from(units)
+        .where(
+          and(
+            eq(units.organizationId, organizationId),
+            eq(units.propertyId, propertyId),
+          ),
+        )
+    : null;
+  const scopedReservations = scopedUnits
+    ? db
+        .select({ id: reservations.id })
+        .from(reservations)
+        .where(
+          and(
+            eq(reservations.organizationId, organizationId),
+            inArray(reservations.unitId, scopedUnits),
+          ),
+        )
+    : null;
   const startUtc = localDateTimeToUtc(`${from}T00:00`, CASH_TIMEZONE)!;
   const endUtc = localDateTimeToUtc(`${to}T00:00`, CASH_TIMEZONE)!;
 
@@ -174,7 +200,12 @@ export async function getDashboardSeries(
     db
       .select({ id: properties.id, name: properties.name })
       .from(properties)
-      .where(eq(properties.organizationId, organizationId))
+      .where(
+        and(
+          eq(properties.organizationId, organizationId),
+          propertyId ? eq(properties.id, propertyId) : undefined,
+        ),
+      )
       .orderBy(properties.name),
     db
       .select({
@@ -183,7 +214,12 @@ export async function getDashboardSeries(
         status: units.status,
       })
       .from(units)
-      .where(eq(units.organizationId, organizationId)),
+      .where(
+        and(
+          eq(units.organizationId, organizationId),
+          propertyId ? eq(units.propertyId, propertyId) : undefined,
+        ),
+      ),
     db
       .select({
         unitId: unitBlocks.unitId,
@@ -212,6 +248,7 @@ export async function getDashboardSeries(
           inArray(reservations.status, [...OCCUPANCY_STATUSES]),
           lt(reservations.checkInDate, to),
           gte(reservations.checkOutDate, from),
+          scopedUnits ? inArray(reservations.unitId, scopedUnits) : undefined,
         ),
       ),
     db
@@ -226,6 +263,9 @@ export async function getDashboardSeries(
           eq(paymentEntries.allocation, "booking"),
           gte(paymentEntries.receivedAt, startUtc),
           lt(paymentEntries.receivedAt, endUtc),
+          scopedReservations
+            ? inArray(paymentEntries.reservationId, scopedReservations)
+            : undefined,
         ),
       )
       .groupBy(paymentDate),
@@ -241,6 +281,9 @@ export async function getDashboardSeries(
           eq(refundEntries.allocation, "booking"),
           gte(refundEntries.refundedAt, startUtc),
           lt(refundEntries.refundedAt, endUtc),
+          scopedReservations
+            ? inArray(refundEntries.reservationId, scopedReservations)
+            : undefined,
         ),
       )
       .groupBy(refundDate),
@@ -257,6 +300,8 @@ export async function getDashboardSeries(
           eq(expenses.organizationId, organizationId),
           gte(expenses.paidDate, from),
           lt(expenses.paidDate, to),
+          isNull(expenses.voidedAt),
+          propertyId ? eq(expenses.propertyId, propertyId) : undefined,
         ),
       )
       .groupBy(expenses.paidDate, expenses.category, expenses.classification),
