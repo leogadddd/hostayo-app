@@ -1,3 +1,4 @@
+import { getDatabaseLabel } from "@/lib/database-label";
 import {
   isL1,
   listMemberships,
@@ -69,6 +70,7 @@ export default async function AppLayout({
     isDemoAccount: membership.isDemoAccount,
     l1,
     permissions: membership.permissions ?? resolvePermissions(membership.role),
+    databaseLabel: getDatabaseLabel(),
   };
   return (
     <div className="flex h-dvh overflow-hidden bg-paper">

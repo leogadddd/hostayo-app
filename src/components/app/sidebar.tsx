@@ -8,7 +8,6 @@ import {
   Building2,
   Calendar,
   ClipboardList,
-  Package,
   Receipt,
   BarChart3,
   Settings,
@@ -22,7 +21,7 @@ import {
 import { cn } from "@/lib/utils";
 import { APP_VERSION } from "@/lib/app-version";
 import { can, type Permission, type RoleKey } from "@/lib/permissions";
-import { Logo } from "@/components/logo";
+import { Logo, LogoMark } from "@/components/logo";
 import { AccountMenu } from "@/components/app/account-menu";
 import { SharePublicLink } from "@/components/app/share-public-link";
 import { LiveClock } from "@/components/app/live-clock";
@@ -65,12 +64,6 @@ const NAV_ITEMS: {
     anyOf: ["tasks.view"],
   },
   {
-    href: "/inventory",
-    label: "Inventory",
-    icon: Package,
-    anyOf: ["tasks.view"],
-  },
-  {
     href: "/expenses",
     label: "Expenses",
     icon: Receipt,
@@ -101,6 +94,8 @@ function navItemVisible(
 }
 
 type SidebarProps = {
+  /** Dev-only: which database the server is using. Null in production. */
+  databaseLabel?: string | null;
   organizationName: string;
   userName: string;
   userEmail: string;
@@ -187,6 +182,9 @@ export function AppSidebar(props: SidebarProps) {
       </Link>
       <Navigation role={props.role} permissions={props.permissions} />
       <p className="px-6 py-5 text-xs font-medium tracking-wide text-paper/45">
+        {props.databaseLabel && (
+          <span className="mb-1 block text-paper/70">{props.databaseLabel}</span>
+        )}
         Version {APP_VERSION}
       </p>
     </aside>
@@ -264,7 +262,7 @@ export function AppHeader({
           aria-label="Hostayo dashboard"
           className="inline-flex sm:hidden"
         >
-          <Logo className="h-8 w-32" />
+          <LogoMark className="h-8 w-7 text-pine" />
         </Link>
         <nav aria-label="Breadcrumb" className="hidden min-w-0 sm:block">
           {/* <ol className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm">
@@ -319,6 +317,8 @@ export function AppHeader({
             title={`${props.organizationName} public page`}
             label="Share"
             size="md"
+            hideLabelOnMobile
+            className="border-transparent px-2 hover:border-transparent sm:border-pine/25 sm:px-4 sm:hover:border-pine/50"
           />
         ) : null}
         <LiveClock initialNow={initialNow} />
@@ -363,6 +363,11 @@ export function AppHeader({
             onNavigate={() => mobileNav.current?.close()}
           />
           <p className="px-6 py-5 text-xs font-medium tracking-wide text-paper/45">
+            {props.databaseLabel && (
+              <span className="mb-1 block text-paper/70">
+                {props.databaseLabel}
+              </span>
+            )}
             Version {APP_VERSION}
           </p>
         </div>
