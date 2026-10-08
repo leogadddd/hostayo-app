@@ -7,3 +7,13 @@
 export function loginLinksHidden(): boolean {
   return process.env.APP_IS_LIVE === "false";
 }
+
+/**
+ * REGISTRATION_DISABLED=true closes public sign-up: /register redirects to the
+ * sign-in page, the "Create one" link is hidden and the auth API rejects new
+ * email sign-ups. For the shared demo deployment. Read on the server at request
+ * time, so no rebuild is needed.
+ */
+export function registrationDisabled(): boolean {
+  return process.env.REGISTRATION_DISABLED === "true";
+}

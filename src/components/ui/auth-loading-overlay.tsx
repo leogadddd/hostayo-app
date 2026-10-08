@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import greenLoader from "@/assets/hostayo-loader-green.gif";
 import whiteLoader from "@/assets/hostayo-loader-white.gif";
 
@@ -13,6 +13,7 @@ export function AuthLoadingOverlay({
   tone?: "light" | "dark";
 }) {
   const [visible, setVisible] = useState(false);
+  const dialog = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
     // Avoid a distracting flash when authentication resolves immediately.
@@ -20,13 +21,21 @@ export function AuthLoadingOverlay({
     return () => window.clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    // A modal <dialog> sits in the top layer, which no z-index can outrank. Open
+    // this one as a modal too so it stacks above any dialog that triggered it
+    // (the sign-out confirmation), since later top-layer entries render last.
+    const element = dialog.current;
+    if (visible && element && !element.open) element.showModal();
+  }, [visible]);
+
   if (!visible) return null;
   const dark = tone === "dark";
   return (
-    <div
-      className={`animate-fade-in fixed inset-0 z-[100] flex items-center justify-center px-6 ${dark ? "theme-keep-light bg-pine-deep/95 text-paper" : "bg-paper/95 text-pine"}`}
-      role="status"
-      aria-live="polite"
+    <dialog
+      ref={dialog}
+      onCancel={(event) => event.preventDefault()}
+      className={`animate-fade-in fixed inset-0 z-[100] m-0 h-dvh max-h-none w-dvw max-w-none items-center justify-center border-0 px-6 open:flex ${dark ? "theme-keep-light bg-pine-deep/95 text-paper" : "bg-paper/95 text-pine"}`}
       aria-label={label}
     >
       <div className="flex flex-col items-center text-center">
@@ -49,8 +58,14 @@ export function AuthLoadingOverlay({
             className="hidden dark:block"
           />
         )}
-        <p className="mt-4 text-sm font-medium">{label}</p>
+        <p
+          role="status"
+          aria-live="polite"
+          className="mt-4 text-sm font-medium"
+        >
+          {label}
+        </p>
       </div>
-    </div>
+    </dialog>
   );
 }

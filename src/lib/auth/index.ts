@@ -1,3 +1,4 @@
+import { registrationDisabled } from "@/lib/flags";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { twoFactor } from "better-auth/plugins";
@@ -41,6 +42,7 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+    disableSignUp: registrationDisabled(),
     minPasswordLength: 8,
     maxPasswordLength: 128,
   },
