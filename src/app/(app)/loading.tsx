@@ -7,10 +7,14 @@ import {
   CardGridSkeleton,
   DashboardSkeleton,
   DetailSkeleton,
+  ExpensesSkeleton,
   GenericPageSkeleton,
+  GuestDetailSkeleton,
+  GuestsSkeleton,
   NarrowFormSkeleton,
   ReportsSkeleton,
   SettingsSkeleton,
+  TasksSkeleton,
   TableListSkeleton,
   WideFormSkeleton,
 } from "@/components/app/page-skeletons";
@@ -58,16 +62,18 @@ export default function AppLoading() {
         return <DetailSkeleton />;
       return <NarrowFormSkeleton />;
     case "guests":
-      return <TableListSkeleton className="mx-auto max-w-6xl" filters={1} />;
+      if (!id) return <GuestsSkeleton />;
+      if (id === "new" || action === "edit") return <WideFormSkeleton />;
+      return <GuestDetailSkeleton />;
     case "expenses":
-      return id ? (
-        <NarrowFormSkeleton />
+      if (!id) return <ExpensesSkeleton />;
+      return id === "recurring" ? (
+        <TableListSkeleton filters={1} />
       ) : (
-        <TableListSkeleton className="mx-auto max-w-5xl" filters={3} />
+        <NarrowFormSkeleton />
       );
     case "tasks":
-      if (!id)
-        return <TableListSkeleton className="mx-auto max-w-5xl" filters={1} />;
+      if (!id) return <TasksSkeleton />;
       return action ? <NarrowFormSkeleton /> : <GenericPageSkeleton />;
     case "reports":
       return <ReportsSkeleton />;
