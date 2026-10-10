@@ -1,20 +1,39 @@
 # Hostayo
 
-A calmer way to run your stays. Hostayo takes a direct booking from inquiry
-to checkout and shows the work and money attached to that stay — built for
-small Philippine short-stay operators (1–20 units).
+**A calmer way to run your stays.** Hostayo takes a direct booking from inquiry
+to checkout and shows the work and money attached to that stay. It is built for
+small Philippine short-stay operators, from one room to a few dozen units.
 
-Built to the spec in [`Hostayo-PRD-for-Qoder.md`](./Hostayo-PRD-for-Qoder.md),
-delivered in vertical slices (0–5). Brand palette: Pine `#203A35`, Paper
-`#F6F3ED`, Sage `#CFDDD3`, Clay `#A64E37`.
+- Website: [hostayo.casa](https://hostayo.casa) (marketing site, repo: [hostayo-site](https://github.com/leogadddd/hostayo-site))
+- App: [app.hostayo.casa](https://app.hostayo.casa)
+- Live demo: [demo.hostayo.casa](https://demo.hostayo.casa) (a shared, fake workspace that resets nightly)
+
+## What it does
+
+- **Bookings and calendar:** one calendar for every unit, holds, confirmations,
+  and overlap checks that hold even when two people book at once.
+- **Guests:** a welcome page per booking with dates, house rules and balance.
+- **Money:** deposits and balances, refunds and deductions, expenses and
+  recurring bills, and reports on a labelled Asia/Manila cash basis.
+- **Operations:** check-in and check-out, turnover checklists for cleaners,
+  damage reports, and ready-to-book status per unit.
+- **Team and security:** Owner, Admin, Operations Manager and Staff roles,
+  two-factor sign-in, and an audit log.
+- **Early access:** invite-only sign-up with personal invite links, and an
+  inbox where the team reads requests from the website form.
 
 ## Stack
 
-- Next.js (App Router) + TypeScript strict
-- PostgreSQL 16 and Redis 7 via Docker Compose
-- Drizzle ORM + drizzle-kit migrations
-- Better Auth (email + password)
-- Tailwind CSS v4 · Vitest
+- Next.js (App Router) and TypeScript (strict)
+- PostgreSQL 16 and Redis 7 (Docker Compose locally)
+- Drizzle ORM and drizzle-kit migrations
+- Better Auth (email and password, two-factor)
+- Tailwind CSS v4 and Vitest
+- Deployed on Vercel, with Vercel Cron for the nightly demo reset
+
+Brand palette: Pine `#203A35`, Paper `#F6F3ED`, Sage `#CFDDD3`, Clay `#A64E37`.
+The original spec is [`Hostayo-PRD-for-Qoder.md`](./Hostayo-PRD-for-Qoder.md).
+Contributor and architecture notes live in [`CLAUDE.md`](./CLAUDE.md).
 
 ## Getting started
 
@@ -154,3 +173,16 @@ spreads accommodation charges across actual stay nights and excludes deposits.
 Staff must register an account before the owner can add them by email; no
 invitation email is sent. Staff can place holds at server-calculated default
 prices but cannot view financial details, edit prices, or confirm bookings.
+
+## Deployment
+
+Production runs on Vercel at `app.hostayo.casa`. Set the variables from
+`.env.example` in the Vercel project, run `npm run db:migrate` against the
+production database before deploying a schema change, and add a random
+`CRON_SECRET` for the nightly demo reset. The marketing site and this app share
+`EARLY_ACCESS_API_SECRET` so website requests land in the early-access inbox.
+
+## License
+
+All rights reserved. This is a private product repository; no license is
+granted to use, copy or distribute the code.
