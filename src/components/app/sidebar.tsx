@@ -17,6 +17,7 @@ import {
   ChevronRight,
   LayoutDashboard,
   House,
+  Inbox,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { APP_VERSION } from "@/lib/app-version";
@@ -36,6 +37,8 @@ const NAV_ITEMS: {
   label: string;
   icon: typeof LayoutDashboard;
   anyOf?: readonly Permission[];
+  /** Shown to L1 operators only. */
+  l1Only?: boolean;
 }[] = [
   { href: "/dashboard", label: "Dashboard", icon: House },
   {
@@ -80,13 +83,21 @@ const NAV_ITEMS: {
     label: "Settings",
     icon: Settings,
   },
+  {
+    href: "/early-access",
+    label: "Early access",
+    icon: Inbox,
+    l1Only: true,
+  },
 ];
 
 function navItemVisible(
   item: (typeof NAV_ITEMS)[number],
   role: RoleKey,
   permissions?: readonly Permission[],
+  l1?: boolean,
 ) {
+  if (item.l1Only) return Boolean(l1);
   return (
     !item.anyOf ||
     item.anyOf.some((permission) => can({ role, permissions }, permission))
@@ -118,10 +129,12 @@ type SidebarProps = {
 function Navigation({
   role,
   permissions,
+  l1,
   onNavigate,
 }: {
   role: SidebarProps["role"];
   permissions: SidebarProps["permissions"];
+  l1?: boolean;
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
@@ -130,7 +143,9 @@ function Navigation({
       aria-label="Primary"
       className="min-h-0 flex-1 select-none space-y-1 overflow-y-auto px-3 py-3"
     >
-      {NAV_ITEMS.filter((item) => navItemVisible(item, role, permissions)).map(
+      {NAV_ITEMS.filter((item) =>
+        navItemVisible(item, role, permissions, l1),
+      ).map(
         ({ href, label, icon: Icon }) => {
           const active =
             href === "/settings/general"
@@ -180,7 +195,11 @@ export function AppSidebar(props: SidebarProps) {
           {props.organizationName}
         </p> */}
       </Link>
-      <Navigation role={props.role} permissions={props.permissions} />
+      <Navigation
+        role={props.role}
+        permissions={props.permissions}
+        l1={props.l1}
+      />
       <p className="px-6 py-5 text-xs font-medium tracking-wide text-paper/45">
         {props.databaseLabel && (
           <span className="mb-1 block text-paper/70">{props.databaseLabel}</span>
@@ -202,6 +221,7 @@ const SEGMENT_LABELS: Record<string, string> = {
   expenses: "Expenses",
   reports: "Reports",
   "audit-logs": "Audit logs",
+  "early-access": "Early access",
   settings: "Settings",
   properties: "Properties",
   units: "Units",
@@ -360,6 +380,7 @@ export function AppHeader({
           <Navigation
             role={props.role}
             permissions={props.permissions}
+            l1={props.l1}
             onNavigate={() => mobileNav.current?.close()}
           />
           <p className="px-6 py-5 text-xs font-medium tracking-wide text-paper/45">

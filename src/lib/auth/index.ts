@@ -10,6 +10,11 @@ import {
   user,
   verification,
 } from "@/lib/db/schema";
+import {
+  REGISTRATION_TOKEN_HEADER,
+  TEAM_INVITATION_HEADER,
+} from "@/lib/auth/registration-access";
+import { admitSignUp } from "@/server/registration/service";
 
 const configuredBaseUrl =
   process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
@@ -45,6 +50,25 @@ export const auth = betterAuth({
     disableSignUp: registrationDisabled(),
     minPasswordLength: 8,
     maxPasswordLength: 128,
+  },
+  user: {
+    // The server-side gate for invite-only sign-up (REGISTRATION_INVITE_ONLY).
+    // Better Auth calls this just before it creates a user, after it has
+    // checked the email and password, and rejects the sign-up with a 403 when
+    // an error is returned. Hiding the form would not stop a direct API call.
+    validateUserInfo: async ({ user: candidate, source }, ctx) => {
+      if (source.action !== "create-user") return;
+      // Seeds, the nightly demo reset and tests call auth.api directly, with
+      // no HTTP request behind them. That is our own server code: let it pass.
+      if (!ctx.request) return;
+      const admission = await admitSignUp({
+        email: String(candidate.email ?? ""),
+        registrationToken: ctx.request.headers.get(REGISTRATION_TOKEN_HEADER),
+        teamInvitationCode: ctx.request.headers.get(TEAM_INVITATION_HEADER),
+      });
+      if (!admission.ok)
+        return { error: admission.code, errorDescription: admission.message };
+    },
   },
   plugins: [
     twoFactor({

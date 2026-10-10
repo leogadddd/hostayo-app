@@ -71,3 +71,37 @@ that platform.
 organization without a membership (`listAccessibleOrganizations`). Manage
 them with `npm run l1 -- list | grant <email> | revoke <email>`; there is no
 UI for it by design.
+
+## Sign-up access
+
+Three modes, decided by env flags in `src/lib/flags.ts` and read per request:
+open (default), invite-only (`REGISTRATION_INVITE_ONLY=true`) and closed
+(`REGISTRATION_DISABLED=true`, the shared demo; it wins). The rule for
+invite-only lives in `admitSignUp` (`src/server/registration/service.ts`) and
+is enforced by Better Auth's `user.validateUserInfo` in `src/lib/auth/index.ts`;
+`/register` only decides what to show. Early-access links (`registration_invites`,
+one sign-up each by default, digest only) are managed with
+`npm run invite -- create [who] [--uses N] [--days N] | list | revoke <id>`;
+there is no UI for it. A pending team invitation for the same email also
+admits a sign-up. Calls to `auth.api` with no HTTP request (seeds, demo reset)
+skip the gate.
+
+## Early-access inbox
+
+The marketing site (`hostayo-page`) POSTs every early-access request to
+`/api/early-access` (`Authorization: Bearer $EARLY_ACCESS_API_SECRET`, same
+value on both sides) before it emails the team, so a request survives a failed
+email. Rows live in `early_access_requests`; `readAt` null means new. L1
+operators read them at `/early-access` (sidebar: Early access), where they can
+mark requests read or unread and delete them. Everyone else gets a 404, and
+each server action re-checks L1.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

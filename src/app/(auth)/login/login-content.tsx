@@ -96,7 +96,10 @@ function saveBrowserCredential(email: string, password: string) {
     });
 }
 
-function LoginContent({ registrationOpen }: { registrationOpen: boolean }) {
+/** Whether anyone may sign up, only invited people, or nobody (the shared demo). */
+type RegistrationMode = "open" | "invite-only" | "closed";
+
+function LoginContent({ registration }: { registration: RegistrationMode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const demoRequested = searchParams.get("demo") === "1";
@@ -395,7 +398,7 @@ function LoginContent({ registrationOpen }: { registrationOpen: boolean }) {
         </Button>
       </form>
 
-      {registrationOpen ? (
+      {registration === "open" || (registration === "invite-only" && invite) ? (
         <p className="mt-8 text-center text-sm text-ink/60">
           Don&apos;t have an account?{" "}
           <Link
@@ -404,6 +407,16 @@ function LoginContent({ registrationOpen }: { registrationOpen: boolean }) {
           >
             Create one
           </Link>
+        </p>
+      ) : registration === "invite-only" ? (
+        <p className="mt-8 text-center text-sm text-ink/60">
+          Don&apos;t have an account?{" "}
+          <a
+            href={`${SITE_URL.replace(/\/$/, "")}/#early-access`}
+            className="font-medium text-pine underline underline-offset-4 hover:text-pine-soft"
+          >
+            Get early access
+          </a>
         </p>
       ) : null}
 
@@ -495,13 +508,13 @@ function AuthErrorBanner({ message }: { message: string }) {
 }
 
 export default function LoginPage({
-  registrationOpen = true,
+  registration = "open",
 }: {
-  registrationOpen?: boolean;
+  registration?: RegistrationMode;
 }) {
   return (
     <Suspense>
-      <LoginContent registrationOpen={registrationOpen} />
+      <LoginContent registration={registration} />
     </Suspense>
   );
 }

@@ -64,6 +64,33 @@ For role-based development, run `npm run seed:development`. It creates the
 | `npm run seed:amenities` / `seed:platforms` | Backfill default amenities or booking platforms for existing workspaces |
 | `npm run seed:calendar-demo` / `seed:reservations` | Add focused calendar or reservation sample data |
 | `npm run db:reset` | Interactively confirm, then erase the database, re-run every migration, and restore the shared demo workspace |
+| `npm run invite -- create \| list \| revoke` | Early-access links for invite-only sign-up (see *Invite-only sign-up*) |
+
+## Invite-only sign-up
+
+Set `REGISTRATION_INVITE_ONLY=true` to keep sign-up to invited people. It is
+read per request, so no rebuild is needed (on Vercel, redeploy after changing
+it). While it is on:
+
+- `/register` shows the form only to someone with a working early-access link
+  (`/register?tk=…`) or a team invitation (`/register?invite=…`). Everyone
+  else sees a notice that points to the early-access form on the marketing
+  site, and the sign-in page offers the same instead of "Create one".
+- The auth API rejects any other sign-up, so skipping the page doesn't help.
+- Seeds and the nightly demo reset still create their accounts.
+
+Create and manage links from the command line (it prints the database it
+touches; the link uses `BETTER_AUTH_URL`):
+
+```bash
+npm run invite -- create "Maria Santos"            # one sign-up, 14 days
+npm run invite -- create "Hosts PH group" --uses 20 --days 30
+npm run invite -- list                             # status and who signed up
+npm run invite -- revoke 7a980e2a                  # id from the list
+```
+
+A link is shown once; only its digest is stored. `--days 0` never expires.
+`REGISTRATION_DISABLED=true` closes sign-up entirely and wins over this.
 
 ## Nightly demo reset
 
