@@ -73,6 +73,6 @@ You can also reach us on [Facebook](https://www.facebook.com/profile.php?id=6159
 
 ## License
 
-All rights reserved. See [LICENSE](LICENSE). No license is granted to use, copy or distribute this code.
+The source is published so you can see how Hostayo works. It is licensed under the [PolyForm Strict License 1.0.0](LICENSE): you may read it and use it for noncommercial purposes, but you may not distribute it, modify it, or run it as your own product or service. The Hostayo name and logo are not licensed.
 
 Technical notes for working on the app are in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
