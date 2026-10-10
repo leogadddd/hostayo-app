@@ -9,7 +9,7 @@ import {
   tasks,
   user,
 } from "@/lib/db/schema";
-import { addDaysLocal } from "@/lib/dates";
+import { addDaysLocal, todayInTimeZone } from "@/lib/dates";
 import { createOrganization } from "@/server/orgs/service";
 import {
   createDamageReport,
@@ -33,6 +33,7 @@ import {
 import { createGuestLink } from "@/server/reservations/guest-link";
 import { recordPayment } from "@/server/payments/service";
 import { createExpense } from "@/server/expenses/service";
+import { sampleExpenses } from "./lib/sample-expenses";
 
 /**
  * Seed clearly-fake demo data. Idempotent: safe to run repeatedly.
@@ -295,9 +296,8 @@ export async function seedDemoData() {
     }
   }
 
-  // Demo money data. Idempotent so it also backfills databases seeded before
-  // slice 3: payments carry fixed idempotency keys, expenses are matched by
-  // their unique descriptions.
+  // Demo payments. Idempotent so it also backfills databases seeded before
+  // slice 3: payments carry fixed idempotency keys.
   const confirmedSeeds = existingReservations.filter(
     (reservation) => reservation.status === "confirmed",
   );
@@ -330,28 +330,26 @@ export async function seedDemoData() {
     console.log(
       "seed: demo payments ensured (₱5,000 booking via GCash + ₱2,000 deposit via bank transfer)",
     );
+  }
 
-    const today = new Date().toISOString().slice(0, 10);
-    const expenseSeeds = [
-      {
-        propertyId: seededProperty.id,
-        unitId: reservation.unitId,
-        amountPesos: "850",
-        category: "supplies",
-        classification: "operating",
-        paidDate: today,
-        description: "Seeded demo expense: cleaning supplies restock (fake).",
-      },
-      {
-        propertyId: seededProperty.id,
-        amountPesos: "4500",
-        category: "maintenance",
-        classification: "capital",
-        paidDate: today,
-        description:
-          "Seeded demo expense: hallway repainting, capital improvement (fake).",
-      },
-    ] as const;
+  // A few months of believable spending so the expenses page, dashboard and
+  // reports have something to show. Matched by description, so reruns only
+  // add what's missing (such as a new month's bills).
+  if (seededProperty) {
+    const seedUnits = await listPropertyUnits(
+      organizationId,
+      seededProperty.id,
+    );
+    const expenseSeeds = sampleExpenses({
+      today: todayInTimeZone("Asia/Manila"),
+      properties: [
+        {
+          id: seededProperty.id,
+          name: seededProperty.name,
+          units: seedUnits.map((unit) => ({ id: unit.id, name: unit.name })),
+        },
+      ],
+    });
     const existingDescriptions = new Set(
       (
         await db
@@ -360,15 +358,19 @@ export async function seedDemoData() {
           .where(eq(expenses.organizationId, organizationId))
       ).map((row) => row.description),
     );
+    let added = 0;
     for (const expense of expenseSeeds) {
       if (existingDescriptions.has(expense.description)) continue;
       await createExpense({
         organizationId,
         actorUserId: userId,
-        data: { ...expense },
+        data: expense,
       });
+      added++;
     }
-    console.log("seed: demo expenses ensured (one operating, one capital)");
+    console.log(
+      `seed: demo expenses ensured (${expenseSeeds.length} sample entries, ${added} added)`,
+    );
   }
 
   // Demo stay operations. Idempotent: skipped once any turnover task exists,

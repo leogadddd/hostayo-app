@@ -23,6 +23,7 @@ export function ChoiceCards<T extends string>({
   onChange,
   options,
   columns = 2,
+  variant = "row",
   "aria-label": ariaLabel,
   "aria-labelledby": ariaLabelledBy,
   className,
@@ -30,8 +31,10 @@ export function ChoiceCards<T extends string>({
   value: T;
   onChange: (value: T) => void;
   options: readonly ChoiceCardOption<T>[];
-  /** Columns from the `sm` breakpoint up; phones get two (one for 2-option groups with descriptions). */
-  columns?: 2 | 3 | 4;
+  /** Columns from the `sm` breakpoint up; phones get two (one for 2-option groups with descriptions), three for five-column tiles. */
+  columns?: 2 | 3 | 4 | 5;
+  /** `tile`: icon above a short label, for long lists of one-word choices. */
+  variant?: "row" | "tile";
   "aria-label"?: string;
   "aria-labelledby"?: string;
   className?: string;
@@ -54,7 +57,9 @@ export function ChoiceCards<T extends string>({
           ? "sm:grid-cols-2"
           : columns === 3
             ? "grid-cols-2 sm:grid-cols-3"
-            : "grid-cols-2 sm:grid-cols-4",
+            : columns === 4
+              ? "grid-cols-2 sm:grid-cols-4"
+              : "grid-cols-3 sm:grid-cols-5",
         className,
       )}
       onKeyDown={(event) => {
@@ -90,7 +95,10 @@ export function ChoiceCards<T extends string>({
             tabIndex={option.value === focusable ? 0 : -1}
             onClick={() => onChange(option.value)}
             className={cn(
-              "relative flex min-w-0 items-start gap-3 rounded-xl border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay disabled:cursor-not-allowed disabled:opacity-45",
+              "relative flex min-w-0 rounded-xl border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay disabled:cursor-not-allowed disabled:opacity-45",
+              variant === "tile"
+                ? "flex-col items-center gap-1.5 px-1.5 py-3 text-center"
+                : "items-start gap-3 p-3 text-left",
               active
                 ? "border-clay bg-clay-mist/40 ring-1 ring-clay"
                 : "border-pine/15 bg-surface hover:border-pine/35",
@@ -113,8 +121,18 @@ export function ChoiceCards<T extends string>({
                 <Icon className="h-4 w-4" />
               </span>
             ) : null}
-            <span className="min-w-0 flex-1 self-center">
-              <span className="block text-sm font-medium text-pine">
+            <span
+              className={cn(
+                "min-w-0",
+                variant === "tile" ? "w-full" : "flex-1 self-center",
+              )}
+            >
+              <span
+                className={cn(
+                  "block font-medium text-pine",
+                  variant === "tile" ? "truncate text-xs" : "text-sm",
+                )}
+              >
                 {option.label}
               </span>
               {option.description ? (

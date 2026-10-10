@@ -1,7 +1,20 @@
 import Link from "next/link";
-import { Paperclip, Plus, Repeat } from "lucide-react";
+import type { ComponentType } from "react";
+import {
+  Hammer,
+  Paperclip,
+  Plus,
+  ReceiptText,
+  Repeat,
+  TrendingUp,
+  Wallet,
+} from "lucide-react";
+import {
+  EXPENSE_CATEGORY_COLORS,
+  ExpenseCategoryIcon,
+} from "@/components/app/expense-category";
+import { PaymentMethodLabel } from "@/components/app/payment-method-logo";
 import { todayInTimeZone } from "@/lib/dates";
-import { CATEGORY_COLORS } from "../dashboard/chart-kit";
 import {
   UnderConstruction,
   UNDER_CONSTRUCTION,
@@ -125,6 +138,7 @@ export default async function ExpensesPage({
     );
   }
   const categoryRows = [...byCategory.entries()].sort((a, b) => b[1] - a[1]);
+  const topCategory = categoryRows[0];
   const hasFilters = Boolean(
     propertyFilter || classificationFilter || monthFilter || showVoided,
   );
@@ -239,66 +253,78 @@ export default async function ExpensesPage({
           />
         ) : (
           <>
-            <div className="mb-6 grid gap-4 lg:grid-cols-3">
-              <Card className="p-5">
-                <p className="text-xs font-medium uppercase tracking-wide text-ink/45">
-                  Total spent
-                </p>
-                <p className="mt-1 font-display text-3xl text-pine">
-                  {formatPHP(totalCents)}
-                </p>
-                <p className="mt-1 text-sm text-ink/60">
-                  {counted.length} {counted.length === 1 ? "entry" : "entries"}
-                </p>
-                <dl className="mt-4 space-y-1.5 text-sm">
-                  <div className="flex justify-between gap-3">
-                    <dt className="text-ink/60">Operating</dt>
-                    <dd className="font-medium tabular-nums text-pine">
-                      {formatPHP(totalCents - capitalCents)}
-                    </dd>
-                  </div>
-                  <div className="flex justify-between gap-3">
-                    <dt className="text-ink/60">Capital</dt>
-                    <dd className="font-medium tabular-nums text-pine">
-                      {formatPHP(capitalCents)}
-                    </dd>
-                  </div>
-                </dl>
-              </Card>
-              <Card className="p-5 lg:col-span-2">
+            <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <StatTile
+                icon={Wallet}
+                label="Total spent"
+                value={formatPHP(totalCents)}
+                detail={`${counted.length} ${counted.length === 1 ? "entry" : "entries"}`}
+              />
+              <StatTile
+                icon={ReceiptText}
+                label="Operating"
+                value={formatPHP(totalCents - capitalCents)}
+                detail={`${percentOf(totalCents - capitalCents, totalCents)}% of spending`}
+              />
+              <StatTile
+                icon={Hammer}
+                label="Capital"
+                value={formatPHP(capitalCents)}
+                detail={`${percentOf(capitalCents, totalCents)}% of spending`}
+              />
+              <StatTile
+                icon={TrendingUp}
+                label="Biggest category"
+                value={
+                  topCategory
+                    ? (EXPENSE_CATEGORY_LABELS[
+                        topCategory[0] as keyof typeof EXPENSE_CATEGORY_LABELS
+                      ] ?? topCategory[0])
+                    : "—"
+                }
+                detail={topCategory ? formatPHP(topCategory[1]) : "No spending"}
+              />
+            </div>
+            {categoryRows.length ? (
+              <Card className="mb-6 p-5">
                 <p className="text-xs font-medium uppercase tracking-wide text-ink/45">
                   By category
                 </p>
-                <ul className="mt-3 space-y-3">
-                  {categoryRows.slice(0, 6).map(([category, cents]) => (
-                    <li key={category}>
-                      <div className="mb-1 flex justify-between gap-3 text-sm">
-                        <span className="text-ink/70">
-                          {EXPENSE_CATEGORY_LABELS[
-                            category as keyof typeof EXPENSE_CATEGORY_LABELS
-                          ] ?? category}
-                        </span>
-                        <span className="shrink-0 font-medium tabular-nums text-pine">
-                          {formatPHP(cents)} ·{" "}
-                          {Math.round((cents / totalCents) * 100)}%
-                        </span>
-                      </div>
-                      <div className="h-2.5 overflow-hidden rounded-full bg-pine-mist/60">
-                        <div
-                          className="h-full rounded-full"
-                          style={{
-                            width: `${Math.max(2, (cents / totalCents) * 100)}%`,
-                            background:
-                              CATEGORY_COLORS[category] ??
-                              CATEGORY_COLORS.other,
-                          }}
-                        />
+                <ul className="mt-3 grid gap-x-8 gap-y-3 md:grid-cols-2">
+                  {categoryRows.slice(0, 8).map(([category, cents]) => (
+                    <li key={category} className="flex items-center gap-3">
+                      <ExpenseCategoryIcon
+                        category={category}
+                        className="h-8 w-8"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-1 flex justify-between gap-3 text-sm">
+                          <span className="truncate text-ink/70">
+                            {EXPENSE_CATEGORY_LABELS[
+                              category as keyof typeof EXPENSE_CATEGORY_LABELS
+                            ] ?? category}
+                          </span>
+                          <span className="shrink-0 font-medium tabular-nums text-pine">
+                            {formatPHP(cents)} · {percentOf(cents, totalCents)}%
+                          </span>
+                        </div>
+                        <div className="h-2 overflow-hidden rounded-full bg-pine-mist/60">
+                          <div
+                            className="h-full rounded-full"
+                            style={{
+                              width: `${Math.max(2, (cents / totalCents) * 100)}%`,
+                              background:
+                                EXPENSE_CATEGORY_COLORS[category] ??
+                                EXPENSE_CATEGORY_COLORS.other,
+                            }}
+                          />
+                        </div>
                       </div>
                     </li>
                   ))}
                 </ul>
               </Card>
-            </div>
+            ) : null}
             <div className="overflow-hidden rounded-2xl border border-pine/10 bg-surface shadow-[0_1px_2px_rgba(32,58,53,0.06)]">
               <Table
                 aria-label="Expenses"
@@ -309,6 +335,9 @@ export default async function ExpensesPage({
                     <TableHead scope="col">Date</TableHead>
                     <TableHead scope="col">Description</TableHead>
                     <TableHead scope="col">Property</TableHead>
+                    <TableHead scope="col" className="hidden md:table-cell">
+                      Paid via
+                    </TableHead>
                     <TableHead scope="col" className="text-right">
                       Amount
                     </TableHead>
@@ -329,50 +358,65 @@ export default async function ExpensesPage({
                         )}
                       </TableCell>
                       <TableCell className="min-w-56">
-                        <Link
-                          href={modalHref("edit", expense.id)}
-                          replace
-                          className={`text-pine hover:underline ${expense.voidedAt ? "line-through" : ""}`}
-                        >
-                          {expense.description}
-                        </Link>
-                        <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-ink/50">
-                          <span>
-                            {EXPENSE_CATEGORY_LABELS[
-                              expense.category as keyof typeof EXPENSE_CATEGORY_LABELS
-                            ] ?? expense.category}
-                          </span>
-                          <Badge
-                            tone={
-                              expense.classification === "capital"
-                                ? "clay"
-                                : "neutral"
-                            }
-                          >
-                            {CLASSIFICATION_LABELS[expense.classification]}
-                          </Badge>
-                          {expense.voidedAt ? (
-                            <Badge tone="clay">Voided</Badge>
-                          ) : null}
-                          {expense.payee ? (
-                            <span>· {expense.payee}</span>
-                          ) : null}
-                          {expense.receiptKey ? (
-                            <a
-                              href={`/api/expenses/${expense.id}/receipt`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1 text-pine hover:underline"
+                        <div className="flex items-start gap-3">
+                          <ExpenseCategoryIcon
+                            category={expense.category}
+                            className="mt-0.5 hidden h-8 w-8 sm:flex"
+                          />
+                          <div className="min-w-0">
+                            <Link
+                              href={modalHref("edit", expense.id)}
+                              replace
+                              className={`text-pine hover:underline ${expense.voidedAt ? "line-through" : ""}`}
                             >
-                              <Paperclip className="h-3 w-3" aria-hidden />
-                              Receipt
-                            </a>
-                          ) : null}
-                        </p>
+                              {expense.description}
+                            </Link>
+                            <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-ink/50">
+                              <span>
+                                {EXPENSE_CATEGORY_LABELS[
+                                  expense.category as keyof typeof EXPENSE_CATEGORY_LABELS
+                                ] ?? expense.category}
+                              </span>
+                              <Badge
+                                tone={
+                                  expense.classification === "capital"
+                                    ? "clay"
+                                    : "neutral"
+                                }
+                              >
+                                {CLASSIFICATION_LABELS[expense.classification]}
+                              </Badge>
+                              {expense.voidedAt ? (
+                                <Badge tone="clay">Voided</Badge>
+                              ) : null}
+                              {expense.payee ? (
+                                <span>· {expense.payee}</span>
+                              ) : null}
+                              {expense.receiptKey ? (
+                                <a
+                                  href={`/api/expenses/${expense.id}/receipt`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-1 text-pine hover:underline"
+                                >
+                                  <Paperclip className="h-3 w-3" aria-hidden />
+                                  Receipt
+                                </a>
+                              ) : null}
+                            </p>
+                          </div>
+                        </div>
                       </TableCell>
                       <TableCell className="text-ink/70">
                         {expense.propertyName ?? "General"}
                         {expense.unitName ? ` · ${expense.unitName}` : ""}
+                      </TableCell>
+                      <TableCell className="hidden text-ink/70 md:table-cell">
+                        {expense.paymentMethod ? (
+                          <PaymentMethodLabel method={expense.paymentMethod} />
+                        ) : (
+                          <span className="text-ink/40">—</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-right font-medium tabular-nums text-pine">
                         {formatPHP(expense.amountCents)}
@@ -400,10 +444,44 @@ export default async function ExpensesPage({
           description={panel.description}
           unavailable={panel.unavailable}
           closeHref={listHref}
+          wide={!panel.unavailable}
         >
           {panel.body}
         </RouteModal>
       ) : null}
     </div>
+  );
+}
+
+function percentOf(part: number, whole: number) {
+  return whole ? Math.round((part / whole) * 100) : 0;
+}
+
+function StatTile({
+  icon: Icon,
+  label,
+  value,
+  detail,
+}: {
+  icon: ComponentType<{ className?: string }>;
+  label: string;
+  value: string;
+  detail: string;
+}) {
+  return (
+    <Card className="p-4 sm:p-5">
+      <div className="flex items-center gap-2">
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-sage/60 text-pine">
+          <Icon className="h-3.5 w-3.5" aria-hidden />
+        </span>
+        <p className="text-xs font-medium uppercase tracking-wide text-ink/45">
+          {label}
+        </p>
+      </div>
+      <p className="mt-2 truncate font-display text-2xl text-pine sm:text-3xl">
+        {value}
+      </p>
+      <p className="mt-0.5 text-sm text-ink/60">{detail}</p>
+    </Card>
   );
 }

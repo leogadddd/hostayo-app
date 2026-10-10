@@ -29,6 +29,7 @@
     "seed:calendar-demo": "tsx --tsconfig tsconfig.scripts.json scripts/seed-calendar-demo.ts",
     "seed:reservations": "tsx --tsconfig tsconfig.scripts.json scripts/seed-sample-reservations.ts",
     "seed:turnovers": "tsx --tsconfig tsconfig.scripts.json scripts/seed-turnover-tasks.ts",
+    "seed:expenses": "tsx --tsconfig tsconfig.scripts.json scripts/seed-expenses.ts",
     "l1": "tsx --tsconfig tsconfig.scripts.json scripts/l1.ts",
     "db:reset": "tsx --tsconfig tsconfig.scripts.json scripts/reset-db.ts",
     "db:setup": "npm run db:up && npm run db:migrate && npm run seed:demo"

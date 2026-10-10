@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { EXPENSE_CATEGORY_COLORS } from "@/components/app/expense-category";
 
 /** Brand palette for charts, as theme variables so they follow dark mode (see globals.css). */
 export const CHART = {
@@ -19,18 +20,7 @@ export const CHART = {
 } as const;
 
 /** Stable category order; a category keeps its color whatever the range. */
-export const CATEGORY_COLORS: Record<string, string> = {
-  cleaning: CHART.pine,
-  utilities: CHART.moss,
-  supplies: CHART.sageDeep,
-  maintenance: CHART.sand,
-  internet: CHART.pineSoft,
-  subscriptions: "#7b6fa8",
-  condo_dues: "#4f8a9b",
-  platform_fees: CHART.clay,
-  renovation: "var(--color-chart-renovation)",
-  other: "var(--color-chart-other)",
-};
+export const CATEGORY_COLORS: Record<string, string> = EXPENSE_CATEGORY_COLORS;
 
 export const axisTick = {
   fill: CHART.axis,
