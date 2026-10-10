@@ -1,0 +1,163 @@
+# Hostayo app: development notes
+
+Technical notes for working on the app. Architecture and database conventions are in [`CLAUDE.md`](../CLAUDE.md); the original spec is [`Hostayo-PRD-for-Qoder.md`](../Hostayo-PRD-for-Qoder.md).
+
+## Stack
+
+- Next.js (App Router) and TypeScript (strict)
+- PostgreSQL 16 and Redis 7 (Docker Compose locally)
+- Drizzle ORM and drizzle-kit migrations
+- Better Auth (email and password, two-factor)
+- Tailwind CSS v4 and Vitest
+- Deployed on Vercel, with Vercel Cron for the nightly demo reset
+
+Brand palette: Pine `#203A35`, Paper `#F6F3ED`, Sage `#CFDDD3`, Clay `#A64E37`.
+The original spec is [`Hostayo-PRD-for-Qoder.md`](./Hostayo-PRD-for-Qoder.md).
+Contributor and architecture notes live in [`CLAUDE.md`](./CLAUDE.md).
+
+## Getting started
+
+```bash
+cp .env.example .env            # then set BETTER_AUTH_SECRET (openssl rand -base64 32)
+npm install
+npm run db:setup                # docker compose up + migrations + demo workspace
+npm run dev                     # http://localhost:3000
+```
+
+Already have a local database? After pulling schema changes, apply the latest
+migrations before starting the app:
+
+```bash
+npm run db:migrate
+```
+
+Demo credentials (from the demo seed, clearly fake):
+
+- email: `owner@hostayo.dev`
+- password: `hostayo-demo-1234`
+
+For role-based development, run `npm run seed:development`. It creates the
+`Hostayo Development` workspace with these accounts (all use
+`hostayo102499`):
+
+| Role | Email |
+| --- | --- |
+| Owner | `dev-owner@hostayo.dev` |
+| Admin | `admin@hostayo.dev` |
+| Operations Manager | `operations-manager@hostayo.dev` |
+| Staff | `staff@hostayo.dev` |
+
+## Commands
+
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` / `build` / `start` | Next.js app |
+| `npm run lint` / `typecheck` / `test` | Quality gates |
+| `npm run test:integration` | Real PostgreSQL acceptance tests (dedicated `hostayo_test` database) |
+| `npm run db:up` / `db:down` | Start/stop PostgreSQL and Redis |
+| `npm run db:generate` / `db:migrate` | Drizzle migration workflow (see *Database schema changes* in `CLAUDE.md`) |
+| `npm run seed:demo` | Idempotent fake demo workspace |
+| `npm run seed:demo:reset` | Delete and recreate only the shared demo workspace |
+| `npm run seed:development` | Idempotent development workspace with Owner, Admin, Operations Manager, and Staff accounts |
+| `npm run seed:casa-alon` | Import the illustrated Casa Alon Beach Villas sample property into the development workspace |
+| `npm run seed:amenities` / `seed:platforms` | Backfill default amenities or booking platforms for existing workspaces |
+| `npm run seed:calendar-demo` / `seed:reservations` | Add focused calendar or reservation sample data |
+| `npm run db:reset` | Interactively confirm, then erase the database, re-run every migration, and restore the shared demo workspace |
+| `npm run invite -- create \| list \| revoke` | Early-access links for invite-only sign-up (see *Invite-only sign-up*) |
+
+## Invite-only sign-up
+
+Set `REGISTRATION_INVITE_ONLY=true` to keep sign-up to invited people. It is
+read per request, so no rebuild is needed (on Vercel, redeploy after changing
+it). While it is on:
+
+- `/register` shows the form only to someone with a working early-access link
+  (`/register?tk=…`) or a team invitation (`/register?invite=…`). Everyone
+  else sees a notice that points to the early-access form on the marketing
+  site, and the sign-in page offers the same instead of "Create one".
+- The auth API rejects any other sign-up, so skipping the page doesn't help.
+- Seeds and the nightly demo reset still create their accounts.
+
+Create and manage links from the command line (it prints the database it
+touches; the link uses `BETTER_AUTH_URL`):
+
+```bash
+npm run invite -- create "Maria Santos"            # one sign-up, 14 days
+npm run invite -- create "Hosts PH group" --uses 20 --days 30
+npm run invite -- list                             # status and who signed up
+npm run invite -- revoke 7a980e2a                  # id from the list
+```
+
+A link is shown once; only its digest is stored. `--days 0` never expires.
+`REGISTRATION_DISABLED=true` closes sign-up entirely and wins over this.
+
+## Nightly demo reset
+
+Vercel Cron calls `/api/cron/reset-demo` every day at 16:05 UTC (00:05 in
+Asia/Manila). It deletes only accounts marked `is_demo_account` and their
+workspaces, then recreates the fake baseline data.
+
+Before deploying, add a random `CRON_SECRET` to the Vercel project’s
+Production environment variables. Vercel sends it in the request’s
+`Authorization` header, and the endpoint rejects calls without it. The cron
+job is created after the next production deployment. `npm run seed:demo:reset`
+remains available for a deliberate local reset.
+
+## Inventory and availability
+
+- **Properties and units** support a single cover-photo upload. Supported
+  files are JPG, PNG, and WebP up to 4 MB; the image is stored with the
+  inventory record and appears in the relevant management views.
+- **Check availability** searches every active unit by check-in, check-out,
+  and guest count. It excludes units that are too small or have an overlapping
+  reservation, active hold, out-of-service block, or turnover period.
+- Each matching unit links directly to its filtered calendar and a prefilled
+  new-reservation form. The final reservation save still performs the
+  authoritative conflict check.
+
+## Integration tests
+
+Create the isolated database once, then run the suite:
+
+```bash
+docker exec hostayo-db createdb -U hostayo hostayo_test
+npm run test:integration
+```
+
+The suite applies migrations and truncates the test database between files.
+It ignores application `DATABASE_URL`; use `TEST_DATABASE_URL` to override the
+connection, always pointing to a dedicated database named `hostayo_test`.
+Never point it at a database with data you want to keep. The lifecycle test
+exercises services against PostgreSQL; it is not a browser end-to-end test.
+
+## Conventions
+
+- Money is integer **centavos** everywhere except render boundaries (`src/lib/money.ts`).
+- Nights are **date-only** `yyyy-mm-dd` ranges in the property timezone; check-out is exclusive (`src/lib/dates.ts`).
+- Every tenant-owned record carries `organization_id`; all reads are scoped by membership (`src/lib/auth/session.ts`).
+- Server actions/route handlers are thin; rules live in `src/server/*/service.ts`.
+
+## Slice status
+
+- [x] **0 · Foundation** — auth, organizations, app shell, seed
+- [x] **1 · Inventory & availability** — properties and unit photos, capacity-aware availability search, blocks, calendar
+- [x] **2 · Reservations** — guests, holds, confirmation, guest link
+- [x] **3 · Money** — payments, security deposits, refunds, expenses
+- [x] **4 · Stay operations** — check-in/out, turnover tasks, damage
+- [x] **5 · Reports & hardening** — reports, audit, owner/staff permissions, and automated tests.
+
+Reports use an explicitly labeled Asia/Manila cash-period basis across all
+property filters. Occupancy uses currently active inventory minus blocked
+nights; historical unit status changes are not reconstructed. Booked value
+spreads accommodation charges across actual stay nights and excludes deposits.
+Staff must register an account before the owner can add them by email; no
+invitation email is sent. Staff can place holds at server-calculated default
+prices but cannot view financial details, edit prices, or confirm bookings.
+
+## Deployment
+
+Production runs on Vercel at `app.hostayo.casa`. Set the variables from
+`.env.example` in the Vercel project, run `npm run db:migrate` against the
+production database before deploying a schema change, and add a random
+`CRON_SECRET` for the nightly demo reset. The marketing site and this app share
+`EARLY_ACCESS_API_SECRET` so website requests land in the early-access inbox.

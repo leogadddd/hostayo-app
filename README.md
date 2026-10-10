@@ -1,188 +1,78 @@
 # Hostayo
 
-**A calmer way to run your stays.** Hostayo takes a direct booking from inquiry
-to checkout and shows the work and money attached to that stay. It is built for
-small Philippine short-stay operators, from one room to a few dozen units.
+**A calmer way to run your stays.**
 
-- Website: [hostayo.casa](https://hostayo.casa) (marketing site, repo: [hostayo-site](https://github.com/leogadddd/hostayo-site))
-- App: [app.hostayo.casa](https://app.hostayo.casa)
-- Live demo: [demo.hostayo.casa](https://demo.hostayo.casa) (a shared, fake workspace that resets nightly)
+[hostayo.casa](https://hostayo.casa) · [Live demo](https://demo.hostayo.casa/login?demo=1) · [Request early access](https://hostayo.casa/#early-access)
 
-## What it does
+## Introduction
 
-- **Bookings and calendar:** one calendar for every unit, holds, confirmations,
-  and overlap checks that hold even when two people book at once.
-- **Guests:** a welcome page per booking with dates, house rules and balance.
-- **Money:** deposits and balances, refunds and deductions, expenses and
-  recurring bills, and reports on a labelled Asia/Manila cash basis.
-- **Operations:** check-in and check-out, turnover checklists for cleaners,
-  damage reports, and ready-to-book status per unit.
-- **Team and security:** Owner, Admin, Operations Manager and Staff roles,
-  two-factor sign-in, and an audit log.
-- **Early access:** invite-only sign-up with personal invite links, and an
-  inbox where the team reads requests from the website form.
+Hostayo is a booking and operations tool for short-stay hosts in the Philippines. It takes a booking from the first message to checkout, and shows you the work and money attached to every stay, whether you host one room or manage a whole portfolio.
 
-## Stack
+## The problem
 
-- Next.js (App Router) and TypeScript (strict)
-- PostgreSQL 16 and Redis 7 (Docker Compose locally)
-- Drizzle ORM and drizzle-kit migrations
-- Better Auth (email and password, two-factor)
-- Tailwind CSS v4 and Vitest
-- Deployed on Vercel, with Vercel Cron for the nightly demo reset
+Most small hosts run their business out of Messenger threads, screenshots of payments, a spreadsheet for the calendar and a group chat with the cleaner. It works until it doesn't:
 
-Brand palette: Pine `#203A35`, Paper `#F6F3ED`, Sage `#CFDDD3`, Clay `#A64E37`.
-The original spec is [`Hostayo-PRD-for-Qoder.md`](./Hostayo-PRD-for-Qoder.md).
-Contributor and architecture notes live in [`CLAUDE.md`](./CLAUDE.md).
+- Two guests ask for the same weekend and someone gets double-booked
+- Nobody remembers who paid the deposit, or how much is still owed
+- The cleaner doesn't know a unit is vacant until you tell them
+- At the end of the month you can't say what each unit really earned
 
-## Getting started
+## The solution
 
-```bash
-cp .env.example .env            # then set BETTER_AUTH_SECRET (openssl rand -base64 32)
-npm install
-npm run db:setup                # docker compose up + migrations + demo workspace
-npm run dev                     # http://localhost:3000
-```
+Hostayo keeps all of it in one place. Your calendar blocks overlapping bookings. Every guest gets one link with their dates, house rules and balance. Cleaning checklists appear the moment a guest checks out. And your money is laid out plainly: cash collected, deposits you're holding and expenses, each labelled.
 
-Already have a local database? After pulling schema changes, apply the latest
-migrations before starting the app:
+## What Hostayo does
 
-```bash
-npm run db:migrate
-```
+**Bookings and calendar**
+- One calendar for every unit, whether you host one room or a whole portfolio
+- Block dates in seconds, with overlapping bookings stopped, even when two people book at once
+- Holds, confirmations, check-in, check-out, extensions and cancellations, all from the booking itself
+- Keep track of what's in each unit and which dates are open
 
-Demo credentials (from the demo seed, clearly fake):
+**Guests**
+- A welcome page for every booking with dates, house rules, balance and check-in details
+- House rules written once per property
+- Guest records with contact details and stay history
 
-- email: `owner@hostayo.dev`
-- password: `hostayo-demo-1234`
+**Money**
+- Record deposits and payments, and see what's collected and what's still owed
+- Refunds and damage deductions with a clear paper trail
+- Expenses, recurring bills and reports that show what each unit really earns
+- Deposits you're holding are kept separate from income, so the numbers mean what they say
 
-For role-based development, run `npm run seed:development`. It creates the
-`Hostayo Development` workspace with these accounts (all use
-`hostayo102499`):
+**Operations**
+- Turnover checklists appear at checkout, and your cleaner ticks them off from their phone
+- Damage reports logged and resolved against the booking
+- See at a glance which units are guest-ready
 
-| Role | Email |
-| --- | --- |
-| Owner | `dev-owner@hostayo.dev` |
-| Admin | `admin@hostayo.dev` |
-| Operations Manager | `operations-manager@hostayo.dev` |
-| Staff | `staff@hostayo.dev` |
+**Your team**
+- Owner, Admin, Operations Manager and Staff roles, each seeing only what they need
+- Two-factor sign-in
+- A record of who changed what and when
 
-## Commands
+Made in the Philippines, with Asia/Manila time and pesos throughout.
 
-| Command | Purpose |
-| --- | --- |
-| `npm run dev` / `build` / `start` | Next.js app |
-| `npm run lint` / `typecheck` / `test` | Quality gates |
-| `npm run test:integration` | Real PostgreSQL acceptance tests (dedicated `hostayo_test` database) |
-| `npm run db:up` / `db:down` | Start/stop PostgreSQL and Redis |
-| `npm run db:generate` / `db:migrate` | Drizzle migration workflow (see *Database schema changes* in `CLAUDE.md`) |
-| `npm run seed:demo` | Idempotent fake demo workspace |
-| `npm run seed:demo:reset` | Delete and recreate only the shared demo workspace |
-| `npm run seed:development` | Idempotent development workspace with Owner, Admin, Operations Manager, and Staff accounts |
-| `npm run seed:casa-alon` | Import the illustrated Casa Alon Beach Villas sample property into the development workspace |
-| `npm run seed:amenities` / `seed:platforms` | Backfill default amenities or booking platforms for existing workspaces |
-| `npm run seed:calendar-demo` / `seed:reservations` | Add focused calendar or reservation sample data |
-| `npm run db:reset` | Interactively confirm, then erase the database, re-run every migration, and restore the shared demo workspace |
-| `npm run invite -- create \| list \| revoke` | Early-access links for invite-only sign-up (see *Invite-only sign-up*) |
+## Coming soon
 
-## Invite-only sign-up
+- **Seasonal pricing:** weekend and peak rates, discounts and minimum stays
+- **Calendar sync:** two-way iCal sync with your other booking channels
+- **Owner reports:** monthly income and profit per unit, exportable as PDF or CSV
+- **Guest messaging:** automatic confirmation and reminder messages
 
-Set `REGISTRATION_INVITE_ONLY=true` to keep sign-up to invited people. It is
-read per request, so no rebuild is needed (on Vercel, redeploy after changing
-it). While it is on:
+## How to contribute
 
-- `/register` shows the form only to someone with a working early-access link
-  (`/register?tk=…`) or a team invitation (`/register?invite=…`). Everyone
-  else sees a notice that points to the early-access form on the marketing
-  site, and the sign-in page offers the same instead of "Create one".
-- The auth API rejects any other sign-up, so skipping the page doesn't help.
-- Seeds and the nightly demo reset still create their accounts.
+Hostayo is built with hosts, so your experience shapes what comes next.
 
-Create and manage links from the command line (it prints the database it
-touches; the link uses `BETTER_AUTH_URL`):
+- **Try it:** [request early access](https://hostayo.casa/#early-access) or look around the [live demo](https://demo.hostayo.casa/login?demo=1).
+- **Tell us what's missing:** open an [issue](https://github.com/leogadddd/hostayo-app/issues) describing how you run your stays and where it hurts. Real stories help most.
+- **Report a bug:** open an issue with what you did, what you expected and what happened. Screenshots help.
+- **Suggest a feature:** open an issue first so we can talk it through before anyone writes code.
+- **Spread the word:** share Hostayo with a host who still runs on spreadsheets and screenshots.
 
-```bash
-npm run invite -- create "Maria Santos"            # one sign-up, 14 days
-npm run invite -- create "Hosts PH group" --uses 20 --days 30
-npm run invite -- list                             # status and who signed up
-npm run invite -- revoke 7a980e2a                  # id from the list
-```
-
-A link is shown once; only its digest is stored. `--days 0` never expires.
-`REGISTRATION_DISABLED=true` closes sign-up entirely and wins over this.
-
-## Nightly demo reset
-
-Vercel Cron calls `/api/cron/reset-demo` every day at 16:05 UTC (00:05 in
-Asia/Manila). It deletes only accounts marked `is_demo_account` and their
-workspaces, then recreates the fake baseline data.
-
-Before deploying, add a random `CRON_SECRET` to the Vercel project’s
-Production environment variables. Vercel sends it in the request’s
-`Authorization` header, and the endpoint rejects calls without it. The cron
-job is created after the next production deployment. `npm run seed:demo:reset`
-remains available for a deliberate local reset.
-
-## Inventory and availability
-
-- **Properties and units** support a single cover-photo upload. Supported
-  files are JPG, PNG, and WebP up to 4 MB; the image is stored with the
-  inventory record and appears in the relevant management views.
-- **Check availability** searches every active unit by check-in, check-out,
-  and guest count. It excludes units that are too small or have an overlapping
-  reservation, active hold, out-of-service block, or turnover period.
-- Each matching unit links directly to its filtered calendar and a prefilled
-  new-reservation form. The final reservation save still performs the
-  authoritative conflict check.
-
-## Integration tests
-
-Create the isolated database once, then run the suite:
-
-```bash
-docker exec hostayo-db createdb -U hostayo hostayo_test
-npm run test:integration
-```
-
-The suite applies migrations and truncates the test database between files.
-It ignores application `DATABASE_URL`; use `TEST_DATABASE_URL` to override the
-connection, always pointing to a dedicated database named `hostayo_test`.
-Never point it at a database with data you want to keep. The lifecycle test
-exercises services against PostgreSQL; it is not a browser end-to-end test.
-
-## Conventions
-
-- Money is integer **centavos** everywhere except render boundaries (`src/lib/money.ts`).
-- Nights are **date-only** `yyyy-mm-dd` ranges in the property timezone; check-out is exclusive (`src/lib/dates.ts`).
-- Every tenant-owned record carries `organization_id`; all reads are scoped by membership (`src/lib/auth/session.ts`).
-- Server actions/route handlers are thin; rules live in `src/server/*/service.ts`.
-
-## Slice status
-
-- [x] **0 · Foundation** — auth, organizations, app shell, seed
-- [x] **1 · Inventory & availability** — properties and unit photos, capacity-aware availability search, blocks, calendar
-- [x] **2 · Reservations** — guests, holds, confirmation, guest link
-- [x] **3 · Money** — payments, security deposits, refunds, expenses
-- [x] **4 · Stay operations** — check-in/out, turnover tasks, damage
-- [x] **5 · Reports & hardening** — reports, audit, owner/staff permissions, and automated tests.
-
-Reports use an explicitly labeled Asia/Manila cash-period basis across all
-property filters. Occupancy uses currently active inventory minus blocked
-nights; historical unit status changes are not reconstructed. Booked value
-spreads accommodation charges across actual stay nights and excludes deposits.
-Staff must register an account before the owner can add them by email; no
-invitation email is sent. Staff can place holds at server-calculated default
-prices but cannot view financial details, edit prices, or confirm bookings.
-
-## Deployment
-
-Production runs on Vercel at `app.hostayo.casa`. Set the variables from
-`.env.example` in the Vercel project, run `npm run db:migrate` against the
-production database before deploying a schema change, and add a random
-`CRON_SECRET` for the nightly demo reset. The marketing site and this app share
-`EARLY_ACCESS_API_SECRET` so website requests land in the early-access inbox.
+You can also reach us on [Facebook](https://www.facebook.com/profile.php?id=61594931963512) or [Instagram](https://www.instagram.com/hostayo/).
 
 ## License
 
-All rights reserved. This is a private product repository; no license is
-granted to use, copy or distribute the code.
+All rights reserved. No license is granted to use, copy or distribute this code.
+
+Technical notes for working on the app are in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
