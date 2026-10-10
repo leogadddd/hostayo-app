@@ -9,10 +9,7 @@ import {
   TrendingUp,
   Wallet,
 } from "lucide-react";
-import {
-  EXPENSE_CATEGORY_COLORS,
-  ExpenseCategoryIcon,
-} from "@/components/app/expense-category";
+import { ExpenseCategoryIcon } from "@/components/app/expense-category";
 import { PaymentMethodLabel } from "@/components/app/payment-method-logo";
 import { todayInTimeZone } from "@/lib/dates";
 import {
@@ -149,21 +146,23 @@ export default async function ExpensesPage({
         title="Expenses"
         description="Operating and capital spending, by property or for the whole business."
       >
-        <Link
-          href="/expenses/recurring"
-          className={buttonClassName("outline", "md")}
-        >
-          <Repeat className="h-4 w-4" aria-hidden />
-          Recurring bills
-        </Link>
-        <Link
-          href={modalHref("new", "1")}
-          replace
-          className={buttonClassName("clay", "md")}
-        >
-          <Plus className="h-4 w-4" aria-hidden />
-          Record expense
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/expenses/recurring"
+            className={buttonClassName("outline", "md")}
+          >
+            <Repeat className="h-4 w-4" aria-hidden />
+            Recurring bills
+          </Link>
+          <Link
+            href={modalHref("new", "1")}
+            replace
+            className={buttonClassName("clay", "md")}
+          >
+            <Plus className="h-4 w-4" aria-hidden />
+            Record expense
+          </Link>
+        </div>
       </PageHeading>
 
       <DueBills
@@ -253,7 +252,7 @@ export default async function ExpensesPage({
           />
         ) : (
           <>
-            <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
               <StatTile
                 icon={Wallet}
                 label="Total spent"
@@ -285,46 +284,6 @@ export default async function ExpensesPage({
                 detail={topCategory ? formatPHP(topCategory[1]) : "No spending"}
               />
             </div>
-            {categoryRows.length ? (
-              <Card className="mb-6 p-5">
-                <p className="text-xs font-medium uppercase tracking-wide text-ink/45">
-                  By category
-                </p>
-                <ul className="mt-3 grid gap-x-8 gap-y-3 md:grid-cols-2">
-                  {categoryRows.slice(0, 8).map(([category, cents]) => (
-                    <li key={category} className="flex items-center gap-3">
-                      <ExpenseCategoryIcon
-                        category={category}
-                        className="h-8 w-8"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <div className="mb-1 flex justify-between gap-3 text-sm">
-                          <span className="truncate text-ink/70">
-                            {EXPENSE_CATEGORY_LABELS[
-                              category as keyof typeof EXPENSE_CATEGORY_LABELS
-                            ] ?? category}
-                          </span>
-                          <span className="shrink-0 font-medium tabular-nums text-pine">
-                            {formatPHP(cents)} · {percentOf(cents, totalCents)}%
-                          </span>
-                        </div>
-                        <div className="h-2 overflow-hidden rounded-full bg-pine-mist/60">
-                          <div
-                            className="h-full rounded-full"
-                            style={{
-                              width: `${Math.max(2, (cents / totalCents) * 100)}%`,
-                              background:
-                                EXPENSE_CATEGORY_COLORS[category] ??
-                                EXPENSE_CATEGORY_COLORS.other,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </Card>
-            ) : null}
             <div className="overflow-hidden rounded-2xl border border-pine/10 bg-surface shadow-[0_1px_2px_rgba(32,58,53,0.06)]">
               <Table
                 aria-label="Expenses"

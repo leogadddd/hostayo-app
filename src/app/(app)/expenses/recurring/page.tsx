@@ -197,6 +197,7 @@ export default async function RecurringExpensesPage({
           description={panel.description}
           unavailable={panel.unavailable}
           closeHref={listHref}
+          wide={!panel.unavailable}
         >
           {panel.body}
         </RouteModal>

@@ -53,10 +53,15 @@ import {
   listPendingProofs,
 } from "@/server/reports/dashboard";
 import { getReport } from "@/server/reports/service";
+import { listExpenses } from "@/server/expenses/service";
 import { MiniCalendar, type MiniCalendarEvent } from "./mini-calendar";
 import { NotesCard } from "./notes-card";
 import { PerformanceSection } from "./performance";
 import { PlatformBreakdown } from "./platform-breakdown";
+import {
+  ExpenseBreakdown,
+  type ExpenseCategoryRow,
+} from "./expense-breakdown";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -185,6 +190,7 @@ export default async function DashboardPage() {
   const showMoney = can(membership, "payments.view");
   const canSeeReservations = can(membership, "reservations.view");
   const canSeeProperties = can(membership, "properties.view");
+  const showExpenses = can(membership, "expenses.view");
 
   const [
     activity,
@@ -195,6 +201,7 @@ export default async function DashboardPage() {
     platformBreakdown,
     openDamage,
     pendingProofs,
+    monthExpenses,
   ] = await Promise.all([
     listCalendarActivity(membership.organizationId, unitDays),
     listTasks(membership.organizationId, { status: "open" }),
@@ -226,7 +233,28 @@ export default async function DashboardPage() {
           logAndSkip("payment proofs"),
         )
       : null,
+    showExpenses
+      ? listExpenses(membership.organizationId, { month }).catch(
+          logAndSkip("month expenses"),
+        )
+      : null,
   ]);
+
+  // This month's spending by category, largest first; voided entries don't count.
+  let expenseCategories: ExpenseCategoryRow[] | null = null;
+  if (monthExpenses) {
+    const byCategory = new Map<string, number>();
+    for (const expense of monthExpenses) {
+      if (expense.voidedAt) continue;
+      byCategory.set(
+        expense.category,
+        (byCategory.get(expense.category) ?? 0) + expense.amountCents,
+      );
+    }
+    expenseCategories = [...byCategory.entries()]
+      .map(([category, amountCents]) => ({ category, amountCents }))
+      .sort((a, b) => b.amountCents - a.amountCents);
+  }
 
   // Today's movements, including the ones already done, so the day reads as progress.
   const arrivals = activity.filter(
@@ -917,7 +945,17 @@ export default async function DashboardPage() {
             </Card>
           </section>
 
-          {/* 5 · Money and trends */}
+          {/* 5 · Where the money went */}
+          {showExpenses ? (
+            <ExpenseBreakdown
+              className="mt-5"
+              month={month}
+              monthLabel={MONTH_LABEL.format(new Date(`${month}-01T00:00:00Z`))}
+              categories={expenseCategories}
+            />
+          ) : null}
+
+          {/* 6 · Money and trends */}
           {showPerformance ? (
             series ? (
               <PerformanceSection

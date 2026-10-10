@@ -66,9 +66,9 @@ export interface ExpenseFormValues {
   hasReceipt: boolean;
 }
 
-type Classification = "operating" | "capital";
+export type Classification = "operating" | "capital";
 
-const CATEGORY_OPTIONS: ChoiceCardOption<ExpenseCategory>[] = (
+export const CATEGORY_OPTIONS: ChoiceCardOption<ExpenseCategory>[] = (
   Object.keys(EXPENSE_CATEGORY_LABELS) as ExpenseCategory[]
 ).map((category) => ({
   value: category,
@@ -76,7 +76,7 @@ const CATEGORY_OPTIONS: ChoiceCardOption<ExpenseCategory>[] = (
   icon: EXPENSE_CATEGORY_ICONS[category],
 }));
 
-const CLASSIFICATION_OPTIONS: ChoiceCardOption<Classification>[] = [
+export const CLASSIFICATION_OPTIONS: ChoiceCardOption<Classification>[] = [
   {
     value: "operating",
     label: "Operating",
@@ -91,7 +91,7 @@ const CLASSIFICATION_OPTIONS: ChoiceCardOption<Classification>[] = [
   },
 ];
 
-const PAYMENT_METHOD_OPTIONS: ChoiceCardOption<PaymentMethod>[] = (
+export const PAYMENT_METHOD_OPTIONS: ChoiceCardOption<PaymentMethod>[] = (
   Object.keys(PAYMENT_METHOD_LABELS) as PaymentMethod[]
 ).map((method) => ({
   value: method,
@@ -105,7 +105,7 @@ const NO_PROPERTY = "none";
 const WHOLE_PROPERTY = "whole";
 
 /** The amount as typed, in centavos, or null while it isn't a valid amount yet. */
-function previewCents(amount: string) {
+export function previewCents(amount: string) {
   try {
     return pesosToCentavos(amount, { allowZero: false });
   } catch {
@@ -426,7 +426,7 @@ export function ExpenseForm({
   );
 }
 
-function FormSection({
+export function FormSection({
   title,
   hint,
   children,
@@ -444,7 +444,7 @@ function FormSection({
   );
 }
 
-function QuickChip({
+export function QuickChip({
   active,
   onClick,
   children,
@@ -471,7 +471,7 @@ function QuickChip({
 }
 
 /** Cards for a handful of properties, a menu for more. "" means the whole business. */
-function PropertyPicker({
+export function PropertyPicker({
   properties,
   value,
   onChange,
