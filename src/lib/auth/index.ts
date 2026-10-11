@@ -1,5 +1,11 @@
 import { registrationDisabled } from "@/lib/flags";
 import { betterAuth } from "better-auth";
+import {
+  APIError,
+  createAuthMiddleware,
+  getSessionFromCtx,
+} from "better-auth/api";
+import { eq } from "drizzle-orm";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { twoFactor } from "better-auth/plugins";
 import { db } from "@/lib/db";
@@ -69,6 +75,24 @@ export const auth = betterAuth({
       if (!admission.ok)
         return { error: admission.code, errorDescription: admission.message };
     },
+  },
+  hooks: {
+    // The shared demo has a public password, so two-factor on it would lock
+    // every other visitor out. The UI hides it; this stops a direct API call.
+    before: createAuthMiddleware(async (ctx) => {
+      if (!ctx.path.startsWith("/two-factor/enable")) return;
+      const session = await getSessionFromCtx(ctx);
+      if (!session) return;
+      const [account] = await db
+        .select({ isDemoAccount: user.isDemoAccount })
+        .from(user)
+        .where(eq(user.id, session.user.id))
+        .limit(1);
+      if (account?.isDemoAccount)
+        throw new APIError("FORBIDDEN", {
+          message: "Two-factor is unavailable in the shared demo.",
+        });
+    }),
   },
   plugins: [
     twoFactor({

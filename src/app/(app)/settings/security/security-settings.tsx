@@ -35,15 +35,17 @@ import { RecoveryCodes } from "./recovery-codes";
 export function SecuritySettings({
   email,
   twoFactorEnabled,
+  showTwoFactor = true,
   preferences,
 }: {
   email: string;
+  showTwoFactor?: boolean;
   twoFactorEnabled: boolean;
   preferences: Record<SecurityAlert, boolean>;
 }) {
   return (
     <div className="min-w-0 space-y-6">
-      <TwoFactorCard enabled={twoFactorEnabled} />
+      {showTwoFactor ? <TwoFactorCard enabled={twoFactorEnabled} /> : null}
       <SecurityAlerts email={email} preferences={preferences} />
     </div>
   );
