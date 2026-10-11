@@ -61,7 +61,7 @@ For role-based development, run `npm run seed:development`. It creates the
 | `npm run seed:development` | Idempotent development workspace with Owner, Admin, Operations Manager, and Staff accounts |
 | `npm run seed:casa-alon` | Import the illustrated Casa Alon Beach Villas sample property into the development workspace |
 | `npm run seed:amenities` / `seed:platforms` | Backfill default amenities or booking platforms for existing workspaces |
-| `npm run seed:calendar-demo` / `seed:reservations` | Add focused calendar or reservation sample data |
+| `npm run seed:calendar-demo` | Add focused calendar sample data |
 | `npm run db:reset` | Interactively confirm, then erase the database, re-run every migration, and restore the shared demo workspace |
 | `npm run invite -- create \| list \| revoke` | Early-access links for invite-only sign-up (see *Invite-only sign-up*) |
 
