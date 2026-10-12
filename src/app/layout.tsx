@@ -21,13 +21,30 @@ const montserrat = Montserrat({
   display: "swap",
 });
 
+const TITLE = "Hostayo — a calmer way to run your stays";
+const DESCRIPTION =
+  "Bookings, payments, turnovers and expenses for short-stay hosts in the Philippines.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL("https://app.hostayo.casa"),
+  applicationName: "Hostayo",
   title: {
-    default: "Hostayo",
+    default: TITLE,
     template: "%s · Hostayo",
   },
-  description:
-    "A calmer way to run your stays. Bookings, payments, turnovers and expenses for small stay operators.",
+  description: DESCRIPTION,
+  openGraph: {
+    type: "website",
+    siteName: "Hostayo",
+    locale: "en_PH",
+    title: TITLE,
+    description: DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+  },
 };
 
 export default async function RootLayout({
