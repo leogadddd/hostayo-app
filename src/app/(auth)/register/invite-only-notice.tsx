@@ -43,11 +43,11 @@ export function InviteOnlyNotice({ status }: { status: keyof typeof REASONS }) {
         Get early access
         <ArrowRight className="h-4 w-4" aria-hidden />
       </a>
-      <p className="mt-4 text-center text-xs leading-relaxed text-ink/55">
+      <p className="mt-4 text-center text-xs leading-relaxed text-ink/75">
         Joining someone’s team? Open the invitation link they sent you.
       </p>
 
-      <p className="mt-8 text-center text-sm text-ink/60">
+      <p className="mt-8 text-center text-sm text-ink/75">
         Already have an account?{" "}
         <Link
           href="/login"

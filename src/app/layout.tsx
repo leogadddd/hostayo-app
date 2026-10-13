@@ -33,6 +33,13 @@ export const metadata: Metadata = {
     template: "%s · Hostayo",
   },
   description: DESCRIPTION,
+  // Private by default: the workspace must never be indexed. Public pages
+  // (sign-in, legal, opted-in host listings) turn indexing back on themselves.
+  robots: { index: false, follow: false },
+  // Optional Google Search Console meta-tag verification (DNS verification needs no code).
+  verification: process.env.NEXT_PUBLIC_GSC_VERIFICATION
+    ? { google: process.env.NEXT_PUBLIC_GSC_VERIFICATION }
+    : undefined,
   openGraph: {
     type: "website",
     siteName: "Hostayo",

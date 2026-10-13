@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { loginLinksHidden } from "@/lib/flags";
-import { SITE_URL } from "@/lib/site";
+import { PUBLIC_PAGES, SITE_URL } from "@/lib/site";
 
 export interface LegalSection {
   title: string;
@@ -40,16 +40,16 @@ export function LegalPage({
 
       <main className="mx-auto max-w-4xl px-6 py-14 sm:px-8 sm:py-20">
         <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-pine/60">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-pine/75">
             Legal
           </p>
           <h1 className="mt-3 font-display text-4xl leading-tight text-pine sm:text-5xl">
             {title}
           </h1>
-          <p className="mt-5 text-sm leading-relaxed text-ink/65 sm:text-base">
+          <p className="mt-5 text-sm leading-relaxed text-ink/75 sm:text-base">
             {intro}
           </p>
-          <p className="mt-5 text-sm text-ink/50">
+          <p className="mt-5 text-sm text-ink/75">
             Effective date: {effectiveDate}
           </p>
         </div>
@@ -66,6 +66,27 @@ export function LegalPage({
             </section>
           ))}
         </div>
+
+        <nav
+          aria-label="Related policies"
+          className="mt-16 max-w-3xl border-t border-pine/10 pt-8 text-sm"
+        >
+          <h2 className="font-display text-xl text-pine">Related policies</h2>
+          <ul className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
+            {PUBLIC_PAGES.filter((p) => !["/login", "/register"].includes(p.path)).map((p) => (
+              <li key={p.path}>
+                <Link href={p.path} className="text-pine underline underline-offset-4 hover:text-pine-soft">
+                  {p.title}
+                </Link>
+              </li>
+            ))}
+            <li>
+              <a href={SITE_URL} className="text-pine underline underline-offset-4 hover:text-pine-soft">
+                About Hostayo
+              </a>
+            </li>
+          </ul>
+        </nav>
       </main>
     </div>
   );

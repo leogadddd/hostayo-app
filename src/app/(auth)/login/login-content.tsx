@@ -219,7 +219,7 @@ function LoginContent({ registration }: { registration: RegistrationMode }) {
         <h1 className="mt-10 font-display text-3xl text-pine sm:mt-8">
           {useRecoveryCode ? "Use a recovery code" : "Enter your code"}
         </h1>
-        <p className="mt-2 text-sm leading-relaxed text-ink/60">
+        <p className="mt-2 text-sm leading-relaxed text-ink/75">
           {useRecoveryCode ? (
             <>
               Enter one of the recovery codes you saved when you turned on
@@ -286,7 +286,7 @@ function LoginContent({ registration }: { registration: RegistrationMode }) {
                   if (next.length === 6) void verifyTwoFactor(next);
                 }}
               />
-              <p className="mt-3 text-center text-xs text-ink/50">
+              <p className="mt-3 text-center text-xs text-ink/75">
                 Signs you in as soon as all six digits are in. Codes refresh
                 every 30 seconds.
               </p>
@@ -329,7 +329,7 @@ function LoginContent({ registration }: { registration: RegistrationMode }) {
                 ? "Use your authenticator app"
                 : "Use a recovery code instead"}
             </span>
-            <span className="mt-0.5 block text-xs text-ink/55">
+            <span className="mt-0.5 block text-xs text-ink/75">
               {useRecoveryCode
                 ? "Enter the 6-digit code from your phone."
                 : "If you don’t have your phone with you."}
@@ -346,7 +346,7 @@ function LoginContent({ registration }: { registration: RegistrationMode }) {
   return (
     <div>
       <h1 className="font-display text-3xl text-pine">Welcome back</h1>
-      <p className="mt-2 text-sm text-ink/60">
+      <p className="mt-2 text-sm text-ink/75">
         Sign in to your Hostayo account.
       </p>
       {invite ? <InvitationNotice /> : null}
@@ -399,7 +399,7 @@ function LoginContent({ registration }: { registration: RegistrationMode }) {
       </form>
 
       {registration === "open" || (registration === "invite-only" && invite) ? (
-        <p className="mt-8 text-center text-sm text-ink/60">
+        <p className="mt-8 text-center text-sm text-ink/75">
           Don&apos;t have an account?{" "}
           <Link
             href={`/register${inviteQuery(invite)}`}
@@ -409,7 +409,7 @@ function LoginContent({ registration }: { registration: RegistrationMode }) {
           </Link>
         </p>
       ) : registration === "invite-only" ? (
-        <p className="mt-8 text-center text-sm text-ink/60">
+        <p className="mt-8 text-center text-sm text-ink/75">
           Don&apos;t have an account?{" "}
           <a
             href={`${SITE_URL.replace(/\/$/, "")}/#early-access`}
@@ -435,7 +435,7 @@ function LoginContent({ registration }: { registration: RegistrationMode }) {
             aria-labelledby="demo-mode-title"
             className="w-full max-w-md rounded-2xl bg-paper p-6 shadow-2xl sm:p-8"
           >
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-pine/60">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-pine/75">
               Hostayo demo
             </p>
             <h2

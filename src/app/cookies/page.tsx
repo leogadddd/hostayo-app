@@ -5,6 +5,8 @@ import { SUPPORT_EMAIL } from "@/lib/support";
 export const metadata: Metadata = {
   title: "Cookie Policy",
   description: "The cookies Hostayo uses and why.",
+  alternates: { canonical: "/cookies" },
+  robots: { index: true, follow: true },
 };
 
 const sections: LegalSection[] = [

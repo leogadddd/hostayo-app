@@ -86,7 +86,7 @@ export function RegisterForm({
   return (
     <div>
       <h1 className="font-display text-3xl text-pine">Create your account</h1>
-      <p className="mt-2 text-sm text-ink/60">
+      <p className="mt-2 text-sm text-ink/75">
         {invite
           ? "Create an account to accept your invitation."
           : "Start with one property. Add your organization next."}
@@ -199,7 +199,7 @@ export function RegisterForm({
         </Button>
       </form>
 
-      <p className="mt-8 text-center text-sm text-ink/60">
+      <p className="mt-8 text-center text-sm text-ink/75">
         Already have an account?{" "}
         <Link
           href={`/login${inviteQuery(invite)}`}

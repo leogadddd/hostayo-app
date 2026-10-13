@@ -5,7 +5,9 @@ import { Card, CardBody } from "@/components/ui/card";
 import { ChannelList } from "@/components/public/contact-channel-list";
 import { PublicShell } from "@/components/public/public-shell";
 import { UnitCard } from "@/components/public/unit-card";
+import { JsonLd } from "@/components/json-ld";
 import { getPublicHost, todayISO } from "@/lib/public-demo";
+import { APP_URL } from "@/lib/site";
 
 type Params = { host: string };
 
@@ -19,6 +21,13 @@ export async function generateMetadata({
     ? {
         title: `${host.displayName} · Stays`,
         description: host.tagline,
+        alternates: { canonical: `/h/${encodeURIComponent(host.slug)}` },
+        openGraph: {
+          type: "website",
+          url: `/h/${encodeURIComponent(host.slug)}`,
+          title: `${host.displayName} · Stays`,
+          description: host.tagline,
+        },
         robots: {
           index: host.publicListingEnabled,
           follow: host.publicListingEnabled,
@@ -44,6 +53,19 @@ export default async function HostPage({
 
   return (
     <PublicShell label={host.displayName}>
+      {host.publicListingEnabled ? (
+        <JsonLd
+          data={{
+            "@context": "https://schema.org",
+            "@type": "LodgingBusiness",
+            name: host.displayName,
+            description: host.tagline,
+            url: `${APP_URL}/h/${encodeURIComponent(host.slug)}`,
+            ...(host.logoUrl ? { image: host.logoUrl } : {}),
+            address: { "@type": "PostalAddress", addressLocality: host.location, addressCountry: "PH" },
+          }}
+        />
+      ) : null}
       <section className="relative isolate overflow-hidden border-b border-pine/10 bg-pine text-paper">
         <div
           aria-hidden

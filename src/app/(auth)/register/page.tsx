@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { registrationInviteOnly } from "@/lib/flags";
 import {
   inspectRegistrationInvite,
@@ -5,6 +6,14 @@ import {
 } from "@/server/registration/service";
 import { InviteOnlyNotice } from "./invite-only-notice";
 import { RegisterForm } from "./register-form";
+
+export const metadata: Metadata = {
+  title: "Create your account",
+  description:
+    "Create a Hostayo account to manage bookings, deposits, turnovers and expenses for your short-stay.",
+  alternates: { canonical: "/register" },
+  robots: { index: true, follow: true },
+};
 
 function first(value: string | string[] | undefined): string | null {
   const single = Array.isArray(value) ? value[0] : value;

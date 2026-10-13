@@ -5,6 +5,8 @@ import { SUPPORT_EMAIL } from "@/lib/support";
 export const metadata: Metadata = {
   title: "Refund Policy",
   description: "How refunds work for Hostayo.",
+  alternates: { canonical: "/refunds" },
+  robots: { index: true, follow: true },
 };
 
 const sections: LegalSection[] = [

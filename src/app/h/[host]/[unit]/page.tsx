@@ -23,7 +23,9 @@ import {
   PublicShell,
 } from "@/components/public/public-shell";
 import { formatPHP } from "@/lib/money";
+import { JsonLd } from "@/components/json-ld";
 import { getPublicUnit, todayISO, type PublicAmenity } from "@/lib/public-demo";
+import { APP_URL } from "@/lib/site";
 
 type Params = { host: string; unit: string };
 
@@ -38,6 +40,16 @@ export async function generateMetadata({
     ? {
         title: `${found.unit.name} · ${found.host.displayName}`,
         description: found.unit.description.slice(0, 150),
+        alternates: {
+          canonical: `/h/${encodeURIComponent(host)}/${encodeURIComponent(unit)}`,
+        },
+        openGraph: {
+          type: "website",
+          url: `/h/${encodeURIComponent(host)}/${encodeURIComponent(unit)}`,
+          title: `${found.unit.name} · ${found.host.displayName}`,
+          description: found.unit.description.slice(0, 150),
+          ...(found.unit.imageUrl ? { images: [found.unit.imageUrl] } : {}),
+        },
         robots: {
           index: found.host.publicListingEnabled,
           follow: found.host.publicListingEnabled,
@@ -98,6 +110,32 @@ export default async function UnitPage({
 
   return (
     <PublicShell label={host.displayName} labelHref={hostHref}>
+      {host.publicListingEnabled ? (
+        <JsonLd
+          data={{
+            "@context": "https://schema.org",
+            "@type": "Accommodation",
+            name: unit.name,
+            description: unit.description,
+            url: `${APP_URL}${hostHref}/${encodeURIComponent(unit.slug)}`,
+            ...(unit.imageUrl ? { image: unit.imageUrl } : {}),
+            numberOfBedrooms: unit.bedrooms,
+            numberOfBathroomsTotal: unit.bathrooms,
+            occupancy: { "@type": "QuantitativeValue", maxValue: unit.capacity },
+            amenityFeature: [...unit.unitAmenities, ...unit.propertyAmenities].map((a) => ({
+              "@type": "LocationFeatureSpecification",
+              name: a.name,
+              value: true,
+            })),
+            containedInPlace: {
+              "@type": "LodgingBusiness",
+              name: host.displayName,
+              url: `${APP_URL}${hostHref}`,
+              address: { "@type": "PostalAddress", addressLocality: unit.location, addressCountry: "PH" },
+            },
+          }}
+        />
+      ) : null}
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
         <Link
           href={hostHref}

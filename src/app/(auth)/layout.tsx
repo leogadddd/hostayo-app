@@ -79,7 +79,7 @@ export default function AuthLayout({
             <Logo />
           </Link>
           {children}
-          <footer className="mt-10 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-ink/50">
+          <footer className="mt-10 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-ink/75">
             <Link
               href="/terms"
               className="underline-offset-4 hover:text-pine hover:underline"

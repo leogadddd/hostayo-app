@@ -8,6 +8,8 @@ import { SITE_URL } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description: "Privacy policy for using Hostayo.",
+  alternates: { canonical: "/privacy" },
+  robots: { index: true, follow: true },
 };
 
 const sections = [
@@ -87,17 +89,17 @@ export default function PrivacyPage() {
       </header>
       <main className="mx-auto max-w-4xl px-6 py-14 sm:px-8 sm:py-20">
         <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-pine/60">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-pine/75">
             Legal
           </p>
           <h1 className="mt-3 font-display text-4xl leading-tight text-pine sm:text-5xl">
             Privacy Policy
           </h1>
-          <p className="mt-5 text-sm leading-relaxed text-ink/65 sm:text-base">
+          <p className="mt-5 text-sm leading-relaxed text-ink/75 sm:text-base">
             This policy explains what information Hostayo handles, why we use
             it, and the choices available to you and your organization.
           </p>
-          <p className="mt-5 text-sm text-ink/50">
+          <p className="mt-5 text-sm text-ink/75">
             Effective date: September 26, 2026
           </p>
         </div>

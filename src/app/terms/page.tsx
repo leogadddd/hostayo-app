@@ -8,6 +8,8 @@ import { SITE_URL } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Terms and Conditions",
   description: "Terms and conditions for using Hostayo.",
+  alternates: { canonical: "/terms" },
+  robots: { index: true, follow: true },
 };
 
 const sections = [
@@ -88,17 +90,17 @@ export default function TermsPage() {
 
       <main className="mx-auto max-w-4xl px-6 py-14 sm:px-8 sm:py-20">
         <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-pine/60">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-pine/75">
             Legal
           </p>
           <h1 className="mt-3 font-display text-4xl leading-tight text-pine sm:text-5xl">
             Terms and Conditions
           </h1>
-          <p className="mt-5 text-sm leading-relaxed text-ink/65 sm:text-base">
+          <p className="mt-5 text-sm leading-relaxed text-ink/75 sm:text-base">
             These terms explain the rules for using Hostayo and the
             responsibilities we share in keeping the service useful and secure.
           </p>
-          <p className="mt-5 text-sm text-ink/50">
+          <p className="mt-5 text-sm text-ink/75">
             Effective date: September 24, 2026
           </p>
         </div>
