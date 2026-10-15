@@ -7,6 +7,7 @@ import { Button, buttonClassName } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import { ChoiceCards } from "@/components/ui/choice-cards";
 import { DateInput } from "@/components/ui/date-input";
+import { InfoTip } from "@/components/ui/info-tip";
 import { FieldError, Input, Label } from "@/components/ui/input";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
 import { useSaveAndReturn } from "@/hooks/use-save-and-return";
@@ -302,12 +303,16 @@ export function RuleForm({
               Repeat every year
             </label>
             <div>
-              <p className="mb-1.5 text-sm font-medium text-ink">
-                Only on these days{" "}
-                <span className="font-normal text-ink/45">
-                  (none selected means every day)
-                </span>
-              </p>
+              <div className="mb-1.5 flex items-center gap-1.5">
+                <p className="text-sm font-medium text-ink">
+                  Only on these days
+                </p>
+                <InfoTip>
+                  Select none to apply on every day. A night counts on the day
+                  it starts, so a Friday check-in&apos;s first night is a Friday
+                  night.
+                </InfoTip>
+              </div>
               <div className="flex flex-wrap gap-2">
                 {WEEKDAYS.map((day) => {
                   const on = values.weekdays.includes(day.key);

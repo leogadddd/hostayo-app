@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { InfoTip } from "@/components/ui/info-tip";
 import { Label, Select } from "@/components/ui/input";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { monthNightRange, nightsBetween, shiftMonth } from "@/lib/dates";
@@ -99,7 +100,13 @@ export function PricePreview({
   return (
     <Card className="bg-card">
       <CardHeader className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-xl text-pine">{title}</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="font-display text-xl text-pine">{title}</h2>
+          <InfoTip>
+            Prices are for nights starting that day, before cleaning fees. Hover
+            a day to see which rules apply.
+          </InfoTip>
+        </div>
         <div className="flex items-center gap-1">
           <button
             type="button"
@@ -250,10 +257,6 @@ export function PricePreview({
                   className="border-pine/10 bg-surface"
                   label="Regular rate"
                 />
-                <span>
-                  Prices are for nights starting that day, before cleaning fees.
-                  Hover a day to see which rules apply.
-                </span>
               </p>
             </div>
           </>

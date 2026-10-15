@@ -8,6 +8,7 @@ import { PageHeading } from "@/components/app/page-heading";
 import { PermissionDenied } from "@/components/app/permission-denied";
 import { buttonClassName } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { InfoTip } from "@/components/ui/info-tip";
 import { EmptyState } from "@/components/ui/empty-state";
 import { listProperties, listOrgUnits } from "@/server/inventory/service";
 import { listPricingRules } from "@/server/pricing/service";
@@ -60,11 +61,13 @@ export default async function PricingPage() {
 
       <Card className="overflow-hidden bg-card">
         <CardHeader>
-          <h2 className="font-display text-lg text-pine">Rules</h2>
-          <p className="mt-1 text-sm text-ink/60">
-            For each night, the matching rule with the highest priority wins.
-            Rules marked Stacks always apply on top of it.
-          </p>
+          <div className="flex items-center gap-2">
+            <h2 className="font-display text-lg text-pine">Rules</h2>
+            <InfoTip>
+              For each night, the matching rule with the highest priority wins.
+              Rules marked Stacks always apply on top of it.
+            </InfoTip>
+          </div>
         </CardHeader>
         {rows.length === 0 ? (
           <CardBody>

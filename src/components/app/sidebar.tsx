@@ -10,6 +10,7 @@ import {
   ClipboardList,
   Receipt,
   Tag,
+  Wrench,
   BarChart3,
   Settings,
   Users,
@@ -71,6 +72,12 @@ const NAV_ITEMS: {
     href: "/pricing",
     label: "Pricing",
     icon: Tag,
+    anyOf: ["pricing.view"],
+  },
+  {
+    href: "/tools",
+    label: "Tools",
+    icon: Wrench,
     anyOf: ["pricing.view"],
   },
   {
@@ -152,36 +159,34 @@ function Navigation({
     >
       {NAV_ITEMS.filter((item) =>
         navItemVisible(item, role, permissions, l1),
-      ).map(
-        ({ href, label, icon: Icon }) => {
-          const active =
-            href === "/settings/general"
-              ? pathname.startsWith("/settings") &&
-                !pathname.startsWith("/properties")
-              : pathname === href || pathname.startsWith(`${href}/`);
-          return (
-            <Link
-              key={href}
-              href={href}
-              onClick={onNavigate}
-              aria-current={active ? "page" : undefined}
-              className={cn(
-                "flex items-center gap-3 rounded-lg border-l-2 px-4 py-3 text-sm font-medium transition-colors",
-                active
-                  ? "border-[#d58d74] bg-sage/20 text-white dark:border-[#c4674d]"
-                  : "border-transparent text-paper/80 hover:bg-paper/10 hover:text-white",
-              )}
-            >
-              <Icon
-                className="h-5 w-5 shrink-0 dark:text-moss"
-                strokeWidth={1.6}
-                aria-hidden
-              />
-              {label}
-            </Link>
-          );
-        },
-      )}
+      ).map(({ href, label, icon: Icon }) => {
+        const active =
+          href === "/settings/general"
+            ? pathname.startsWith("/settings") &&
+              !pathname.startsWith("/properties")
+            : pathname === href || pathname.startsWith(`${href}/`);
+        return (
+          <Link
+            key={href}
+            href={href}
+            onClick={onNavigate}
+            aria-current={active ? "page" : undefined}
+            className={cn(
+              "flex items-center gap-3 rounded-lg border-l-2 px-4 py-3 text-sm font-medium transition-colors",
+              active
+                ? "border-[#d58d74] bg-sage/20 text-white dark:border-[#c4674d]"
+                : "border-transparent text-paper/80 hover:bg-paper/10 hover:text-white",
+            )}
+          >
+            <Icon
+              className="h-5 w-5 shrink-0 dark:text-moss"
+              strokeWidth={1.6}
+              aria-hidden
+            />
+            {label}
+          </Link>
+        );
+      })}
     </nav>
   );
 }
@@ -209,7 +214,9 @@ export function AppSidebar(props: SidebarProps) {
       />
       <p className="px-6 py-5 text-xs font-medium tracking-wide text-paper/45">
         {props.databaseLabel && (
-          <span className="mb-1 block text-paper/70">{props.databaseLabel}</span>
+          <span className="mb-1 block text-paper/70">
+            {props.databaseLabel}
+          </span>
         )}
         Version {APP_VERSION}
       </p>
