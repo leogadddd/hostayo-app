@@ -8,8 +8,10 @@
  *   {viewer.element}
  *
  * `photos` is the list the viewer plays through. A thumbnail "playlist" runs
- * along the top so people can jump to any photo, with previous/next arrows,
- * keyboard (← → Esc), and swipe on touch screens. The close button and Esc
+ * along the bottom so people can jump to any photo, with previous/next arrows,
+ * keyboard (← → Esc), and touch gestures: the photo follows your finger, a
+ * sideways swipe browses and a swipe down closes. The playlist sits along the
+ * bottom, and on phones the arrows give way to swiping. The close button and Esc
  * return focus to whatever opened it.
  */
 
@@ -56,7 +58,12 @@ export function PhotoViewer({
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
   const activeThumb = useRef<HTMLButtonElement>(null);
-  const touchStart = useRef<number | null>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
+  const gesture = useRef<{
+    x: number;
+    y: number;
+    axis: "x" | "y" | null;
+  } | null>(null);
   const count = photos.length;
   const photo = photos[index];
 
@@ -124,7 +131,7 @@ export function PhotoViewer({
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
-      className="fixed inset-0 z-[100] flex flex-col bg-[#0f1c19]/[0.98] text-white backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex h-dvh flex-col overscroll-contain bg-black pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] text-white"
     >
       <header className="flex items-center gap-3 px-4 pb-2 pt-3 sm:px-6">
         <div className="min-w-0 flex-1">
@@ -152,22 +159,69 @@ export function PhotoViewer({
           index={index}
           onSelect={onIndexChange}
           activeRef={activeThumb}
-          className="px-4 pb-3 sm:px-6"
+          className="order-last px-4 pb-3 pt-1 sm:px-6"
           tone="dark"
         />
       ) : null}
 
       <div
-        className="relative flex min-h-0 flex-1 items-center justify-center px-2 sm:px-16"
+        className="relative flex min-h-0 flex-1 touch-pan-y items-center justify-center overflow-hidden px-0 sm:px-16"
         onTouchStart={(event) => {
-          touchStart.current = event.touches[0]?.clientX ?? null;
+          // Leave pinch-zoomed pages and two-finger gestures to the browser.
+          const zoomed = (window.visualViewport?.scale ?? 1) > 1.01;
+          if (event.touches.length !== 1 || zoomed) {
+            gesture.current = null;
+            return;
+          }
+          const touch = event.touches[0]!;
+          gesture.current = { x: touch.clientX, y: touch.clientY, axis: null };
+          if (imageRef.current) imageRef.current.style.transition = "none";
+        }}
+        onTouchMove={(event) => {
+          const state = gesture.current;
+          const image = imageRef.current;
+          if (!state || !image) return;
+          if (event.touches.length !== 1) {
+            gesture.current = null;
+            image.style.transform = "";
+            return;
+          }
+          const touch = event.touches[0]!;
+          const dx = touch.clientX - state.x;
+          const dy = touch.clientY - state.y;
+          if (!state.axis && Math.max(Math.abs(dx), Math.abs(dy)) > 8) {
+            state.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+          }
+          // The photo follows the finger: sideways to browse, down to dismiss.
+          if (state.axis === "x") {
+            image.style.transform = `translateX(${dx}px)`;
+          } else if (state.axis === "y" && dy > 0) {
+            image.style.transform = `translateY(${dy}px)`;
+            image.style.opacity = String(Math.max(0.4, 1 - dy / 400));
+          }
         }}
         onTouchEnd={(event) => {
-          const start = touchStart.current;
-          touchStart.current = null;
-          const end = event.changedTouches[0]?.clientX;
-          if (start === null || end === undefined) return;
-          if (Math.abs(end - start) > 50) go(end < start ? 1 : -1);
+          const state = gesture.current;
+          const image = imageRef.current;
+          gesture.current = null;
+          if (image) {
+            image.style.transition = "transform 0.18s ease, opacity 0.18s ease";
+            image.style.transform = "";
+            image.style.opacity = "";
+          }
+          const touch = event.changedTouches[0];
+          if (!state || !touch) return;
+          const dx = touch.clientX - state.x;
+          const dy = touch.clientY - state.y;
+          if (state.axis === "x" && Math.abs(dx) > 60) go(dx < 0 ? 1 : -1);
+          else if (state.axis === "y" && dy > 110) onClose();
+        }}
+        onTouchCancel={() => {
+          gesture.current = null;
+          if (imageRef.current) {
+            imageRef.current.style.transform = "";
+            imageRef.current.style.opacity = "";
+          }
         }}
         onClick={(event) => {
           if (event.target === event.currentTarget) onClose();
@@ -190,10 +244,12 @@ export function PhotoViewer({
         {/* Plain img: these are authenticated, already-optimized files. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
+          ref={imageRef}
           key={photo.id}
           src={photo.src}
           alt={photo.alt ?? photo.caption ?? photo.label ?? "Photo"}
-          className="max-h-full max-w-full rounded-lg object-contain shadow-2xl"
+          decoding="async"
+          className="max-h-full max-w-full rounded-none object-contain shadow-2xl will-change-transform sm:rounded-lg"
           draggable={false}
         />
         {/* Warm the neighbours so arrows feel instant. */}
@@ -207,7 +263,12 @@ export function PhotoViewer({
         ) : null}
       </div>
 
-      <footer className="flex min-h-16 flex-col items-center justify-center gap-1 px-4 py-3 text-center">
+      <footer
+        className={cn(
+          "flex flex-col items-center justify-center gap-1 px-4 text-center sm:min-h-16 sm:py-3",
+          photo.label || photo.caption ? "py-2" : "py-0",
+        )}
+      >
         {photo.label ? (
           <span className="rounded-full bg-white/12 px-3 py-0.5 text-xs font-medium">
             {photo.label}
@@ -239,7 +300,7 @@ function NavButton({
       onClick={onClick}
       aria-label={label}
       className={cn(
-        "absolute top-1/2 z-10 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/10 transition-colors hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white",
+        "absolute top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full sm:grid bg-white/10 transition-colors hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white",
         side === "left" ? "left-2 sm:left-4" : "right-2 sm:right-4",
       )}
     >
@@ -289,8 +350,8 @@ export function PhotoPlaylist({
             aria-label={`Show photo ${i + 1}${photo.label ? `, ${photo.label}` : ""}`}
             aria-current={active ? "true" : undefined}
             className={cn(
-              "relative h-14 w-20 shrink-0 overflow-hidden rounded-lg ring-offset-2 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-clay",
-              tone === "dark" ? "ring-offset-[#0f1c19]" : "ring-offset-surface",
+              "relative h-12 w-16 shrink-0 overflow-hidden rounded-lg ring-offset-2 sm:h-14 sm:w-20 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-clay",
+              tone === "dark" ? "ring-offset-black" : "ring-offset-surface",
               active
                 ? "opacity-100 ring-2 ring-clay"
                 : "opacity-60 hover:opacity-100",
