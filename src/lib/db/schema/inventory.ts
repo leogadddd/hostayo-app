@@ -85,6 +85,10 @@ export const properties = pgTable(
       table.organizationId,
       table.deletedAt,
     ),
+    index("properties_name_trgm_idx").using(
+      "gin",
+      table.name.op("gin_trgm_ops"),
+    ),
     check(
       "properties_turnover_duration_positive",
       sql`${table.turnoverDurationMinutes} >= 1 AND ${table.turnoverDurationMinutes} <= 1440`,
@@ -218,6 +222,7 @@ export const units = pgTable(
       "units_capacity_positive",
       sql`${table.capacity} >= 1 AND ${table.bedrooms} >= 0 AND ${table.bathrooms} > 0`,
     ),
+    index("units_name_trgm_idx").using("gin", table.name.op("gin_trgm_ops")),
   ],
 );
 

@@ -61,6 +61,11 @@ export const guests = pgTable(
     name: text("name").notNull(),
     email: text("email"),
     phone: text("phone"),
+    // The phone's digits alone, so "0917-555", "+63 917 555" and "917555" all
+    // find the same guest. Maintained by Postgres; used by search.
+    phoneDigits: text("phone_digits").generatedAlwaysAs(
+      sql`regexp_replace(coalesce(phone, ''), '\\D', '', 'g')`,
+    ),
     notes: text("notes"),
     // Optional profile details, kept for the team; never asked for when booking.
     preferredName: text("preferred_name"),
@@ -93,6 +98,13 @@ export const guests = pgTable(
     uniqueIndex("guests_organization_id_unique").on(
       table.organizationId,
       table.id,
+    ),
+    // Trigram indexes behind the header search (needs the pg_trgm extension).
+    index("guests_name_trgm_idx").using("gin", table.name.op("gin_trgm_ops")),
+    index("guests_email_trgm_idx").using("gin", table.email.op("gin_trgm_ops")),
+    index("guests_phone_digits_trgm_idx").using(
+      "gin",
+      table.phoneDigits.op("gin_trgm_ops"),
     ),
     check(
       "guests_contact_check",
@@ -207,6 +219,20 @@ export const reservations = pgTable(
     uniqueIndex("reservations_idempotency_unique").on(
       table.organizationId,
       table.idempotencyKey,
+    ),
+    // Arrivals and departures on a day, and the platform's confirmation code,
+    // for the header search.
+    index("reservations_org_check_in_idx").on(
+      table.organizationId,
+      table.checkInDate,
+    ),
+    index("reservations_org_check_out_idx").on(
+      table.organizationId,
+      table.checkOutDate,
+    ),
+    index("reservations_platform_reference_trgm_idx").using(
+      "gin",
+      table.platformReference.op("gin_trgm_ops"),
     ),
     foreignKey({
       columns: [table.organizationId, table.unitId],

@@ -274,6 +274,13 @@
       "when": 1792031598668,
       "tag": "20261015023318_add_pricing_rules",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1792054880259,
+      "tag": "20261015090120_add_search_indexes",
+      "breakpoints": true
     }
   ]
 }

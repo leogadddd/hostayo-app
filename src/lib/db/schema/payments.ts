@@ -4,6 +4,7 @@ import {
   check,
   date,
   foreignKey,
+  index,
   integer,
   pgEnum,
   pgTable,
@@ -320,6 +321,14 @@ export const expenses = pgTable(
       table.id,
     ),
     check("expenses_amount_positive", sql`${table.amountCents} > 0`),
+    index("expenses_description_trgm_idx").using(
+      "gin",
+      table.description.op("gin_trgm_ops"),
+    ),
+    index("expenses_payee_trgm_idx").using(
+      "gin",
+      table.payee.op("gin_trgm_ops"),
+    ),
     uniqueIndex("expenses_recurring_due_unique").on(
       table.recurringExpenseId,
       table.recurringDueDate,
