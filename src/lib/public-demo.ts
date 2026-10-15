@@ -46,6 +46,8 @@ export interface PublicUnit {
   slug: string;
   name: string;
   propertyName: string;
+  /** What the host wrote about the property; empty when nothing was. */
+  propertyDescription: string;
   location: string;
   description: string;
   imageUrl: string | null;
@@ -144,6 +146,7 @@ const HOUSE_RULES = [
 function demoUnits(today: string): PublicUnit[] {
   const base = {
     propertyName: "Casa Alon Beach Villas",
+    propertyDescription: "",
     location: "Corong-Corong, El Nido, Palawan",
     imageUrl: null,
     imageGallery: [],
@@ -321,6 +324,7 @@ export const getPublicHost = cache(
           slug: unit.publicSlug,
           name: unit.name,
           propertyName: property.name,
+          propertyDescription: property.description ?? "",
           location:
             [
               organization.city ?? organization.municipality,

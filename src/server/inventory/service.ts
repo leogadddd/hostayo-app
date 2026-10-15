@@ -180,6 +180,7 @@ export async function createProperty(input: {
         organizationId: input.organizationId,
         name: data.name,
         address: data.address || null,
+        description: data.description || null,
         timezone: data.timezone,
         checkInTime: data.checkInTime,
         checkOutTime: data.checkOutTime,
@@ -230,6 +231,9 @@ export async function updateProperty(input: {
       .set({
         name: data.name,
         address: data.address || null,
+        ...(data.description !== undefined
+          ? { description: data.description || null }
+          : {}),
         timezone: data.timezone,
         checkInTime: data.checkInTime,
         checkOutTime: data.checkOutTime,

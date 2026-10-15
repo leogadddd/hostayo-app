@@ -53,6 +53,7 @@ export default async function EditPropertyPage({
         initialValues={{
           name: property.name,
           address: property.address ?? "",
+          description: property.description ?? "",
           timezone: property.timezone,
           checkInTime: property.checkInTime,
           checkOutTime: property.checkOutTime,

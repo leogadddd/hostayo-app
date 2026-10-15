@@ -71,6 +71,7 @@ const property = {
   organizationId: "org-a",
   name: "Riverside Residences",
   address: "Manila",
+  description: null,
   timezone: "Asia/Manila",
   checkInTime: "15:00",
   checkOutTime: "11:00",

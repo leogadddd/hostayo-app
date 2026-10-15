@@ -182,6 +182,7 @@ export async function createPropertyAction(
           data: {
             name: readString(formData, "name"),
             address: readString(formData, "address") || undefined,
+            description: readString(formData, "description"),
             timezone: readString(formData, "timezone") || "Asia/Manila",
             checkInTime: readString(formData, "checkInTime") || "15:00",
             checkOutTime: readString(formData, "checkOutTime") || "11:00",
@@ -219,6 +220,7 @@ export async function updatePropertyAction(
           data: {
             name: readString(formData, "name"),
             address: readString(formData, "address") || undefined,
+            description: readString(formData, "description"),
             timezone: readString(formData, "timezone") || "Asia/Manila",
             checkInTime: readString(formData, "checkInTime") || "15:00",
             checkOutTime: readString(formData, "checkOutTime") || "11:00",

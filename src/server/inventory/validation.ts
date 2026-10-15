@@ -56,6 +56,12 @@ export const propertyInputSchema = z.object({
     .trim()
     .max(300, "Address must be 300 characters or fewer.")
     .optional(),
+  // Shown on the public unit page. Omitted keeps the stored text; blank clears it.
+  description: z
+    .string()
+    .trim()
+    .max(2000, "The description must be 2,000 characters or fewer.")
+    .optional(),
   timezone: z.string().trim().refine(isValidTimeZone, {
     message: "Use a valid IANA timezone like Asia/Manila.",
   }),

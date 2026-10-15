@@ -25,6 +25,8 @@ import { timeLabel, UnitPhoto } from "../calendar/availability/stay-display";
 export interface PropertyFormValues {
   name: string;
   address: string;
+  /** What guests read about the property on the public unit page. */
+  description?: string;
   timezone: string;
   checkInTime: string;
   checkOutTime: string;
@@ -196,6 +198,22 @@ export function PropertyForm({
                 maxLength={300}
                 placeholder="Building, street, barangay, city"
                 className="min-h-20"
+              />
+            </div>
+            <div>
+              <Label
+                htmlFor="description"
+                info="Guests read this on each unit's public page, under About the property: the neighborhood, the building, what is nearby."
+              >
+                Description
+              </Label>
+              <Textarea
+                id="description"
+                name="description"
+                defaultValue={values.description ?? ""}
+                rows={5}
+                maxLength={2000}
+                placeholder="e.g. A quiet resort-style residence near the mall, with a pool and 24/7 security."
               />
             </div>
           </div>

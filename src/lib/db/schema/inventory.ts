@@ -57,6 +57,8 @@ export const properties = pgTable(
       .references(() => organizations.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     address: text("address"),
+    // What guests read about the property on the public unit page.
+    description: text("description"),
     timezone: text("timezone").notNull().default("Asia/Manila"),
     checkInTime: text("check_in_time").notNull().default("15:00"),
     checkOutTime: text("check_out_time").notNull().default("11:00"),

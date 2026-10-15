@@ -128,6 +128,7 @@ const property = {
   organizationId: owner.organizationId,
   name: "Test property",
   address: "Private address",
+  description: null,
   timezone: "Asia/Manila",
   checkInTime: "15:00",
   checkOutTime: "11:00",

@@ -348,6 +348,14 @@ export default async function UnitPage({
                 </Block>
               ) : null}
 
+              {unit.propertyDescription ? (
+                <Block id="property" title={`About ${unit.propertyName}`}>
+                  <p className="max-w-2xl whitespace-pre-line leading-relaxed text-ink/75">
+                    {unit.propertyDescription}
+                  </p>
+                </Block>
+              ) : null}
+
               {unit.guestHouseRules.length ? (
                 <Block id="rules" title="House rules">
                   <ul className="max-w-2xl space-y-2.5">

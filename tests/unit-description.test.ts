@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { unitInputSchema } from "@/server/inventory/validation";
+import {
+  propertyInputSchema,
+  unitInputSchema,
+} from "@/server/inventory/validation";
 
 const BASE = {
   name: "Unit 12B",
@@ -32,5 +35,28 @@ describe("unit description", () => {
       unitInputSchema.parse({ ...BASE, description: "x".repeat(2000) })
         .description,
     ).toHaveLength(2000);
+  });
+});
+
+describe("property description", () => {
+  const PROPERTY = {
+    name: "Lakeview Villas",
+    timezone: "Asia/Manila",
+    checkInTime: "15:00",
+    checkOutTime: "11:00",
+  };
+
+  it("is optional and trimmed", () => {
+    expect(propertyInputSchema.parse(PROPERTY).description).toBeUndefined();
+    expect(
+      propertyInputSchema.parse({ ...PROPERTY, description: "  Quiet.  " })
+        .description,
+    ).toBe("Quiet.");
+  });
+
+  it("stops at 2,000 characters", () => {
+    expect(() =>
+      propertyInputSchema.parse({ ...PROPERTY, description: "x".repeat(2001) }),
+    ).toThrow(/2,000/);
   });
 });
