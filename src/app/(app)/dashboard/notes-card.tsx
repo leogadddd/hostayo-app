@@ -107,6 +107,10 @@ export function NotesCard({
             }
           }}
           disabled={!loaded}
+          // Firefox and some extensions restore or rewrite a field's disabled
+          // state before React hydrates; it flips on right after mount anyway.
+          autoComplete="off"
+          suppressHydrationWarning
           maxLength={MAX_LENGTH}
           placeholder={
             "Jot down reminders for today…\n\n• Ask 12B guest about late check-out\n• Buy extra towels"
