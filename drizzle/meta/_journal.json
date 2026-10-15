@@ -253,6 +253,13 @@
       "when": 1791849600000,
       "tag": "20261013000000_add_early_access_requests",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1791979692498,
+      "tag": "20261014120812_inventory_photos",
+      "breakpoints": true
     }
   ]
 }

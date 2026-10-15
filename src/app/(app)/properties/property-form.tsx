@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useCallback, useRef, useState } from "react";
+import { useActionState, useRef } from "react";
 import { Building2, Clock, LogIn, LogOut, MapPin } from "lucide-react";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { TimezonePicker } from "@/components/ui/timezone-picker";
@@ -13,13 +13,7 @@ import {
   type InventoryFormState,
 } from "./actions";
 import { AmenityPicker, type AmenityOption } from "./amenity-picker";
-import {
-  FormAside,
-  FormLayout,
-  FormSection,
-  PhotoField,
-  useFormValues,
-} from "./form-kit";
+import { FormAside, FormLayout, FormSection, useFormValues } from "./form-kit";
 import { timeLabel, UnitPhoto } from "../calendar/availability/stay-display";
 
 export interface PropertyFormValues {
@@ -74,7 +68,7 @@ export function PropertyForm({
       propertyId
         ? `/properties/${propertyId}`
         : result.id
-          ? `/properties/${result.id}`
+          ? `/properties/${result.id}/photos?new=1`
           : "/properties",
     editing ? "Property updated." : "Property created.",
   );
@@ -89,8 +83,8 @@ export function PropertyForm({
   };
   const formRef = useRef<HTMLFormElement>(null);
   const { values: live, read } = useFormValues(formRef);
-  const [photo, setPhoto] = useState<string | null>(values.imageUrl ?? null);
-  const onPreview = useCallback((src: string | null) => setPhoto(src), []);
+  // The cover is managed on the Photos page; the preview just shows it.
+  const photo = values.imageUrl ?? null;
   const cancelHref = propertyId ? `/properties/${propertyId}` : "/properties";
 
   const name = live.name?.trim() || values.name || "Your property";
@@ -196,13 +190,6 @@ export function PropertyForm({
                 maxLength={300}
                 placeholder="Building, street, barangay, city"
                 className="min-h-20"
-              />
-            </div>
-            <div>
-              <p className="mb-1.5 text-sm font-medium text-ink">Cover photo</p>
-              <PhotoField
-                currentSrc={values.imageUrl ?? null}
-                onPreview={onPreview}
               />
             </div>
           </div>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { requirePermission } from "@/lib/auth/session";
+import { CreateSteps } from "../create-steps";
 import { PageHeading } from "@/components/app/page-heading";
 import { PermissionDenied } from "@/components/app/permission-denied";
 import { PropertyForm } from "../property-form";
@@ -26,6 +27,7 @@ export default async function NewPropertyPage() {
         backHref="/properties"
         backLabel="All properties"
       />
+      <CreateSteps current={1} />
       <PropertyForm
         defaultTimezone={organization?.defaultTimezone ?? "Asia/Manila"}
         amenityOptions={await listAmenities(

@@ -14,7 +14,17 @@ const MAX_IMAGE_PIXELS = 40_000_000;
  * Validate an uploaded cover photo and read it into memory for object
  * storage. Returns undefined when no file was chosen.
  */
-export async function imageUploadFromForm(formData: FormData, key: string) {
+export interface ImageUpload {
+  contentType: string;
+  body: Uint8Array;
+  width?: number;
+  height?: number;
+}
+
+export async function imageUploadFromForm(
+  formData: FormData,
+  key: string,
+): Promise<ImageUpload | undefined> {
   const value = formData.get(key);
   if (!(value instanceof File) || value.size === 0) return undefined;
   if (value.size > MAX_IMAGE_BYTES) {
@@ -54,7 +64,10 @@ export async function imageUploadFromDataUrl(value: string) {
  * rejects malformed files and prevents storage from serving arbitrary bytes
  * under an image content type.
  */
-async function normalizeImage(body: Uint8Array, field: string) {
+async function normalizeImage(
+  body: Uint8Array,
+  field: string,
+): Promise<ImageUpload> {
   try {
     const image = sharp(body, {
       failOn: "error",
@@ -78,7 +91,13 @@ async function normalizeImage(body: Uint8Array, field: string) {
       })
       .webp({ quality: 86 })
       .toBuffer();
-    return { contentType: "image/webp", body: normalized };
+    const out = await sharp(normalized).metadata();
+    return {
+      contentType: "image/webp",
+      body: normalized,
+      width: out.width,
+      height: out.height,
+    };
   } catch {
     throw new InventoryError(
       "Upload a valid JPG, PNG, or WebP image no larger than 40 megapixels.",

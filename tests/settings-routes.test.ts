@@ -82,6 +82,9 @@ vi.mock("@/server/inventory/availability", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/server/inventory/availability")>()),
   getOccupancySegments: vi.fn(async () => new Map()),
 }));
+vi.mock("@/server/inventory/gallery", () => ({
+  listGalleryPhotos: vi.fn(async () => []),
+}));
 vi.mock("@/server/inventory/amenities", () => ({
   listAmenities: vi.fn(async () => []),
   listPropertyAmenities: vi.fn(async () => []),
@@ -586,7 +589,7 @@ const returningEditors = [
     render: () => React.createElement(PropertyForm),
     action: propertyActions.createPropertyAction,
     result: { success: true, id: "property-new" },
-    destination: "/properties/property-new",
+    destination: "/properties/property-new/photos?new=1",
   },
   {
     name: "edit property",
