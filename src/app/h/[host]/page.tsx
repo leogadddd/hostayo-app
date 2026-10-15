@@ -7,7 +7,7 @@ import { PublicShell } from "@/components/public/public-shell";
 import { UnitCard } from "@/components/public/unit-card";
 import { JsonLd } from "@/components/json-ld";
 import { getPublicHost, todayISO } from "@/lib/public-demo";
-import { APP_URL } from "@/lib/site";
+import { absoluteUrl, APP_URL } from "@/lib/site";
 import { InfoTip } from "@/components/ui/info-tip";
 
 type Params = { host: string };
@@ -62,7 +62,7 @@ export default async function HostPage({
             name: host.displayName,
             description: host.tagline,
             url: `${APP_URL}/h/${encodeURIComponent(host.slug)}`,
-            ...(host.logoUrl ? { image: host.logoUrl } : {}),
+            ...(host.logoUrl ? { image: absoluteUrl(host.logoUrl) } : {}),
             address: {
               "@type": "PostalAddress",
               addressLocality: host.location,

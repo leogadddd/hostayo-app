@@ -21,6 +21,8 @@ import {
   listUnitAmenities,
 } from "@/server/inventory/amenities";
 import { getOccupancySegments } from "@/server/inventory/availability";
+import { listPublicUnitPhotos } from "@/server/inventory/public-photos";
+import { isStoredPhotoKey } from "@/lib/photos";
 import { findActiveGuestToken } from "@/server/reservations/guest-link";
 
 export interface PublicAmenity {
@@ -284,6 +286,16 @@ export const getPublicHost = cache(
       today,
       addDays(today, 366),
     );
+    const photosByUnit = await listPublicUnitPhotos(
+      organization.id,
+      rows.map(({ unit, property }) => ({
+        unitId: unit.id,
+        propertyId: property.id,
+      })),
+    );
+    // Photos kept as a web address or inline image before uploads existed.
+    const legacyPhoto = (value: string | null) =>
+      value && !isStoredPhotoKey(value) ? value : null;
     const mappedUnits = await Promise.all(
       rows.map(async ({ unit, property }) => {
         const [unitAmenities, propertyAmenities] = await Promise.all([
@@ -303,8 +315,12 @@ export const getPublicHost = cache(
               .filter(Boolean)
               .join(", ") || "Philippines",
           description: unit.description ?? "",
-          imageUrl: unit.imageUrl,
-          imageGallery: unit.imageGallery,
+          imageUrl:
+            photosByUnit.get(unit.id)?.cover ?? legacyPhoto(unit.imageUrl),
+          imageGallery: [
+            ...(photosByUnit.get(unit.id)?.gallery ?? []),
+            ...unit.imageGallery.filter((value) => legacyPhoto(value)),
+          ],
           capacity: unit.capacity,
           bedrooms: unit.bedrooms,
           bathrooms: unit.bathrooms,
@@ -342,7 +358,9 @@ export const getPublicHost = cache(
       displayName: organization.displayName ?? organization.name,
       tagline: organization.tagline ?? "",
       about: "",
-      logoUrl: organization.logoUrl,
+      logoUrl: isStoredPhotoKey(organization.logoUrl)
+        ? `/api/public/hosts/${encodeURIComponent(slug)}/logo`
+        : organization.logoUrl,
       location:
         [organization.city ?? organization.municipality, organization.province]
           .filter(Boolean)

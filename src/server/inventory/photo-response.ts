@@ -13,6 +13,7 @@ import {
 export async function photoResponse(
   organizationId: string,
   imageUrl: string | null | undefined,
+  options: { cache?: "private" | "public" } = {},
 ) {
   if (!isStoredPhotoKey(imageUrl, organizationId)) {
     return Response.json({ error: "Photo not found." }, { status: 404 });
@@ -25,7 +26,7 @@ export async function photoResponse(
     return new Response(bytes, {
       headers: {
         "Content-Type": photo.contentType ?? "image/jpeg",
-        "Cache-Control": "private, max-age=86400",
+        "Cache-Control": `${options.cache ?? "private"}, max-age=86400`,
         "X-Content-Type-Options": "nosniff",
       },
     });

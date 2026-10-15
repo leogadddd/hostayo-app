@@ -25,7 +25,7 @@ import {
 import { formatPHP } from "@/lib/money";
 import { JsonLd } from "@/components/json-ld";
 import { getPublicUnit, todayISO, type PublicAmenity } from "@/lib/public-demo";
-import { APP_URL } from "@/lib/site";
+import { absoluteUrl, APP_URL } from "@/lib/site";
 
 type Params = { host: string; unit: string };
 
@@ -48,7 +48,9 @@ export async function generateMetadata({
           url: `/h/${encodeURIComponent(host)}/${encodeURIComponent(unit)}`,
           title: `${found.unit.name} · ${found.host.displayName}`,
           description: found.unit.description.slice(0, 150),
-          ...(found.unit.imageUrl ? { images: [found.unit.imageUrl] } : {}),
+          ...(found.unit.imageUrl
+            ? { images: [absoluteUrl(found.unit.imageUrl)] }
+            : {}),
         },
         robots: {
           index: found.host.publicListingEnabled,
@@ -118,7 +120,7 @@ export default async function UnitPage({
             name: unit.name,
             description: unit.description,
             url: `${APP_URL}${hostHref}/${encodeURIComponent(unit.slug)}`,
-            ...(unit.imageUrl ? { image: unit.imageUrl } : {}),
+            ...(unit.imageUrl ? { image: absoluteUrl(unit.imageUrl) } : {}),
             numberOfBedrooms: unit.bedrooms,
             numberOfBathroomsTotal: unit.bathrooms,
             occupancy: {

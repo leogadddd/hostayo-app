@@ -38,7 +38,10 @@ export const PHOTO_SECTION_HINTS: Record<PhotoSection, string> = {
 export type PhotoScope = "property" | "unit";
 
 /** Sections offered for each kind of record, in display order. */
-export const PHOTO_SECTIONS_BY_SCOPE: Record<PhotoScope, readonly PhotoSection[]> = {
+export const PHOTO_SECTIONS_BY_SCOPE: Record<
+  PhotoScope,
+  readonly PhotoSection[]
+> = {
   property: ["exterior", "view", "nearby", "additional"],
   unit: ["living_room", "bedroom", "bathroom", "view", "additional"],
 };
@@ -67,4 +70,10 @@ export interface GalleryPhoto {
 export function galleryPhotoSrc(id: string, updatedAt: Date | string): string {
   const version = new Date(updatedAt).getTime();
   return `/api/photos/${id}?v=${version}`;
+}
+
+/** Where a photo on a public page is served from; no sign-in needed. */
+export function publicPhotoSrc(id: string, updatedAt: Date | string): string {
+  const version = new Date(updatedAt).getTime();
+  return `/api/public/photos/${id}?v=${version}`;
 }
