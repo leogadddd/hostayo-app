@@ -21,6 +21,7 @@ import {
   getUnitOrThrow,
   updateProperty,
   updateUnit,
+  updateUnitGuide,
   updateUnitPricing,
 } from "@/server/inventory/service";
 import {
@@ -311,6 +312,41 @@ function unitPricingFromForm(formData: FormData) {
   };
 }
 
+/** One entry per non-empty line; a leading bullet or number is dropped. */
+function readLines(formData: FormData, key: string): string[] {
+  return String(formData.get(key) ?? "")
+    .split(/\r?\n/)
+    .map((line) => line.replace(/^\s*(?:[•\-*–]|\d+[.)])\s*/, "").trim())
+    .filter(Boolean);
+}
+
+/** Area tips from the paired `areaTipTitle` and `areaTipDetail` inputs. */
+function readAreaTips(formData: FormData) {
+  const titles = formData.getAll("areaTipTitle").map((value) => String(value));
+  const details = formData
+    .getAll("areaTipDetail")
+    .map((value) => String(value));
+  return titles
+    .map((title, index) => ({
+      title: title.trim(),
+      detail: (details[index] ?? "").trim(),
+    }))
+    .filter((tip) => tip.title || tip.detail);
+}
+
+/** What the Guest guide page submits. It's saved apart from the unit's details. */
+function unitGuideFromForm(formData: FormData) {
+  return {
+    description: readString(formData, "description"),
+    guestHouseRules: readLines(formData, "houseRules"),
+    wifiName: readString(formData, "wifiName"),
+    wifiPassword: readString(formData, "wifiPassword"),
+    arrivalNotes: readLines(formData, "arrivalNotes"),
+    checkoutSteps: readLines(formData, "checkoutSteps"),
+    areaTips: readAreaTips(formData),
+  };
+}
+
 function unitDataFromForm(formData: FormData) {
   return {
     name: readString(formData, "name"),
@@ -544,5 +580,33 @@ export async function updateUnitPricingAction(
   revalidatePath("/calendar");
   revalidatePath("/reservations/new");
   revalidatePath("/h/[host]/[unit]", "page");
+  return { success: true, id: unitId };
+}
+
+export async function updateUnitGuideAction(
+  propertyId: string,
+  unitId: string,
+  _prev: InventoryFormState,
+  formData: FormData,
+): Promise<InventoryFormState> {
+  const membership = await requireMembership();
+  assertCan(membership, "properties.update");
+  try {
+    const unit = await getUnitOrThrow(membership.organizationId, unitId);
+    if (unit.propertyId !== propertyId) {
+      throw new InventoryError("Unit not found.");
+    }
+    await updateUnitGuide({
+      organizationId: membership.organizationId,
+      actorUserId: membership.userId,
+      unitId,
+      data: unitGuideFromForm(formData),
+    });
+  } catch (error) {
+    return toFormError(error);
+  }
+  revalidatePath(`/properties/${propertyId}/units/${unitId}`);
+  revalidatePath("/h/[host]/[unit]", "page");
+  revalidatePath("/g/[token]", "page");
   return { success: true, id: unitId };
 }

@@ -9,6 +9,7 @@ import { InventoryError } from "@/server/inventory/validation";
 import { PageHeading } from "@/components/app/page-heading";
 import { PermissionDenied } from "@/components/app/permission-denied";
 import { UnitEditForm } from "../../unit-edit-form";
+import { SectionTabs, unitTabs } from "../../../../section-tabs";
 import { listAmenities, listUnitAmenities } from "@/server/inventory/amenities";
 import { getOrganizationContactChannels } from "@/server/orgs/service";
 
@@ -47,6 +48,7 @@ export default async function EditUnitPage({
         backHref={`/properties/${property.id}/units/${unit.id}`}
         backLabel={unit.name}
       />
+      <SectionTabs tabs={unitTabs(property.id, unit.id)} current="details" />
       <UnitEditForm
         propertyId={property.id}
         unitId={unit.id}

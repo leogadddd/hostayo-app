@@ -7,6 +7,7 @@ import { InventoryError } from "@/server/inventory/validation";
 import { PageHeading } from "@/components/app/page-heading";
 import { PermissionDenied } from "@/components/app/permission-denied";
 import { PropertyForm } from "../../property-form";
+import { propertyTabs, SectionTabs } from "../../section-tabs";
 import {
   listAmenities,
   listPropertyAmenities,
@@ -44,6 +45,7 @@ export default async function EditPropertyPage({
         backHref={`/properties/${property.id}`}
         backLabel={property.name}
       />
+      <SectionTabs tabs={propertyTabs(property.id)} current="details" />
       <PropertyForm
         propertyId={property.id}
         amenityOptions={amenityOptions}

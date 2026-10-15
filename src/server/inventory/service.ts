@@ -14,10 +14,12 @@ import {
   InventoryError,
   propertyInputSchema,
   unitBlockInputSchema,
+  unitGuideSchema,
   unitInputSchema,
   unitPricingSchema,
   type PropertyInput,
   type UnitBlockInput,
+  type UnitGuideInput,
   type UnitInput,
   type UnitPricingInput,
 } from "./validation";
@@ -432,6 +434,42 @@ export async function updateUnitPricing(input: {
       metadata: {
         nightlyRateCents: data.defaultNightlyRateCents,
         dayRateCount: Object.keys(data.dayRates).length,
+      },
+    });
+  });
+}
+
+/** Update only what guests read: the description, Wi-Fi, rules, arrival and check-out notes, and tips. */
+export async function updateUnitGuide(input: {
+  organizationId: string;
+  actorUserId: string;
+  unitId: string;
+  data: UnitGuideInput;
+}) {
+  const data = unitGuideSchema.parse(input.data);
+  await getUnitOrThrow(input.organizationId, input.unitId);
+  await db.transaction(async (tx) => {
+    await tx
+      .update(units)
+      .set({ ...data, updatedAt: new Date() })
+      .where(
+        and(
+          eq(units.id, input.unitId),
+          eq(units.organizationId, input.organizationId),
+          isNull(units.deletedAt),
+        ),
+      );
+    await recordAudit(tx, {
+      organizationId: input.organizationId,
+      actorUserId: input.actorUserId,
+      entity: "unit",
+      entityId: input.unitId,
+      action: "unit.guide_updated",
+      metadata: {
+        houseRules: data.guestHouseRules.length,
+        arrivalNotes: data.arrivalNotes.length,
+        checkoutSteps: data.checkoutSteps.length,
+        areaTips: data.areaTips.length,
       },
     });
   });

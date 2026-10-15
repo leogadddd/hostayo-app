@@ -77,6 +77,18 @@ export const propertyInputSchema = z.object({
 // Input callers may omit this field; Zod supplies the two-hour default.
 export type PropertyInput = z.input<typeof propertyInputSchema>;
 
+/** A list of short lines, such as house rules; blank lines are dropped. */
+const guideLines = (label: string) =>
+  z
+    .array(
+      z
+        .string()
+        .trim()
+        .min(1)
+        .max(300, `${label} must be 300 characters or fewer each.`),
+    )
+    .max(30, `${label} can have up to 30 lines.`);
+
 /** The reservation fee rule shared by the full unit schema and the pricing schema. */
 function refineReservationFee(
   value: {
@@ -184,6 +196,47 @@ export const unitInputSchema = z
 
 export type UnitInput = z.infer<typeof unitInputSchema>;
 
+/**
+ * What guests read about a unit, edited on its own Guest guide page. Blank
+ * text and empty lists clear a field.
+ */
+export const unitGuideSchema = z.object({
+  description: z
+    .string()
+    .trim()
+    .max(2000, "The description must be 2,000 characters or fewer.")
+    .transform((value) => value || null),
+  guestHouseRules: guideLines("House rules"),
+  wifiName: z
+    .string()
+    .trim()
+    .max(80, "The Wi-Fi name must be 80 characters or fewer.")
+    .transform((value) => value || null),
+  wifiPassword: z
+    .string()
+    .trim()
+    .max(120, "The Wi-Fi password must be 120 characters or fewer.")
+    .transform((value) => value || null),
+  arrivalNotes: guideLines("Arrival notes"),
+  checkoutSteps: guideLines("Check-out steps"),
+  areaTips: z
+    .array(
+      z.object({
+        title: z
+          .string()
+          .trim()
+          .min(1, "Give each area tip a title.")
+          .max(80, "Area tip titles must be 80 characters or fewer."),
+        detail: z
+          .string()
+          .trim()
+          .max(300, "Area tip details must be 300 characters or fewer."),
+      }),
+    )
+    .max(12, "Add up to 12 area tips."),
+});
+
+export type UnitGuideInput = z.input<typeof unitGuideSchema>;
 
 /** Everything a unit charges, edited on its own Pricing page. */
 export const unitPricingSchema = z

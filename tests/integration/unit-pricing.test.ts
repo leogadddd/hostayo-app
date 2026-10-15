@@ -5,6 +5,7 @@ import { auditEvents, units } from "@/lib/db/schema";
 import {
   getUnitOrThrow,
   updateUnit,
+  updateUnitGuide,
   updateUnitPricing,
 } from "@/server/inventory/service";
 import { InventoryError } from "@/server/inventory/validation";
@@ -118,5 +119,92 @@ describe("unit pricing", () => {
     ).rejects.toBeInstanceOf(InventoryError);
     const [row] = await db.select().from(units).where(eq(units.id, a.unit.id));
     expect(row!.defaultNightlyRateCents).not.toBe(550_000);
+  });
+
+  it("saves the guest guide on its own and a details edit leaves it alone", async () => {
+    const { org, owner, unit } = await setup("guide-details");
+    const args = {
+      organizationId: org.id,
+      actorUserId: owner.id,
+      unitId: unit.id,
+    };
+    await updateUnitGuide({
+      ...args,
+      data: {
+        description: "  A bright studio near the mall.  ",
+        guestHouseRules: ["No smoking", "Quiet hours 10 PM"],
+        wifiName: "Casa-Guest",
+        wifiPassword: "secret-2026",
+        arrivalNotes: ["Tell the guard your name"],
+        checkoutSteps: ["Turn off the aircon"],
+        areaTips: [{ title: "7-Eleven", detail: "2 minutes away" }],
+      },
+    });
+    let saved = await getUnitOrThrow(org.id, unit.id);
+    expect(saved).toMatchObject({
+      description: "A bright studio near the mall.",
+      guestHouseRules: ["No smoking", "Quiet hours 10 PM"],
+      wifiName: "Casa-Guest",
+      wifiPassword: "secret-2026",
+      arrivalNotes: ["Tell the guard your name"],
+      checkoutSteps: ["Turn off the aircon"],
+      areaTips: [{ title: "7-Eleven", detail: "2 minutes away" }],
+      // Nothing outside the guide changed.
+      name: unit.name,
+    });
+
+    // The Details form sends none of it.
+    await updateUnit({
+      ...args,
+      data: {
+        name: "Renamed",
+        capacity: 2,
+        bedrooms: 1,
+        bathrooms: 1,
+        checkInTime: "15:00",
+        checkOutTime: "11:00",
+        status: "active",
+      },
+    });
+    saved = await getUnitOrThrow(org.id, unit.id);
+    expect(saved.name).toBe("Renamed");
+    expect(saved.description).toBe("A bright studio near the mall.");
+    expect(saved.guestHouseRules).toHaveLength(2);
+
+    // Blank values clear it.
+    await updateUnitGuide({
+      ...args,
+      data: {
+        description: "",
+        guestHouseRules: [],
+        wifiName: "",
+        wifiPassword: "",
+        arrivalNotes: [],
+        checkoutSteps: [],
+        areaTips: [],
+      },
+    });
+    saved = await getUnitOrThrow(org.id, unit.id);
+    expect(saved).toMatchObject({
+      description: null,
+      guestHouseRules: [],
+      wifiName: null,
+      wifiPassword: null,
+      areaTips: [],
+    });
+    await expect(
+      updateUnitGuide({
+        ...args,
+        data: {
+          description: "",
+          guestHouseRules: [],
+          wifiName: "",
+          wifiPassword: "",
+          arrivalNotes: [],
+          checkoutSteps: [],
+          areaTips: [{ title: "", detail: "no title" }],
+        },
+      }),
+    ).rejects.toThrow();
   });
 });
