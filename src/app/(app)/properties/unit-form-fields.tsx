@@ -8,6 +8,7 @@ import { UNIT_STATUS_DESCRIPTIONS, UNIT_STATUS_LABELS } from "@/lib/labels";
 import { formatPHP, MoneyParseError, pesosToCentavos } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import { Input, Label } from "@/components/ui/input";
+import { NumberStepper } from "@/components/ui/number-stepper";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
 import { useSaveAndReturn } from "@/hooks/use-save-and-return";
 import type { InventoryFormState } from "./actions";
@@ -274,6 +275,7 @@ export function UnitForm({
                   {UNIT_STATUS_LABELS[value]}
                 </label>
               ))}
+                step={1}
             </div>
             <p className="mt-3 text-sm text-ink/60">
               {UNIT_STATUS_DESCRIPTIONS[status]}
@@ -285,13 +287,13 @@ export function UnitForm({
           title="Space"
           description="How many people it sleeps and its rooms."
         >
+                step={1}
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
               <Label htmlFor="unit-capacity">Guests</Label>
-              <Input
+              <NumberStepper
                 id="unit-capacity"
                 name="capacity"
-                type="number"
                 min={1}
                 max={50}
                 defaultValue={values.capacity}
@@ -300,10 +302,9 @@ export function UnitForm({
             </div>
             <div>
               <Label htmlFor="unit-bedrooms">Bedrooms</Label>
-              <Input
+              <NumberStepper
                 id="unit-bedrooms"
                 name="bedrooms"
-                type="number"
                 min={0}
                 max={20}
                 defaultValue={values.bedrooms}
@@ -312,10 +313,9 @@ export function UnitForm({
             </div>
             <div>
               <Label htmlFor="unit-bathrooms">Bathrooms</Label>
-              <Input
+              <NumberStepper
                 id="unit-bathrooms"
                 name="bathrooms"
-                type="number"
                 min={0.5}
                 max={20}
                 step={0.5}
