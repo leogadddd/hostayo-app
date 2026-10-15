@@ -5,18 +5,18 @@ import {
   ArrowLeft,
   Check,
   ArrowRight,
-  BedDouble,
-  Bath,
-  Building2,
-  ImagePlus,
+  Bed as BedDouble,
+  Bathtub as Bath,
+  Buildings as Building2,
+  ImageSquare as ImagePlus,
   Images,
-  Loader2,
+  CircleNotch as Loader2,
   MapPin,
-  Mountain,
-  Sofa,
+  Mountains as Mountain,
+  Couch as Sofa,
   Star,
-  Trash2,
-} from "lucide-react";
+  Trash as Trash2,
+} from "@/components/ui/icons";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -612,7 +612,7 @@ function SectionBlock({
                     "pointer-events-none absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-clay px-2 py-0.5 text-[11px] font-medium text-white",
                   )}
                 >
-                  <Star className="h-3 w-3 fill-current" aria-hidden />
+                  <Star className="h-3 w-3" weight="fill" aria-hidden />
                   Cover
                 </span>
               ) : null}
@@ -644,7 +644,8 @@ function SectionBlock({
                       onClick={onClearCover}
                     >
                       <Star
-                        className="h-3.5 w-3.5 fill-current text-clay"
+                        className="h-3.5 w-3.5 text-clay"
+                        weight="fill"
                         aria-hidden
                       />
                     </IconAction>

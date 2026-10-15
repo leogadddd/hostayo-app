@@ -1,7 +1,14 @@
 "use client";
 
 import { useId, useState } from "react";
-import { ArrowDown, ArrowUp, Pencil, Plus, Trash2, X } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  PencilSimple as Pencil,
+  Plus,
+  Trash as Trash2,
+  X,
+} from "@/components/ui/icons";
 import { toast } from "sonner";
 import {
   ChannelIcon,

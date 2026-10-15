@@ -1,5 +1,8 @@
 import Link from "next/link";
-import { MailCheck, MailX } from "lucide-react";
+import {
+  Envelope as MailCheck,
+  Envelope as MailX,
+} from "@/components/ui/icons";
 import { buttonClassName } from "@/components/ui/button";
 import { inspectInvitationAction } from "./invitation-actions";
 import {
@@ -27,11 +30,7 @@ export async function InvitationAcceptance({
   if (invitation.error || !invitation.organizationName) {
     return (
       <div>
-        <MailX
-          className="animate-rise h-10 w-10 text-clay"
-          strokeWidth={1.6}
-          aria-hidden
-        />
+        <MailX className="animate-rise h-10 w-10 text-clay" aria-hidden />
         <h1
           className="animate-rise mt-5 font-display text-4xl leading-tight text-pine"
           style={{ animationDelay: "60ms" }}
@@ -72,11 +71,7 @@ export async function InvitationAcceptance({
 
   return (
     <div>
-      <MailCheck
-        className="animate-rise h-10 w-10 text-moss"
-        strokeWidth={1.6}
-        aria-hidden
-      />
+      <MailCheck className="animate-rise h-10 w-10 text-moss" aria-hidden />
       <h1
         className="animate-rise mt-5 font-display text-4xl leading-tight text-pine sm:text-5xl"
         style={{ animationDelay: "60ms" }}

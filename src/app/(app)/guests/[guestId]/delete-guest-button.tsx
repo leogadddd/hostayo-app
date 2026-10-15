@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Trash2 } from "lucide-react";
+import { Trash as Trash2 } from "@/components/ui/icons";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { deleteGuestAction } from "../actions";
 

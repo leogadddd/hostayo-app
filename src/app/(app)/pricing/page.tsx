@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Plus } from "lucide-react";
+import { Plus } from "@/components/ui/icons";
 import { requirePermission } from "@/lib/auth/session";
 import { can } from "@/lib/permissions";
 import { todayInTimeZone } from "@/lib/dates";

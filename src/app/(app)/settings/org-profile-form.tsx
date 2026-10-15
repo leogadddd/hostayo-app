@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2, Upload } from "lucide-react";
+import { Trash as Trash2, UploadSimple as Upload } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";

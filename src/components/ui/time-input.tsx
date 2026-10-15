@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { Clock } from "lucide-react";
+import { Clock } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { useAnchoredPopover } from "./use-anchored-popover";
 

@@ -1,7 +1,10 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { CheckCircle2, LogOut } from "lucide-react";
+import {
+  CheckCircle as CheckCircle2,
+  SignOut as LogOut,
+} from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { DateTimeInput } from "@/components/ui/date-time-input";
 import { FieldError, Label, Textarea } from "@/components/ui/input";

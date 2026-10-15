@@ -1,16 +1,16 @@
 import type { ComponentType } from "react";
 import {
-  Building2,
-  Ellipsis,
+  Buildings as Building2,
+  DotsThree as Ellipsis,
   Hammer,
   Package,
   Percent,
-  Sparkles,
-  Tv,
-  Wifi,
+  Sparkle as Sparkles,
+  Television as Tv,
+  WifiHigh as Wifi,
   Wrench,
-  Zap,
-} from "lucide-react";
+  Lightning as Zap,
+} from "@/components/ui/icons";
 import type { ExpenseCategory } from "@/lib/db/schema";
 import { cn } from "@/lib/utils";
 

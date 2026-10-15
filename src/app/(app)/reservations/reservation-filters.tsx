@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { Filter } from "lucide-react";
+import { Funnel as Filter } from "@/components/ui/icons";
 import { Button, buttonClassName } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
 import { useAnchoredPopover } from "@/components/ui/use-anchored-popover";

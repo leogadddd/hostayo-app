@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { X } from "lucide-react";
+import { X } from "@/components/ui/icons";
 
 /**
  * An action shown over the page it was opened from (a reservation, a unit…).

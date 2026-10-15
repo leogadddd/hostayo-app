@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle as CheckCircle2 } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { FieldError, Label, Textarea } from "@/components/ui/input";
 import { formatPHP } from "@/lib/money";

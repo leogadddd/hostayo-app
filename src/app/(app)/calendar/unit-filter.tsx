@@ -1,5 +1,9 @@
 import Link from "next/link";
-import { BedDouble, Building2, LayoutGrid } from "lucide-react";
+import {
+  Bed as BedDouble,
+  Buildings as Building2,
+  SquaresFour as LayoutGrid,
+} from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 export interface UnitFilterOption {

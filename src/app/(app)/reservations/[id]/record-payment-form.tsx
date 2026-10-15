@@ -2,12 +2,12 @@
 
 import { useActionState, useState, type ReactNode } from "react";
 import {
-  BedDouble,
-  CheckCircle2,
-  CircleCheck,
+  Bed as BedDouble,
+  CheckCircle as CheckCircle2,
+  CheckCircle as CircleCheck,
   ShieldCheck,
-  TriangleAlert,
-} from "lucide-react";
+  Warning as TriangleAlert,
+} from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { DateTimeInput } from "@/components/ui/date-time-input";
 import { FieldError, Input, Label } from "@/components/ui/input";

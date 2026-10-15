@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useId, useRef } from "react";
-import { Pencil, X } from "lucide-react";
+import { PencilSimple as Pencil, X } from "@/components/ui/icons";
 import { buttonClassName } from "@/components/ui/button";
 import { AmenityList } from "./amenity-icons";
 

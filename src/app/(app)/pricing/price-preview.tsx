@@ -1,7 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  CaretLeft as ChevronLeft,
+  CaretRight as ChevronRight,
+} from "@/components/ui/icons";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Label, Select } from "@/components/ui/input";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";

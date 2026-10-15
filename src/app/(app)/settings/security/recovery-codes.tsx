@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy, Download } from "lucide-react";
+import { Check, Copy, DownloadSimple as Download } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 
 /** One-time recovery codes with copy and download; shown once after setup or regeneration. */

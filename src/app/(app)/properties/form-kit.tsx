@@ -10,7 +10,10 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
-import { ImagePlus, RotateCcw } from "lucide-react";
+import {
+  ImageSquare as ImagePlus,
+  ArrowCounterClockwise as RotateCcw,
+} from "@/components/ui/icons";
 import { Button, buttonClassName } from "@/components/ui/button";
 import { FieldError, Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";

@@ -7,13 +7,13 @@ import {
   ArrowDownRight,
   ArrowRight,
   ArrowUpRight,
-  Banknote,
-  BedDouble,
+  Money as Banknote,
+  Bed as BedDouble,
   Receipt,
   ShieldCheck,
-  TrendingUp,
-  type LucideIcon,
-} from "lucide-react";
+  TrendUp as TrendingUp,
+  type PhosphorIcon,
+} from "@/components/ui/icons";
 import {
   Area,
   AreaChart,
@@ -151,7 +151,7 @@ export function PerformanceSection({
     key: Metric;
     label: string;
     value: string;
-    icon: LucideIcon;
+    icon: PhosphorIcon;
     delta: { text: string; good: boolean } | null;
     spark: number[];
   }[] = [
@@ -283,7 +283,7 @@ export function PerformanceSection({
                     active ? "bg-primary text-white" : "bg-pine-mist text-pine",
                   )}
                 >
-                  <Icon className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+                  <Icon className="h-4 w-4" aria-hidden />
                 </span>
                 {delta ? (
                   <span

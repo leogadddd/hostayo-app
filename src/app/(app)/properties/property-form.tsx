@@ -1,7 +1,13 @@
 "use client";
 
 import { useActionState, useRef } from "react";
-import { Building2, Clock, LogIn, LogOut, MapPin } from "lucide-react";
+import {
+  Buildings as Building2,
+  Clock,
+  SignIn as LogIn,
+  SignOut as LogOut,
+  MapPin,
+} from "@/components/ui/icons";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { TimezonePicker } from "@/components/ui/timezone-picker";
 import { TimeInput } from "@/components/ui/time-input";

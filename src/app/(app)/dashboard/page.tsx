@@ -1,22 +1,22 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import {
-  AlertTriangle,
-  ArrowDownToLine,
+  Warning as AlertTriangle,
+  ArrowLineDown as ArrowDownToLine,
   ArrowRight,
-  ArrowUpFromLine,
-  BedDouble,
-  BrushCleaning,
+  ArrowLineUp as ArrowUpFromLine,
+  Bed as BedDouble,
+  Broom as BrushCleaning,
   CalendarCheck,
-  CalendarDays,
-  CircleCheck,
-  Clock3,
+  CalendarDots as CalendarDays,
+  CheckCircle as CircleCheck,
+  Clock as Clock3,
   Hammer,
   Percent,
   Plus,
-  ReceiptText,
-  type LucideIcon,
-} from "lucide-react";
+  Receipt as ReceiptText,
+  type PhosphorIcon,
+} from "@/components/ui/icons";
 import { Badge } from "@/components/ui/badge";
 import { buttonClassName } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -389,7 +389,7 @@ export default async function DashboardPage() {
     label: string;
     value: string;
     helper: string;
-    icon: LucideIcon;
+    icon: PhosphorIcon;
     tone: string;
     href: string;
   }[] = [
@@ -548,7 +548,7 @@ export default async function DashboardPage() {
                       tone,
                     )}
                   >
-                    <Icon className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+                    <Icon className="h-4 w-4" aria-hidden />
                   </span>
                   <ArrowRight
                     className="h-4 w-4 shrink-0 text-ink/20 transition group-hover:translate-x-0.5 group-hover:text-clay"
@@ -1011,7 +1011,7 @@ function ScheduleColumn({
   rows,
 }: {
   title: string;
-  icon: LucideIcon;
+  icon: PhosphorIcon;
   iconTone: string;
   empty: string;
   progress: string | null;
@@ -1101,7 +1101,7 @@ function AttentionRow({
   progress,
 }: {
   href: string;
-  icon: LucideIcon;
+  icon: PhosphorIcon;
   tone: "urgent" | "normal";
   title: string;
   detail: string;

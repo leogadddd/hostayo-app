@@ -10,15 +10,15 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import {
-  KeyRound,
-  LogIn,
-  RefreshCw,
-  ShieldAlert,
+  Key as KeyRound,
+  SignIn as LogIn,
+  ArrowsClockwise as RefreshCw,
+  ShieldWarning as ShieldAlert,
   ShieldCheck,
-  ShieldOff,
-  Smartphone,
+  ShieldSlash as ShieldOff,
+  DeviceMobile as Smartphone,
   X,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth/client";
 import { cn } from "@/lib/utils";

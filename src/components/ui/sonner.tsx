@@ -2,12 +2,12 @@
 
 import { useEffect } from "react";
 import {
-  CircleCheck,
-  CircleX,
+  CheckCircle as CircleCheck,
+  XCircle as CircleX,
   Info,
-  LoaderCircle,
-  TriangleAlert,
-} from "lucide-react";
+  CircleNotch as LoaderCircle,
+  Warning as TriangleAlert,
+} from "@/components/ui/icons";
 import { Toaster as Sonner, toast } from "sonner";
 
 const FLASH_KEY = "hostayo-toast";

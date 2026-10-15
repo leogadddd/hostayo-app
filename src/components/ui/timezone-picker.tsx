@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, Search } from "lucide-react";
+import {
+  CaretDown as ChevronDown,
+  MagnifyingGlass as Search,
+} from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { TIMEZONE_OPTIONS } from "@/lib/timezones";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState, useSyncExternalStore } from "react";
-import { Clock, TriangleAlert } from "lucide-react";
+import { Clock, Warning as TriangleAlert } from "@/components/ui/icons";
 import { DateInput } from "@/components/ui/date-input";
 import { TimeInput } from "@/components/ui/time-input";
 import { cn } from "@/lib/utils";

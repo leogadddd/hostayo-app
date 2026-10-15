@@ -1,45 +1,45 @@
 import {
-  Accessibility,
-  AirVent,
-  ArrowUpDown,
+  Wheelchair as Accessibility,
+  Fan as AirVent,
+  ArrowsDownUp as ArrowUpDown,
   Baby,
-  Bath,
-  BedDouble,
-  Building2,
-  Cctv,
-  CircleParking,
+  Bathtub as Bath,
+  Bed as BedDouble,
+  Buildings as Building2,
+  SecurityCamera as Cctv,
+  Car as CircleParking,
   Coffee,
   CookingPot,
-  Droplets,
-  Dumbbell,
-  Fence,
-  GlassWater,
+  Drop as Droplets,
+  Barbell as Dumbbell,
+  GridFour as Fence,
+  Drop as GlassWater,
   Laptop,
-  type LucideIcon,
-  Microwave,
+  type PhosphorIcon,
+  Oven as Microwave,
   MonitorPlay,
-  PartyPopper,
+  Confetti as PartyPopper,
   PawPrint,
-  Refrigerator,
-  Shirt,
+  Snowflake as Refrigerator,
+  TShirt as Shirt,
   ShieldCheck,
-  ShowerHead,
-  Soup,
-  Sparkles,
-  Store,
-  Trees,
-  Tv,
+  Shower as ShowerHead,
+  BowlFood as Soup,
+  Sparkle as Sparkles,
+  Storefront as Store,
+  Tree as Trees,
+  Television as Tv,
   Umbrella,
-  Utensils,
+  ForkKnife as Utensils,
   WashingMachine,
   Waves,
-  Wifi,
+  WifiHigh as Wifi,
   Wind,
-  Zap,
-} from "lucide-react";
+  Lightning as Zap,
+} from "@/components/ui/icons";
 
 /** Icon keys stored on default amenities (see src/lib/amenities.ts). */
-const AMENITY_ICONS: Record<string, LucideIcon> = {
+const AMENITY_ICONS: Record<string, PhosphorIcon> = {
   pool: Waves,
   parking: CircleParking,
   gym: Dumbbell,
@@ -78,7 +78,7 @@ const AMENITY_ICONS: Record<string, LucideIcon> = {
 };
 
 /** Custom amenities have no icon and fall back to a generic one. */
-export function amenityIcon(key: string | null): LucideIcon {
+export function amenityIcon(key: string | null): PhosphorIcon {
   return (key && AMENITY_ICONS[key]) || Sparkles;
 }
 

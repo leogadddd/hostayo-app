@@ -1,7 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CalendarCheck, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  CalendarCheck,
+  CaretLeft as ChevronLeft,
+  CaretRight as ChevronRight,
+} from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { formatPHP } from "@/lib/money";
 import { cn } from "@/lib/utils";

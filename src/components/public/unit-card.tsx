@@ -1,5 +1,11 @@
 import Link from "next/link";
-import { ArrowRight, Bath, BedDouble, MapPin, Users } from "lucide-react";
+import {
+  ArrowRight,
+  Bathtub as Bath,
+  Bed as BedDouble,
+  MapPin,
+  Users,
+} from "@/components/ui/icons";
 import { Badge } from "@/components/ui/badge";
 import { amenityIcon } from "@/app/(app)/properties/amenity-icons";
 import { formatPHP } from "@/lib/money";

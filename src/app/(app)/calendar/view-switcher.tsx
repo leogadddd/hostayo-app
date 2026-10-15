@@ -1,5 +1,9 @@
 import Link from "next/link";
-import { CalendarClock, CalendarDays, ChartGantt } from "lucide-react";
+import {
+  CalendarDots as CalendarClock,
+  CalendarDots as CalendarDays,
+  ChartBarHorizontal as ChartGantt,
+} from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 export const CALENDAR_VIEWS = ["month", "timeline", "day"] as const;

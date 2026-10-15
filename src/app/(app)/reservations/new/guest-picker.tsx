@@ -8,7 +8,14 @@ import {
   useRef,
   useState,
 } from "react";
-import { ChevronDown, Mail, Phone, Search, UserPlus, X } from "lucide-react";
+import {
+  CaretDown as ChevronDown,
+  Envelope as Mail,
+  Phone,
+  MagnifyingGlass as Search,
+  UserPlus,
+  X,
+} from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import {
   FieldError,

@@ -13,14 +13,14 @@ import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   BookOpen,
-  Building2,
-  ClipboardList,
+  Buildings as Building2,
+  ClipboardText as ClipboardList,
   DoorOpen,
   Receipt,
-  Search,
+  MagnifyingGlass as Search,
   Users,
   X,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { matchPages } from "@/lib/search-pages";
 import type { ReservationStatus } from "@/lib/db/schema";

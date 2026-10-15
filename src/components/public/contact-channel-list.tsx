@@ -1,11 +1,11 @@
 import {
   Globe,
-  Mail,
-  MessageCircle,
-  MessageSquare,
+  Envelope as Mail,
+  ChatCircle as MessageCircle,
+  Chat as MessageSquare,
   Phone,
-  Send,
-} from "lucide-react";
+  PaperPlaneTilt as Send,
+} from "@/components/ui/icons";
 import {
   activeChannels,
   channelHref,

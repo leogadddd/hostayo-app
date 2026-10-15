@@ -3,7 +3,11 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Layers, Pencil, Trash2 } from "lucide-react";
+import {
+  Stack as Layers,
+  PencilSimple as Pencil,
+  Trash as Trash2,
+} from "@/components/ui/icons";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { buttonClassName } from "@/components/ui/button";

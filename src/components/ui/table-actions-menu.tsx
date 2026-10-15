@@ -10,7 +10,13 @@ import {
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, Link2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import {
+  Eye,
+  Link as Link2,
+  DotsThree as MoreHorizontal,
+  PencilSimple as Pencil,
+  Trash as Trash2,
+} from "@/components/ui/icons";
 import { toast } from "sonner";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 

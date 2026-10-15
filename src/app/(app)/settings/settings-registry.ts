@@ -1,13 +1,13 @@
 import {
-  Building2,
-  Globe2,
-  KeyRound,
-  LifeBuoy,
+  Buildings as Building2,
+  GlobeHemisphereWest as Globe2,
+  Key as KeyRound,
+  Lifebuoy as LifeBuoy,
   ShieldCheck,
   SlidersHorizontal,
-  UserRound,
-  UsersRound,
-} from "lucide-react";
+  User as UserRound,
+  UsersThree as UsersRound,
+} from "@/components/ui/icons";
 import type { Permission } from "@/lib/permissions";
 
 /**

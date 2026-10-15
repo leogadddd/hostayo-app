@@ -4,17 +4,17 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import {
   ArrowLeft,
-  BedDouble,
-  Building2,
-  CalendarDays,
+  Bed as BedDouble,
+  Buildings as Building2,
+  CalendarDots as CalendarDays,
   CalendarPlus,
   DoorOpen,
-  LogIn,
+  SignIn as LogIn,
   MapPin,
-  Pencil,
+  PencilSimple as Pencil,
   Plus,
-  TrendingUp,
-} from "lucide-react";
+  TrendUp as TrendingUp,
+} from "@/components/ui/icons";
 import { requirePermission } from "@/lib/auth/session";
 import { PermissionDenied } from "@/components/app/permission-denied";
 import { addDaysLocal, todayInTimeZone } from "@/lib/dates";

@@ -5,22 +5,22 @@ import { notFound } from "next/navigation";
 import {
   ArrowLeft,
   ArrowRight,
-  Ban,
-  BedDouble,
-  CalendarDays,
+  Prohibit as Ban,
+  Bed as BedDouble,
+  CalendarDots as CalendarDays,
   Check,
-  CircleAlert,
+  WarningCircle as CircleAlert,
   Clock,
-  LogIn,
-  LogOut,
-  Mail,
+  SignIn as LogIn,
+  SignOut as LogOut,
+  Envelope as Mail,
   MapPin,
-  Pencil,
+  PencilSimple as Pencil,
   Phone,
   Plus,
   Users,
   Wallet,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { requirePermission } from "@/lib/auth/session";
 import { can } from "@/lib/permissions";
 import { PermissionDenied } from "@/components/app/permission-denied";

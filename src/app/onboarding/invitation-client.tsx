@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, CircleAlert } from "lucide-react";
+import {
+  ArrowRight,
+  WarningCircle as CircleAlert,
+} from "@/components/ui/icons";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { AuthLoadingOverlay } from "@/components/ui/auth-loading-overlay";

@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Share2 } from "lucide-react";
+import { Check, ShareNetwork as Share2 } from "@/components/ui/icons";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";

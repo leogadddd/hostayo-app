@@ -1,13 +1,13 @@
 import {
-  Ban,
-  CalendarClock,
+  Prohibit as Ban,
+  CalendarDots as CalendarClock,
   Check,
   Clock,
   Globe,
   MapPin,
-  Sparkles,
+  Sparkle as Sparkles,
   Wallet,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { formatPHP } from "@/lib/money";
 import type {
   NightStatus,

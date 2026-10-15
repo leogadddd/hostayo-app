@@ -8,14 +8,14 @@ import { notFound } from "next/navigation";
 import {
   ArrowLeft,
   ArrowRight,
-  Bath,
-  BedDouble,
-  CalendarDays,
-  CircleAlert,
-  CircleCheck,
+  Bathtub as Bath,
+  Bed as BedDouble,
+  CalendarDots as CalendarDays,
+  WarningCircle as CircleAlert,
+  CheckCircle as CircleCheck,
   MapPin,
   Users,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { z } from "zod";
 import { buttonClassName } from "@/components/ui/button";
 import { requirePermission } from "@/lib/auth/session";

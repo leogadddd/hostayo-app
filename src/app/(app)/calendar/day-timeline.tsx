@@ -12,13 +12,13 @@ import {
   type ReactNode,
 } from "react";
 import {
-  BrushCleaning,
-  ChevronLeft,
-  ChevronRight,
+  Broom as BrushCleaning,
+  CaretLeft as ChevronLeft,
+  CaretRight as ChevronRight,
   Minus,
   Plus,
   Wrench,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { PlatformLogo } from "@/components/app/platform-badge";
 import { buttonClassName } from "@/components/ui/button";
 import { layoutDayBars } from "@/lib/calendar";

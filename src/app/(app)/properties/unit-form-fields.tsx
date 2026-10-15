@@ -1,7 +1,13 @@
 "use client";
 
 import { useActionState, useRef, useState } from "react";
-import { Clock, LogIn, LogOut, Users, Wallet } from "lucide-react";
+import {
+  Clock,
+  SignIn as LogIn,
+  SignOut as LogOut,
+  Users,
+  Wallet,
+} from "@/components/ui/icons";
 import type { UnitStatus } from "@/lib/db/schema";
 import { UNIT_STATUSES } from "@/lib/db/schema";
 import { UNIT_STATUS_DESCRIPTIONS, UNIT_STATUS_LABELS } from "@/lib/labels";

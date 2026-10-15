@@ -9,7 +9,11 @@ import {
 } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Clock3, RefreshCw } from "lucide-react";
+import {
+  ArrowRight,
+  Clock as Clock3,
+  ArrowsClockwise as RefreshCw,
+} from "@/components/ui/icons";
 import { Button, buttonClassName } from "@/components/ui/button";
 import { FieldError, Input, Label } from "@/components/ui/input";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
@@ -158,11 +162,7 @@ function PendingApproval({
 
   return (
     <div>
-      <Clock3
-        className="animate-rise h-10 w-10 text-clay"
-        strokeWidth={1.6}
-        aria-hidden
-      />
+      <Clock3 className="animate-rise h-10 w-10 text-clay" aria-hidden />
       <h1
         className="animate-rise mt-5 font-display text-4xl leading-tight text-pine"
         style={{ animationDelay: "60ms" }}

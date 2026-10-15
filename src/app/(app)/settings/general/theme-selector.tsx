@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Monitor, Moon, Sun } from "lucide-react";
+import { Monitor, Moon, Sun } from "@/components/ui/icons";
 import {
   ChoiceCards,
   type ChoiceCardOption,

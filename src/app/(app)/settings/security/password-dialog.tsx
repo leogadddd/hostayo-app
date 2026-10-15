@@ -7,7 +7,7 @@ import {
   type ComponentType,
   type ReactNode,
 } from "react";
-import { X } from "lucide-react";
+import { X } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";

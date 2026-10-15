@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, NotebookPen, Trash2 } from "lucide-react";
+import {
+  Check,
+  Notebook as NotebookPen,
+  Trash as Trash2,
+} from "@/components/ui/icons";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 
 const MAX_LENGTH = 2000;

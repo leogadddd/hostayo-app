@@ -3,14 +3,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  CircleCheck,
-  CircleX,
+  CheckCircle as CircleCheck,
+  XCircle as CircleX,
   Clock,
   Hourglass,
   Plus,
-  Trash2,
+  Trash as Trash2,
   X,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import type { ExtensionStatus } from "@/lib/db/schema";
 import { Badge } from "@/components/ui/badge";
 import { buttonClassName } from "@/components/ui/button";

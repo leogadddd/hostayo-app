@@ -1,15 +1,15 @@
 "use client";
 
 import { useTransition } from "react";
-import { Mail, MailOpen, Trash2 } from "lucide-react";
+import {
+  Envelope as Mail,
+  EnvelopeOpen as MailOpen,
+  Trash as Trash2,
+} from "@/components/ui/icons";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
-import {
-  deleteRequest,
-  markAllRequestsRead,
-  setRequestRead,
-} from "./actions";
+import { deleteRequest, markAllRequestsRead, setRequestRead } from "./actions";
 
 export function RequestActions({
   id,

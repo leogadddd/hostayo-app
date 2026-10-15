@@ -2,13 +2,13 @@
 
 import type { ReactNode } from "react";
 import {
-  Banknote,
-  CircleCheck,
-  Landmark,
-  Smartphone,
+  Money as Banknote,
+  CheckCircle as CircleCheck,
+  Bank as Landmark,
+  DeviceMobile as Smartphone,
   Wallet,
-  type LucideIcon,
-} from "lucide-react";
+  type PhosphorIcon,
+} from "@/components/ui/icons";
 import { Input, Label } from "@/components/ui/input";
 import { PAYMENT_METHOD_LABELS } from "@/lib/labels";
 import { PAYMENT_METHOD_LOGOS } from "@/components/app/payment-method-logo";
@@ -51,7 +51,7 @@ export function ChoiceCard({
   value: string;
   checked: boolean;
   onSelect: () => void;
-  icon: LucideIcon;
+  icon: PhosphorIcon;
   /** A brand logo image, shown instead of `icon`. */
   logo?: string;
   title: string;
@@ -126,7 +126,7 @@ export function Progress({ label, share }: { label: string; share: number }) {
   );
 }
 
-const METHOD_ICONS: Record<PaymentMethod, LucideIcon> = {
+const METHOD_ICONS: Record<PaymentMethod, PhosphorIcon> = {
   gcash: Smartphone,
   maya: Wallet,
   bank_transfer: Landmark,

@@ -8,7 +8,12 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { CalendarDays, ChevronLeft, ChevronRight, X } from "lucide-react";
+import {
+  CalendarDots as CalendarDays,
+  CaretLeft as ChevronLeft,
+  CaretRight as ChevronRight,
+  X,
+} from "@/components/ui/icons";
 import { addDaysLocal, readableDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 

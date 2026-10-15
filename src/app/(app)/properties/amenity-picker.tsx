@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition, type KeyboardEvent } from "react";
 import { toast } from "sonner";
-import { Check, Plus, Search } from "lucide-react";
+import { Check, Plus, MagnifyingGlass as Search } from "@/components/ui/icons";
 import type { AmenityScope } from "@/lib/db/schema";
 import { normalizeAmenityName } from "@/lib/amenities";
 import { createAmenityAction } from "./actions";

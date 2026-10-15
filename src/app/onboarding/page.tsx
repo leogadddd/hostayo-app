@@ -2,14 +2,14 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   ArrowRight,
-  BrushCleaning,
-  Building2,
+  Broom as BrushCleaning,
+  Buildings as Building2,
   CalendarCheck,
-  CalendarDays,
-  ChartNoAxesCombined,
-  Clock3,
-  UsersRound,
-} from "lucide-react";
+  CalendarDots as CalendarDays,
+  ChartLineUp as ChartNoAxesCombined,
+  Clock as Clock3,
+  UsersThree as UsersRound,
+} from "@/components/ui/icons";
 import { buttonClassName } from "@/components/ui/button";
 import { getSession } from "@/lib/auth/session";
 import { getOnboardingState, listPendingJoinRequests } from "./state";
@@ -85,7 +85,7 @@ export default async function OnboardingIntroPage({
             key={label}
             className="flex items-center gap-1.5 rounded-full border border-pine/12 bg-linen px-3 py-1.5 text-xs text-pine"
           >
-            <Icon className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden />
+            <Icon className="h-3.5 w-3.5" aria-hidden />
             {label}
           </li>
         ))}

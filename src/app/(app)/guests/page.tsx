@@ -1,6 +1,12 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { CalendarPlus, Flag, ListChecks, Plus, Search } from "lucide-react";
+import {
+  CalendarPlus,
+  Flag,
+  ListChecks,
+  Plus,
+  MagnifyingGlass as Search,
+} from "@/components/ui/icons";
 import { requirePermission } from "@/lib/auth/session";
 import { can } from "@/lib/permissions";
 import { PermissionDenied } from "@/components/app/permission-denied";

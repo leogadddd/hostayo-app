@@ -12,14 +12,14 @@ import {
 } from "react";
 import {
   ArrowRight,
-  BrushCleaning,
+  Broom as BrushCleaning,
   Clock,
-  Mail,
+  Envelope as Mail,
   MapPin,
   Phone,
-  UserRound,
+  User as UserRound,
   X,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { buttonClassName } from "@/components/ui/button";
 import {
   PlatformLogo,

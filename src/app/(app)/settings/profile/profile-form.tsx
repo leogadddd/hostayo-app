@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import { Trash2, Upload } from "lucide-react";
+import { Trash as Trash2, UploadSimple as Upload } from "@/components/ui/icons";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";

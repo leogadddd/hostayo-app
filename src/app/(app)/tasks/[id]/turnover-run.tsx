@@ -12,28 +12,28 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  AlertTriangle,
+  Warning as AlertTriangle,
   ArrowLeft,
-  CalendarClock,
+  CalendarDots as CalendarClock,
   Check,
-  CheckCircle2,
+  CheckCircle as CheckCircle2,
   Circle,
-  Flame,
+  Fire as Flame,
   Hammer,
   Info,
   ListChecks,
-  NotebookPen,
+  Notebook as NotebookPen,
   Play,
-  ReceiptText,
-  RotateCcw,
+  Receipt as ReceiptText,
+  ArrowCounterClockwise as RotateCcw,
   SkipForward,
-  Sparkles,
+  Sparkle as Sparkles,
   Star,
   Timer,
   Trophy,
   X,
-  Zap,
-} from "lucide-react";
+  Lightning as Zap,
+} from "@/components/ui/icons";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatPHP } from "@/lib/money";

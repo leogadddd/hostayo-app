@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react";
 import {
-  ChevronLeft,
-  ChevronRight,
-  LoaderCircle,
-  LogIn,
-  LogOut,
-  MousePointerClick,
+  CaretLeft as ChevronLeft,
+  CaretRight as ChevronRight,
+  CircleNotch as LoaderCircle,
+  SignIn as LogIn,
+  SignOut as LogOut,
+  CursorClick as MousePointerClick,
   X,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { addDaysLocal, nightsBetween } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import { getUnitOccupancyAction, type OccupiedNight } from "./actions";

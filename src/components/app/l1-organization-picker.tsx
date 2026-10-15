@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { Check, ChevronsUpDown, LoaderCircle, Search } from "lucide-react";
+import {
+  Check,
+  CaretUpDown as ChevronsUpDown,
+  CircleNotch as LoaderCircle,
+  MagnifyingGlass as Search,
+} from "@/components/ui/icons";
 import { roleLabel } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 import {

@@ -4,7 +4,10 @@ import {
   UNDER_CONSTRUCTION,
 } from "@/components/app/under-construction";
 import type { Metadata } from "next";
-import { ChevronDown, Download } from "lucide-react";
+import {
+  CaretDown as ChevronDown,
+  DownloadSimple as Download,
+} from "@/components/ui/icons";
 import { PageHeading } from "@/components/app/page-heading";
 import { PermissionDenied } from "@/components/app/permission-denied";
 import { Badge } from "@/components/ui/badge";

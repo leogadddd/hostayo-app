@@ -1,6 +1,11 @@
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
-import { BrushCleaning, ChevronLeft, ChevronRight, Wrench } from "lucide-react";
+import {
+  Broom as BrushCleaning,
+  CaretLeft as ChevronLeft,
+  CaretRight as ChevronRight,
+  Wrench,
+} from "@/components/ui/icons";
 import { buttonClassName } from "@/components/ui/button";
 import {
   layoutMonthBars,

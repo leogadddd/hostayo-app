@@ -2,7 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ChevronDown, LogOut, UserRound } from "lucide-react";
+import {
+  CaretDown as ChevronDown,
+  SignOut as LogOut,
+  User as UserRound,
+} from "@/components/ui/icons";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { signOutAndRedirect } from "@/lib/auth/sign-out";
 import { roleLabel, type RoleKey } from "@/lib/permissions";

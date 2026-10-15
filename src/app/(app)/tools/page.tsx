@@ -1,13 +1,13 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import {
-  Building2,
+  Buildings as Building2,
   Calculator,
-  CalendarRange,
-  Landmark,
-  MessageSquareText,
+  CalendarDots as CalendarRange,
+  Bank as Landmark,
+  ChatText as MessageSquareText,
   Percent,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { requirePermission } from "@/lib/auth/session";
 import { PageHeading } from "@/components/app/page-heading";
 import { PermissionDenied } from "@/components/app/permission-denied";

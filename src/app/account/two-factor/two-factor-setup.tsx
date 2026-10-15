@@ -7,14 +7,14 @@ import {
   ArrowLeft,
   ArrowRight,
   Check,
-  ChevronDown,
-  KeyRound,
+  CaretDown as ChevronDown,
+  Key as KeyRound,
   Lock,
   QrCode,
   ShieldCheck,
-  Smartphone,
+  DeviceMobile as Smartphone,
   X,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth/client";
 import { fireCelebration } from "@/lib/confetti";

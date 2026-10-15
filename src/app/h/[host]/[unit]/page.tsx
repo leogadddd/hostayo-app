@@ -2,16 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  Bath,
-  BedDouble,
-  ChevronLeft,
+  Bathtub as Bath,
+  Bed as BedDouble,
+  CaretLeft as ChevronLeft,
   Clock,
-  LogIn,
-  LogOut,
+  SignIn as LogIn,
+  SignOut as LogOut,
   MapPin,
-  ScrollText,
+  Scroll as ScrollText,
   Users,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { Card, CardBody } from "@/components/ui/card";
 import { buttonClassName } from "@/components/ui/button";
 import { amenityIcon } from "@/app/(app)/properties/amenity-icons";
@@ -121,8 +121,14 @@ export default async function UnitPage({
             ...(unit.imageUrl ? { image: unit.imageUrl } : {}),
             numberOfBedrooms: unit.bedrooms,
             numberOfBathroomsTotal: unit.bathrooms,
-            occupancy: { "@type": "QuantitativeValue", maxValue: unit.capacity },
-            amenityFeature: [...unit.unitAmenities, ...unit.propertyAmenities].map((a) => ({
+            occupancy: {
+              "@type": "QuantitativeValue",
+              maxValue: unit.capacity,
+            },
+            amenityFeature: [
+              ...unit.unitAmenities,
+              ...unit.propertyAmenities,
+            ].map((a) => ({
               "@type": "LocationFeatureSpecification",
               name: a.name,
               value: true,
@@ -131,7 +137,11 @@ export default async function UnitPage({
               "@type": "LodgingBusiness",
               name: host.displayName,
               url: `${APP_URL}${hostHref}`,
-              address: { "@type": "PostalAddress", addressLocality: unit.location, addressCountry: "PH" },
+              address: {
+                "@type": "PostalAddress",
+                addressLocality: unit.location,
+                addressCountry: "PH",
+              },
             },
           }}
         />

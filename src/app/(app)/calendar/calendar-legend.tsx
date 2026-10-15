@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { BrushCleaning } from "lucide-react";
+import { Broom as BrushCleaning } from "@/components/ui/icons";
 import type { DisplayCalendarEvent } from "./month-calendar";
 
 export const HATCH: CSSProperties = {

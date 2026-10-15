@@ -1,7 +1,10 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { BedDouble, CheckCircle2 } from "lucide-react";
+import {
+  Bed as BedDouble,
+  CheckCircle as CheckCircle2,
+} from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { FieldError, Label, Textarea } from "@/components/ui/input";
 import { cn } from "@/lib/utils";

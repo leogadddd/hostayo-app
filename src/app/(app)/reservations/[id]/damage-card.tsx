@@ -1,11 +1,11 @@
 import Link from "next/link";
 import {
-  CheckCircle2,
-  ClipboardList,
-  FileWarning,
+  CheckCircle as CheckCircle2,
+  ClipboardText as ClipboardList,
+  FileX as FileWarning,
   Plus,
-  ShieldMinus,
-} from "lucide-react";
+  Shield as ShieldMinus,
+} from "@/components/ui/icons";
 import type { damageReports, depositDeductions } from "@/lib/db/schema";
 import { formatPHP } from "@/lib/money";
 import { Badge } from "@/components/ui/badge";

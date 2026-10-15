@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Cookie } from "lucide-react";
+import { Cookie } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { writeConsent, type CookieConsent } from "@/lib/cookie-consent";
 import { applyThemePreference, parseThemePreference } from "@/lib/theme";

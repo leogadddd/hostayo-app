@@ -2,16 +2,16 @@
 
 import { useActionState, useRef, useState, type ReactNode } from "react";
 import {
-  Banknote,
-  Ban,
-  CalendarDays,
+  Money as Banknote,
+  Prohibit as Ban,
+  CalendarDots as CalendarDays,
   Clock,
   Moon,
   Percent,
   ShieldCheck,
-  Sparkles,
+  Sparkle as Sparkles,
   Wallet,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { ChoiceCards } from "@/components/ui/choice-cards";
 import { Input, Label } from "@/components/ui/input";
 import { NumberStepper } from "@/components/ui/number-stepper";

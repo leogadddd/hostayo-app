@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus } from "@/components/ui/icons";
 import type { MembershipContext } from "@/lib/auth/session";
 import { can } from "@/lib/permissions";
 import { listManagedPlatforms } from "@/server/reservations/platforms";

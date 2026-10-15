@@ -5,28 +5,28 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BookOpen,
-  Building2,
-  Calendar,
-  ClipboardList,
+  Buildings as Building2,
+  CalendarBlank as Calendar,
+  ClipboardText as ClipboardList,
   Receipt,
   Tag,
   Wrench,
-  BarChart3,
-  Settings,
+  ChartBar as BarChart3,
+  Gear as Settings,
   Users,
-  Menu,
+  List as Menu,
   X,
-  ChevronRight,
-  LayoutDashboard,
+  CaretRight as ChevronRight,
+  Layout as LayoutDashboard,
   House,
-  Inbox,
+  Tray as Inbox,
   Calculator,
-  CalendarRange,
-  Landmark,
-  MessageSquareText,
+  CalendarDots as CalendarRange,
+  Bank as Landmark,
+  ChatText as MessageSquareText,
   Percent,
-  ScrollText,
-} from "lucide-react";
+  Scroll as ScrollText,
+} from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { SIDEBAR_GROUPS_COOKIE } from "@/lib/sidebar-groups";
 import { APP_VERSION } from "@/lib/app-version";
@@ -372,11 +372,7 @@ function NavItem({
           : "border-transparent text-paper/80 hover:bg-paper/10 hover:text-white",
       )}
     >
-      <Icon
-        className="h-5 w-5 shrink-0 dark:text-moss"
-        strokeWidth={1.6}
-        aria-hidden
-      />
+      <Icon className="h-5 w-5 shrink-0 dark:text-moss" aria-hidden />
       <span className="min-w-0 flex-1 truncate">{item.label}</span>
       {badge ? (
         <span className="rounded-full bg-clay px-2 py-0.5 text-xs font-semibold text-white">

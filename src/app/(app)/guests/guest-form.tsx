@@ -1,7 +1,13 @@
 "use client";
 
 import { useActionState, useRef } from "react";
-import { Flag, Mail, NotebookPen, Phone, UserRound } from "lucide-react";
+import {
+  Flag,
+  Envelope as Mail,
+  Notebook as NotebookPen,
+  Phone,
+  User as UserRound,
+} from "@/components/ui/icons";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
 import { useSaveAndReturn } from "@/hooks/use-save-and-return";

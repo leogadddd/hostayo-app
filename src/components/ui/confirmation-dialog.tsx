@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useRef, useState, type AriaRole, type ReactNode } from "react";
-import { AlertTriangle, X } from "lucide-react";
+import { Warning as AlertTriangle, X } from "@/components/ui/icons";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { AuthLoadingOverlay } from "@/components/ui/auth-loading-overlay";

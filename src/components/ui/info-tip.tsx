@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useId, useRef, useState, type ReactNode } from "react";
-import { Info } from "lucide-react";
+import { Info } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { useAnchoredPopover } from "./use-anchored-popover";
 

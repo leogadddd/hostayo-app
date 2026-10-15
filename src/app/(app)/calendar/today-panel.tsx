@@ -2,11 +2,11 @@ import Link from "next/link";
 import {
   ArrowDownRight,
   ArrowUpRight,
-  BrushCleaning,
+  Broom as BrushCleaning,
   Check,
-  ChevronDown,
-  ChevronRight,
-} from "lucide-react";
+  CaretDown as ChevronDown,
+  CaretRight as ChevronRight,
+} from "@/components/ui/icons";
 import type { ReservationStatus } from "@/lib/db/schema";
 
 interface TodayReservation {

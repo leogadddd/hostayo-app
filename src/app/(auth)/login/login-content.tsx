@@ -10,13 +10,13 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { AuthLoadingOverlay } from "@/components/ui/auth-loading-overlay";
 import {
   ArrowLeft,
-  ChevronRight,
-  CircleAlert,
-  KeyRound,
-  MailCheck,
-  Smartphone,
+  CaretRight as ChevronRight,
+  WarningCircle as CircleAlert,
+  Key as KeyRound,
+  Envelope as MailCheck,
+  DeviceMobile as Smartphone,
   Users,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { afterAuthPath, inviteQuery } from "@/lib/auth/invite-redirect";
 import { Input, Label } from "@/components/ui/input";
 import { CodeInput } from "@/components/ui/code-input";

@@ -2,7 +2,12 @@
 
 import { useActionState, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowDown, ArrowUp, Layers, Trophy } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  Stack as Layers,
+  Trophy,
+} from "@/components/ui/icons";
 import { Button, buttonClassName } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import { ChoiceCards } from "@/components/ui/choice-cards";

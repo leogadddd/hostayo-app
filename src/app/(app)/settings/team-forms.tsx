@@ -13,16 +13,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Check,
-  ClipboardList,
+  ClipboardText as ClipboardList,
   Info,
-  KeyRound,
-  MailPlus,
+  Key as KeyRound,
+  Envelope as MailPlus,
   Minus,
   ShieldCheck,
-  UserCog,
-  UserRound,
+  UserGear as UserCog,
+  User as UserRound,
   X,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { toast } from "sonner";
 import { Button, buttonClassName } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";

@@ -3,18 +3,18 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import {
   ArrowLeft,
-  BedDouble,
+  Bed as BedDouble,
   CalendarCheck,
   CalendarPlus,
   Flag,
-  Mail,
+  Envelope as Mail,
   MapPin,
   Moon,
-  NotebookPen,
-  Pencil,
+  Notebook as NotebookPen,
+  PencilSimple as Pencil,
   Phone,
   Wallet,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { GUEST_ID_TYPE_LABELS, type GuestIdType } from "@/lib/guests";
 import { PlatformBadge } from "@/components/app/platform-badge";
 import { requirePermission } from "@/lib/auth/session";

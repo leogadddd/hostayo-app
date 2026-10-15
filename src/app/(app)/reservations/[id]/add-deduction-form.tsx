@@ -2,12 +2,12 @@
 
 import { useActionState, useState, type ReactNode } from "react";
 import {
-  CheckCircle2,
-  CircleCheck,
-  FileWarning,
+  CheckCircle as CheckCircle2,
+  CheckCircle as CircleCheck,
+  FileX as FileWarning,
   ShieldCheck,
-  Unlink,
-} from "lucide-react";
+  LinkBreak as Unlink,
+} from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { FieldError, Label, Textarea } from "@/components/ui/input";
 import { centavosToPesosInput, formatPHP } from "@/lib/money";

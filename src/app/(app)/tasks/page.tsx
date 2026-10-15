@@ -1,6 +1,11 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Play, ReceiptText, Search, X } from "lucide-react";
+import {
+  Play,
+  Receipt as ReceiptText,
+  MagnifyingGlass as Search,
+  X,
+} from "@/components/ui/icons";
 import { requirePermission } from "@/lib/auth/session";
 import { can } from "@/lib/permissions";
 import { PermissionDenied } from "@/components/app/permission-denied";

@@ -4,7 +4,11 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { CircleAlert, MailCheck, Ticket } from "lucide-react";
+import {
+  WarningCircle as CircleAlert,
+  Envelope as MailCheck,
+  Ticket,
+} from "@/components/ui/icons";
 import { afterAuthPath, inviteQuery } from "@/lib/auth/invite-redirect";
 import { authClient } from "@/lib/auth/client";
 import {

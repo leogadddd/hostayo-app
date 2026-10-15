@@ -2,11 +2,11 @@
 
 import { useActionState, useState, type ReactNode } from "react";
 import {
-  BedDouble,
-  CheckCircle2,
-  CircleCheck,
+  Bed as BedDouble,
+  CheckCircle as CheckCircle2,
+  CheckCircle as CircleCheck,
   ShieldCheck,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { FieldError, Label, Textarea } from "@/components/ui/input";
 import { formatPHP } from "@/lib/money";

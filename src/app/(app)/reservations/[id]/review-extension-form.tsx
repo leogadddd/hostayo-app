@@ -1,7 +1,10 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { CircleAlert, CircleCheck } from "lucide-react";
+import {
+  WarningCircle as CircleAlert,
+  CheckCircle as CircleCheck,
+} from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { FieldError, Input, Label, Textarea } from "@/components/ui/input";
 import { centavosToPesosInput, formatPHP, pesosToCentavos } from "@/lib/money";

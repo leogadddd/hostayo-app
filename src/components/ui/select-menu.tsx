@@ -8,7 +8,7 @@ import {
   useState,
   type ComponentType,
 } from "react";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, CaretDown as ChevronDown } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { useAnchoredPopover } from "./use-anchored-popover";
 

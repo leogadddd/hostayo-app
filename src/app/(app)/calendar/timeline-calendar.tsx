@@ -13,12 +13,12 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import {
-  BrushCleaning,
-  ChevronLeft,
-  ChevronRight,
-  LoaderCircle,
+  Broom as BrushCleaning,
+  CaretLeft as ChevronLeft,
+  CaretRight as ChevronRight,
+  CircleNotch as LoaderCircle,
   Wrench,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { PlatformLogo } from "@/components/app/platform-badge";
 import { buttonClassName } from "@/components/ui/button";
 import { layoutTimelineRange } from "@/lib/calendar";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle as CheckCircle2 } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { FieldError, Input, Label, Select } from "@/components/ui/input";
 import { PAYMENT_ALLOCATION_LABELS, PAYMENT_METHOD_LABELS } from "@/lib/labels";

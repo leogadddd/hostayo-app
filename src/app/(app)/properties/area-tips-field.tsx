@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, X } from "lucide-react";
+import { Plus, X } from "@/components/ui/icons";
 import { Input } from "@/components/ui/input";
 
 export interface AreaTip {

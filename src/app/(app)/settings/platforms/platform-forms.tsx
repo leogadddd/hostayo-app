@@ -7,11 +7,11 @@ import {
   ArrowDown,
   ArrowUp,
   Check,
-  Pencil,
-  RotateCcw,
-  Trash2,
+  PencilSimple as Pencil,
+  ArrowCounterClockwise as RotateCcw,
+  Trash as Trash2,
   X,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { toast } from "sonner";
 import { Button, buttonClassName } from "@/components/ui/button";
 import { ChoiceCards } from "@/components/ui/choice-cards";

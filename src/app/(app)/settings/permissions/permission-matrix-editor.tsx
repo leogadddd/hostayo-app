@@ -2,7 +2,11 @@
 
 import { Fragment, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Lock, RotateCcw } from "lucide-react";
+import {
+  Check,
+  Lock,
+  ArrowCounterClockwise as RotateCcw,
+} from "@/components/ui/icons";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";

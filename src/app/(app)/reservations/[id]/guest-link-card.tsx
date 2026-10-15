@@ -1,7 +1,13 @@
 "use client";
 
 import { startTransition, useActionState, useState } from "react";
-import { Check, Copy, Link2, Share2, ShieldX } from "lucide-react";
+import {
+  Check,
+  Copy,
+  Link as Link2,
+  ShareNetwork as Share2,
+  ShieldSlash as ShieldX,
+} from "@/components/ui/icons";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";

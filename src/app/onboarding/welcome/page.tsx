@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, CircleCheck } from "lucide-react";
+import { ArrowRight, CheckCircle as CircleCheck } from "@/components/ui/icons";
 import { buttonClassName } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth/session";
 import { getOnboardingState, nextOnboardingPath } from "../state";
@@ -20,11 +20,7 @@ export default async function OnboardingWelcomePage() {
 
   return (
     <div>
-      <CircleCheck
-        className="animate-rise h-10 w-10 text-moss"
-        strokeWidth={1.6}
-        aria-hidden
-      />
+      <CircleCheck className="animate-rise h-10 w-10 text-moss" aria-hidden />
       <h1
         className="animate-rise mt-5 font-display text-4xl leading-tight text-pine sm:text-5xl"
         style={{ animationDelay: "60ms" }}

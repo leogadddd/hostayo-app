@@ -1,4 +1,9 @@
-import { Bath, BedDouble, CalendarDays, Users } from "lucide-react";
+import {
+  Bathtub as Bath,
+  Bed as BedDouble,
+  CalendarDots as CalendarDays,
+  Users,
+} from "@/components/ui/icons";
 import type { ChargeLineValues } from "@/lib/charges";
 import { formatPHP } from "@/lib/money";
 import { cn } from "@/lib/utils";

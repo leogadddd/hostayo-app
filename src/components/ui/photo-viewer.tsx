@@ -22,7 +22,11 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import {
+  CaretLeft as ChevronLeft,
+  CaretRight as ChevronRight,
+  X,
+} from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 export interface ViewerPhoto {
@@ -171,7 +175,11 @@ export function PhotoViewer({
       >
         {count > 1 ? (
           <>
-            <NavButton side="left" label="Previous photo" onClick={() => go(-1)}>
+            <NavButton
+              side="left"
+              label="Previous photo"
+              onClick={() => go(-1)}
+            >
               <ChevronLeft className="h-6 w-6" aria-hidden />
             </NavButton>
             <NavButton side="right" label="Next photo" onClick={() => go(1)}>
@@ -282,9 +290,7 @@ export function PhotoPlaylist({
             aria-current={active ? "true" : undefined}
             className={cn(
               "relative h-14 w-20 shrink-0 overflow-hidden rounded-lg ring-offset-2 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-clay",
-              tone === "dark"
-                ? "ring-offset-[#0f1c19]"
-                : "ring-offset-surface",
+              tone === "dark" ? "ring-offset-[#0f1c19]" : "ring-offset-surface",
               active
                 ? "opacity-100 ring-2 ring-clay"
                 : "opacity-60 hover:opacity-100",

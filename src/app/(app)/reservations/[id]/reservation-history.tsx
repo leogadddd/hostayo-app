@@ -1,14 +1,14 @@
 import type { ReactNode } from "react";
 import {
   ArrowRight,
-  FileUp,
+  FileArrowUp as FileUp,
   Flag,
-  RotateCcw,
-  ShieldMinus,
-  Undo2,
+  ArrowCounterClockwise as RotateCcw,
+  Shield as ShieldMinus,
+  ArrowUUpLeft as Undo2,
   Wallet,
-  type LucideIcon,
-} from "lucide-react";
+  type PhosphorIcon,
+} from "@/components/ui/icons";
 import type { ReservationStatus } from "@/lib/db/schema";
 import { PAYMENT_ALLOCATION_LABELS, PAYMENT_METHOD_LABELS } from "@/lib/labels";
 import { formatPHP } from "@/lib/money";
@@ -27,7 +27,7 @@ interface Transition {
 interface HistoryEvent {
   key: string;
   at: Date;
-  icon: LucideIcon;
+  icon: PhosphorIcon;
   tone: "pine" | "sage" | "clay" | "neutral";
   title: ReactNode;
   detail?: string | null;

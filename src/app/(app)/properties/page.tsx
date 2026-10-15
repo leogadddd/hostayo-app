@@ -1,7 +1,13 @@
 import { photoSrc } from "@/lib/photos";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { BedDouble, DoorOpen, MapPin, Plus, TrendingUp } from "lucide-react";
+import {
+  Bed as BedDouble,
+  DoorOpen,
+  MapPin,
+  Plus,
+  TrendUp as TrendingUp,
+} from "@/components/ui/icons";
 import { requirePermission } from "@/lib/auth/session";
 import { PermissionDenied } from "@/components/app/permission-denied";
 import { PageHeading } from "@/components/app/page-heading";

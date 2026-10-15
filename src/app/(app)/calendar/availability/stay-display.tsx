@@ -1,4 +1,4 @@
-import { House } from "lucide-react";
+import { House } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 const DAY_LABEL = new Intl.DateTimeFormat("en-PH", {

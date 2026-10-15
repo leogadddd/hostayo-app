@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useRef, useState } from "react";
-import { BookOpenText, Check } from "lucide-react";
+import { BookOpenText, Check } from "@/components/ui/icons";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
 import { useSaveAndReturn } from "@/hooks/use-save-and-return";

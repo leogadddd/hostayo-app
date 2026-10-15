@@ -13,13 +13,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Briefcase,
-  Building2,
+  Buildings as Building2,
   Camera,
-  CheckCircle2,
+  CheckCircle as CheckCircle2,
   Hammer,
-  ReceiptText,
+  Receipt as ReceiptText,
   X,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { FieldError, Input, Label, Textarea } from "@/components/ui/input";

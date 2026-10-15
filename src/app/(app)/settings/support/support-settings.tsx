@@ -6,13 +6,13 @@ import { usePathname } from "next/navigation";
 import {
   ArrowUpRight,
   Bug,
-  ChevronDown,
+  CaretDown as ChevronDown,
   Copy,
-  LifeBuoy,
-  Mail,
-  MessageCircle,
-  Send,
-} from "lucide-react";
+  Lifebuoy as LifeBuoy,
+  Envelope as Mail,
+  ChatCircle as MessageCircle,
+  PaperPlaneTilt as Send,
+} from "@/components/ui/icons";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button, buttonClassName } from "@/components/ui/button";

@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import Link from "next/link";
-import { Building2, Images } from "lucide-react";
+import { Buildings as Building2, Images } from "@/components/ui/icons";
 import { buttonClassName } from "@/components/ui/button";
 import type { GalleryPhoto, PhotoScope } from "@/lib/photo-sections";
 import { UnitPhoto } from "../calendar/availability/stay-display";

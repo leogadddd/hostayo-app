@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { asc, eq } from "drizzle-orm";
-import { MailPlus } from "lucide-react";
+import { Envelope as MailPlus } from "@/components/ui/icons";
 import { requirePermission } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { memberships, organizations, roles, user } from "@/lib/db/schema";

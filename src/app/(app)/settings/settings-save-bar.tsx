@@ -1,6 +1,6 @@
 "use client";
 
-import { Save } from "lucide-react";
+import { FloppyDisk as Save } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/input";
 

@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import {
-  AlertTriangle,
+  Warning as AlertTriangle,
   Hammer,
-  PackageSearch,
-  SearchX,
+  Package as PackageSearch,
+  MagnifyingGlass as SearchX,
   ShoppingCart,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { UnderConstruction } from "@/components/app/under-construction";
 import { PermissionDenied } from "@/components/app/permission-denied";
 import { requirePermission } from "@/lib/auth/session";

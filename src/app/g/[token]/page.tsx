@@ -3,19 +3,19 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
-  Bath,
-  BedDouble,
+  Bathtub as Bath,
+  Bed as BedDouble,
   CreditCard,
-  LogIn,
-  LogOut,
+  SignIn as LogIn,
+  SignOut as LogOut,
   Compass,
-  KeyRound,
+  Key as KeyRound,
   MapPin,
-  ScrollText,
-  Sparkles,
+  Scroll as ScrollText,
+  Sparkle as Sparkles,
   Users,
-  Wifi,
-} from "lucide-react";
+  WifiHigh as Wifi,
+} from "@/components/ui/icons";
 import { Badge } from "@/components/ui/badge";
 import { buttonClassName } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";

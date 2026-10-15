@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowRight, CalendarDays } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarDots as CalendarDays,
+} from "@/components/ui/icons";
 import { buttonClassName } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { listNights } from "@/lib/dates";

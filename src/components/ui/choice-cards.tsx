@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, type ComponentType } from "react";
-import { Check } from "lucide-react";
+import { Check } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { InfoTip } from "./info-tip";
 

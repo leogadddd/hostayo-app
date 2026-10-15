@@ -1,7 +1,12 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Check, Copy, MessageCircleQuestion, X } from "lucide-react";
+import {
+  Check,
+  Copy,
+  Question as MessageCircleQuestion,
+  X,
+} from "@/components/ui/icons";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Label, Textarea } from "@/components/ui/input";

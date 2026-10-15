@@ -6,11 +6,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowUpRight,
-  Bath,
-  BedDouble,
-  CalendarSearch,
+  Bathtub as Bath,
+  Bed as BedDouble,
+  CalendarDots as CalendarSearch,
   Users,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { PageHeading } from "@/components/app/page-heading";
 import { buttonClassName } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";

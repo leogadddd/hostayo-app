@@ -3,21 +3,21 @@
 import { useId, useRef, useState } from "react";
 import {
   Check,
-  CircleCheck,
+  CheckCircle as CircleCheck,
   Compass,
   Copy,
   CreditCard,
   Eye,
-  EyeOff,
+  EyeSlash as EyeOff,
   Hammer,
-  KeyRound,
-  LogOut,
+  Key as KeyRound,
+  SignOut as LogOut,
   MapPin,
   Phone,
-  ScrollText,
-  Wifi,
+  Scroll as ScrollText,
+  WifiHigh as Wifi,
   X,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";

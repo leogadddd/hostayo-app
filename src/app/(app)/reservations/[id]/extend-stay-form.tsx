@@ -1,7 +1,12 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { CircleCheck, Clock, Minus, Plus } from "lucide-react";
+import {
+  CheckCircle as CircleCheck,
+  Clock,
+  Minus,
+  Plus,
+} from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { FieldError, Label, Textarea } from "@/components/ui/input";
 import { formatPHP } from "@/lib/money";

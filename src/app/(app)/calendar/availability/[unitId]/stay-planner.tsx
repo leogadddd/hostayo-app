@@ -5,16 +5,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
-  BedDouble,
-  ChevronLeft,
-  ChevronRight,
-  LogIn,
-  LogOut,
+  Bed as BedDouble,
+  CaretLeft as ChevronLeft,
+  CaretRight as ChevronRight,
+  SignIn as LogIn,
+  SignOut as LogOut,
   Minus,
-  MousePointerClick,
+  CursorClick as MousePointerClick,
   Plus,
   X,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { addDaysLocal, listNights, nightsBetween } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import { dayLabel, plural, timeLabel } from "../stay-display";

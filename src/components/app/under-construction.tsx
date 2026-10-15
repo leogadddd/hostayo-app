@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Construction } from "lucide-react";
+import { Barricade as Construction } from "@/components/ui/icons";
 import { buttonClassName } from "@/components/ui/button";
 import { PageHeading } from "./page-heading";
 

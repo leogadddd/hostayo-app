@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowRight, type LucideIcon } from "lucide-react";
+import { ArrowRight, type PhosphorIcon } from "@/components/ui/icons";
 import type { UnitStatus } from "@/lib/db/schema";
 import { RESERVATION_STATUS_LABELS, UNIT_STATUS_LABELS } from "@/lib/labels";
 import { nightsBetween } from "@/lib/dates";
@@ -87,7 +87,7 @@ export function StatTile({
   detail,
   tone,
 }: {
-  icon: LucideIcon;
+  icon: PhosphorIcon;
   label: string;
   value: string;
   detail?: string;
@@ -139,7 +139,7 @@ export function SideAction({
   tone = "outline",
 }: {
   href: string;
-  icon: LucideIcon;
+  icon: PhosphorIcon;
   children: ReactNode;
   tone?: "outline" | "clay";
 }) {

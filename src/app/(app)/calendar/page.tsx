@@ -3,7 +3,7 @@ import { getExtensionHours } from "@/server/reservations/extensions";
 import { unitOrPropertyPhotoSrc } from "@/lib/photos";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { CalendarCheck, Plus } from "lucide-react";
+import { CalendarCheck, Plus } from "@/components/ui/icons";
 import { requirePermission } from "@/lib/auth/session";
 import { can } from "@/lib/permissions";
 import { PermissionDenied } from "@/components/app/permission-denied";

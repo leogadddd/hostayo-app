@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, MailPlus } from "lucide-react";
+import { ArrowRight, Envelope as MailPlus } from "@/components/ui/icons";
 import { buttonClassName } from "@/components/ui/button";
 import { SITE_URL } from "@/lib/site";
 import type { RegistrationInviteStatus } from "@/server/registration/service";

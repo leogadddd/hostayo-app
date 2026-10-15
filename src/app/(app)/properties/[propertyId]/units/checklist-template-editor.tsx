@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { Plus, X } from "lucide-react";
+import { Plus, X } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { FieldError, Input } from "@/components/ui/input";
 import {

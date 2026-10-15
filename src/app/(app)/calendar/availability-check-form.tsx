@@ -3,7 +3,12 @@
 import { DateInput } from "@/components/ui/date-input";
 import { useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Minus, Plus, Search, Users } from "lucide-react";
+import {
+  Minus,
+  Plus,
+  MagnifyingGlass as Search,
+  Users,
+} from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { FieldError, Label } from "@/components/ui/input";
 import { addDaysLocal, nightsBetween } from "@/lib/dates";

@@ -4,17 +4,17 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowRight,
-  CalendarDays,
-  CircleCheck,
+  CalendarDots as CalendarDays,
+  CheckCircle as CircleCheck,
   Clock,
-  LogIn,
-  LogOut,
-  Mail,
+  SignIn as LogIn,
+  SignOut as LogOut,
+  Envelope as Mail,
   Phone,
   Plus,
   Users,
   Wallet,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { buttonClassName } from "@/components/ui/button";
 import { requirePermission } from "@/lib/auth/session";
 import { can } from "@/lib/permissions";

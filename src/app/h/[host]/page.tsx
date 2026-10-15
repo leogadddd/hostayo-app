@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { MapPin, CalendarHeart } from "lucide-react";
+import { MapPin, CalendarHeart } from "@/components/ui/icons";
 import { Card, CardBody } from "@/components/ui/card";
 import { ChannelList } from "@/components/public/contact-channel-list";
 import { PublicShell } from "@/components/public/public-shell";

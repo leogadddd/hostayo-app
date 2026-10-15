@@ -4,11 +4,11 @@ import {
   Hammer,
   Paperclip,
   Plus,
-  ReceiptText,
+  Receipt as ReceiptText,
   Repeat,
-  TrendingUp,
+  TrendUp as TrendingUp,
   Wallet,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { ExpenseCategoryIcon } from "@/components/app/expense-category";
 import { PaymentMethodLabel } from "@/components/app/payment-method-logo";
 import { todayInTimeZone } from "@/lib/dates";

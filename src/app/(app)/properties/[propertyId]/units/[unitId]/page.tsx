@@ -4,20 +4,20 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import {
   ArrowLeft,
-  BedDouble,
-  CalendarDays,
+  Bed as BedDouble,
+  CalendarDots as CalendarDays,
   CalendarPlus,
-  CircleAlert,
-  ClipboardList,
-  Construction,
+  WarningCircle as CircleAlert,
+  ClipboardText as ClipboardList,
+  Barricade as Construction,
   MapPin,
-  Pencil,
+  PencilSimple as Pencil,
   Plus,
-  RefreshCw,
-  TrendingUp,
+  ArrowsClockwise as RefreshCw,
+  TrendUp as TrendingUp,
   Users,
   Wallet,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { requirePermission } from "@/lib/auth/session";
 import { PermissionDenied } from "@/components/app/permission-denied";
 import { addDaysLocal, nightsBetween, todayInTimeZone } from "@/lib/dates";

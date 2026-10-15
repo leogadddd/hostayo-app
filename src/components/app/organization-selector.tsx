@@ -2,7 +2,11 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, ChevronsUpDown, LoaderCircle } from "lucide-react";
+import {
+  Check,
+  CaretUpDown as ChevronsUpDown,
+  CircleNotch as LoaderCircle,
+} from "@/components/ui/icons";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { roleLabel, type RoleKey } from "@/lib/permissions";
