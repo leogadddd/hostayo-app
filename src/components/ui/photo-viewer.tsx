@@ -7,18 +7,20 @@
  *   <button onClick={() => viewer.open(2)}>…</button>
  *   {viewer.element}
  *
- * `photos` is the list the viewer plays through. A thumbnail "playlist" runs
- * along the bottom so people can jump to any photo, with previous/next arrows,
- * keyboard (← → Esc), and touch gestures: the photo follows your finger, a
- * sideways swipe browses and a swipe down closes. The playlist sits along the
- * bottom, and on phones the arrows give way to swiping. The close button and Esc
- * return focus to whatever opened it.
+ * `photos` is the list the viewer plays through, laid out as one horizontal
+ * scroll-snap strip. Swiping is the browser's own scrolling, so the photo
+ * follows your finger, flicks carry momentum and it settles on a photo with no
+ * jump. A thumbnail "playlist" along the bottom jumps to any photo; arrows and
+ * the keyboard (← → Esc) work too, and on phones the arrows give way to
+ * swiping. Dragging down closes it. The close button and Esc return focus to
+ * whatever opened it.
  */
 
 import {
   useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   type ReactNode,
@@ -58,22 +60,70 @@ export function PhotoViewer({
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
   const activeThumb = useRef<HTMLButtonElement>(null);
-  const imageRef = useRef<HTMLImageElement>(null);
-  const gesture = useRef<{
-    x: number;
-    y: number;
-    axis: "x" | "y" | null;
-  } | null>(null);
+  const strip = useRef<HTMLDivElement>(null);
+  const stage = useRef<HTMLDivElement>(null);
+  const indexRef = useRef(index);
+  // The photo a programmatic scroll is heading to; scroll events on the way
+  // there must not be mistaken for the viewer's own swipes.
+  const settling = useRef<number | null>(null);
+  const settleTimer = useRef<number | undefined>(undefined);
+  const drag = useRef<{ x: number; y: number; axis: "x" | "y" | null } | null>(
+    null,
+  );
   const count = photos.length;
   const photo = photos[index];
 
+  const scrollToIndex = useCallback((to: number, smooth: boolean) => {
+    const element = strip.current;
+    if (!element) return;
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    element.scrollTo({
+      left: to * element.clientWidth,
+      behavior: smooth && !reduced ? "smooth" : "auto",
+    });
+  }, []);
+
   const go = useCallback(
     (delta: number) => {
-      if (count < 2) return;
-      onIndexChange((index + delta + count) % count);
+      const target = Math.max(0, Math.min(count - 1, index + delta));
+      if (target !== index) onIndexChange(target);
     },
     [count, index, onIndexChange],
   );
+
+  // Event handlers read the latest index from here.
+  useLayoutEffect(() => {
+    indexRef.current = index;
+  });
+
+  // Open on the chosen photo without scrolling there, and stay on it if the
+  // window is resized or the phone is turned.
+  useLayoutEffect(() => {
+    scrollToIndex(indexRef.current, false);
+    const onResize = () => scrollToIndex(indexRef.current, false);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [scrollToIndex]);
+
+  // A thumbnail, arrow or key moved the index: scroll the strip to match. One
+  // photo away glides; further away it jumps, so a long animation never has
+  // to be waited out. Until the strip arrives, its own scroll events must not
+  // be read as the viewer swiping somewhere else.
+  useEffect(() => {
+    const element = strip.current;
+    if (!element) return;
+    const from = Math.round(element.scrollLeft / element.clientWidth);
+    if (from === index) return;
+    settling.current = index;
+    scrollToIndex(index, Math.abs(index - from) === 1);
+    window.clearTimeout(settleTimer.current);
+    settleTimer.current = window.setTimeout(() => {
+      settling.current = null;
+    }, 2000);
+    return () => window.clearTimeout(settleTimer.current);
+  }, [index, scrollToIndex]);
 
   useEffect(() => {
     const opener = document.activeElement as HTMLElement | null;
@@ -123,8 +173,16 @@ export function PhotoViewer({
   }, [index]);
 
   if (!photo) return null;
-  const next = photos[(index + 1) % count];
-  const previous = photos[(index - 1 + count) % count];
+
+  const resetStage = (animate: boolean) => {
+    const element = stage.current;
+    if (!element) return;
+    element.style.transition = animate
+      ? "transform 0.2s ease, opacity 0.2s ease"
+      : "none";
+    element.style.transform = "";
+    element.style.opacity = "";
+  };
 
   return createPortal(
     <div
@@ -165,25 +223,26 @@ export function PhotoViewer({
       ) : null}
 
       <div
-        className="relative flex min-h-0 flex-1 touch-pan-y items-center justify-center overflow-hidden px-0 sm:px-16"
+        ref={stage}
+        className="relative min-h-0 flex-1 will-change-transform"
         onTouchStart={(event) => {
           // Leave pinch-zoomed pages and two-finger gestures to the browser.
           const zoomed = (window.visualViewport?.scale ?? 1) > 1.01;
           if (event.touches.length !== 1 || zoomed) {
-            gesture.current = null;
+            drag.current = null;
             return;
           }
           const touch = event.touches[0]!;
-          gesture.current = { x: touch.clientX, y: touch.clientY, axis: null };
-          if (imageRef.current) imageRef.current.style.transition = "none";
+          drag.current = { x: touch.clientX, y: touch.clientY, axis: null };
+          resetStage(false);
         }}
         onTouchMove={(event) => {
-          const state = gesture.current;
-          const image = imageRef.current;
-          if (!state || !image) return;
+          const state = drag.current;
+          const element = stage.current;
+          if (!state || !element) return;
           if (event.touches.length !== 1) {
-            gesture.current = null;
-            image.style.transform = "";
+            drag.current = null;
+            resetStage(false);
             return;
           }
           const touch = event.touches[0]!;
@@ -192,39 +251,24 @@ export function PhotoViewer({
           if (!state.axis && Math.max(Math.abs(dx), Math.abs(dy)) > 8) {
             state.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
           }
-          // The photo follows the finger: sideways to browse, down to dismiss.
-          if (state.axis === "x") {
-            image.style.transform = `translateX(${dx}px)`;
-          } else if (state.axis === "y" && dy > 0) {
-            image.style.transform = `translateY(${dy}px)`;
-            image.style.opacity = String(Math.max(0.4, 1 - dy / 400));
+          // Sideways is the browser's own scrolling. Only a downward drag is
+          // ours: the stage follows the finger and fades, then closes.
+          if (state.axis === "y" && dy > 0) {
+            element.style.transform = `translateY(${dy}px)`;
+            element.style.opacity = String(Math.max(0.4, 1 - dy / 400));
           }
         }}
         onTouchEnd={(event) => {
-          const state = gesture.current;
-          const image = imageRef.current;
-          gesture.current = null;
-          if (image) {
-            image.style.transition = "transform 0.18s ease, opacity 0.18s ease";
-            image.style.transform = "";
-            image.style.opacity = "";
-          }
+          const state = drag.current;
+          drag.current = null;
+          resetStage(true);
           const touch = event.changedTouches[0];
           if (!state || !touch) return;
-          const dx = touch.clientX - state.x;
-          const dy = touch.clientY - state.y;
-          if (state.axis === "x" && Math.abs(dx) > 60) go(dx < 0 ? 1 : -1);
-          else if (state.axis === "y" && dy > 110) onClose();
+          if (state.axis === "y" && touch.clientY - state.y > 110) onClose();
         }}
         onTouchCancel={() => {
-          gesture.current = null;
-          if (imageRef.current) {
-            imageRef.current.style.transform = "";
-            imageRef.current.style.opacity = "";
-          }
-        }}
-        onClick={(event) => {
-          if (event.target === event.currentTarget) onClose();
+          drag.current = null;
+          resetStage(true);
         }}
       >
         {count > 1 ? (
@@ -232,35 +276,61 @@ export function PhotoViewer({
             <NavButton
               side="left"
               label="Previous photo"
+              disabled={index === 0}
               onClick={() => go(-1)}
             >
               <ChevronLeft className="h-6 w-6" aria-hidden />
             </NavButton>
-            <NavButton side="right" label="Next photo" onClick={() => go(1)}>
+            <NavButton
+              side="right"
+              label="Next photo"
+              disabled={index === count - 1}
+              onClick={() => go(1)}
+            >
               <ChevronRight className="h-6 w-6" aria-hidden />
             </NavButton>
           </>
         ) : null}
-        {/* Plain img: these are authenticated, already-optimized files. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          ref={imageRef}
-          key={photo.id}
-          src={photo.src}
-          alt={photo.alt ?? photo.caption ?? photo.label ?? "Photo"}
-          decoding="async"
-          className="max-h-full max-w-full rounded-none object-contain shadow-2xl will-change-transform sm:rounded-lg"
-          draggable={false}
-        />
-        {/* Warm the neighbours so arrows feel instant. */}
-        {count > 1 ? (
-          <div className="hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={next!.src} alt="" />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={previous!.src} alt="" />
-          </div>
-        ) : null}
+        <div
+          ref={strip}
+          onTouchStart={() => {
+            settling.current = null;
+          }}
+          onWheel={() => {
+            settling.current = null;
+          }}
+          onScroll={(event) => {
+            const element = event.currentTarget;
+            const at = Math.round(element.scrollLeft / element.clientWidth);
+            if (settling.current !== null) {
+              if (at !== settling.current) return;
+              settling.current = null;
+            }
+            if (at !== indexRef.current) onIndexChange(at);
+          }}
+          className="flex h-full w-full touch-pan-x touch-pinch-zoom snap-x snap-mandatory overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {photos.map((item, i) => (
+            <div
+              key={item.id}
+              onClick={(event) => {
+                if (event.target === event.currentTarget) onClose();
+              }}
+              className="flex h-full w-full shrink-0 snap-center snap-always items-center justify-center sm:px-16"
+            >
+              {/* Plain img: these are authenticated, already-optimized files. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={item.src}
+                alt={item.alt ?? item.caption ?? item.label ?? "Photo"}
+                loading={Math.abs(i - index) <= 1 ? "eager" : "lazy"}
+                decoding="async"
+                className="max-h-full max-w-full object-contain shadow-2xl sm:rounded-lg"
+                draggable={false}
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
       <footer
@@ -287,20 +357,23 @@ function NavButton({
   side,
   label,
   onClick,
+  disabled,
   children,
 }: {
   side: "left" | "right";
   label: string;
   onClick: () => void;
+  disabled?: boolean;
   children: ReactNode;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       aria-label={label}
       className={cn(
-        "absolute top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full sm:grid bg-white/10 transition-colors hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white",
+        "absolute top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/10 transition-colors disabled:invisible sm:grid hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white",
         side === "left" ? "left-2 sm:left-4" : "right-2 sm:right-4",
       )}
     >
@@ -311,7 +384,7 @@ function NavButton({
 
 /**
  * A scrolling strip of thumbnails: the "playlist" of a photo list. Used at the
- * top of the viewer, and reusable on its own wherever photos are listed.
+ * bottom of the viewer, and reusable on its own wherever photos are listed.
  */
 export function PhotoPlaylist({
   photos,
