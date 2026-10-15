@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { MapPin, CalendarHeart } from "@/components/ui/icons";
+import { CalendarHeart, MapPin } from "@/components/ui/icons";
 import { Card, CardBody } from "@/components/ui/card";
 import { ChannelList } from "@/components/public/contact-channel-list";
-import { PublicShell } from "@/components/public/public-shell";
-import { UnitCard } from "@/components/public/unit-card";
+import { HeroChannels, ShowcaseFooter } from "@/components/public/showcase";
+import { UnitRow } from "@/components/public/unit-row";
 import { JsonLd } from "@/components/json-ld";
 import { getPublicHost, todayISO } from "@/lib/public-demo";
 import { absoluteUrl, APP_URL } from "@/lib/site";
-import { InfoTip } from "@/components/ui/info-tip";
 
 type Params = { host: string };
 
@@ -53,7 +52,7 @@ export default async function HostPage({
     .join("");
 
   return (
-    <PublicShell label={host.displayName}>
+    <div className="flex min-h-dvh flex-col bg-paper">
       {host.publicListingEnabled ? (
         <JsonLd
           data={{
@@ -71,95 +70,78 @@ export default async function HostPage({
           }}
         />
       ) : null}
-      <section className="relative isolate overflow-hidden border-b border-pine/10 bg-pine text-paper">
-        <div
-          aria-hidden
-          className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_20%_20%,#3a5851_0%,#203a35_55%,#162925_100%)]"
-        />
-        <div className="mx-auto max-w-6xl px-4 pb-14 pt-12 sm:px-6 sm:pt-16">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+      <main id="main" className="flex-1">
+        <section className="relative isolate flex min-h-[26rem] flex-col justify-between overflow-hidden bg-pine text-white sm:min-h-[30rem]">
+          {host.coverImageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={host.coverImageUrl}
+              alt=""
+              className="absolute inset-0 -z-20 h-full w-full object-cover"
+            />
+          ) : (
+            <div
+              aria-hidden
+              className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_20%_20%,#3a5851_0%,#203a35_55%,#162925_100%)]"
+            />
+          )}
+          <div
+            aria-hidden
+            className="absolute inset-0 -z-10 bg-gradient-to-b from-pine-deep/60 via-pine-deep/20 to-pine-deep/85"
+          />
+          <div className="mx-auto flex w-full max-w-6xl items-center gap-3 px-4 pt-5 sm:px-6">
             {host.logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={host.logoUrl}
                 alt=""
-                className="h-24 w-24 rounded-2xl border border-paper/20 object-cover"
+                className="h-9 w-9 rounded-xl border border-white/30 object-cover"
               />
             ) : (
               <span
                 aria-hidden
-                className="flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl border border-paper/20 bg-paper/10 font-display text-3xl text-paper"
+                className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-sm font-semibold text-pine"
               >
                 {initials}
               </span>
             )}
-            <div className="min-w-0">
-              <p className="flex items-center gap-1.5 text-sm text-sage">
-                <MapPin className="h-4 w-4" aria-hidden />
-                {host.location}
-              </p>
-              <h1 className="mt-1 font-display text-4xl leading-tight sm:text-5xl">
-                {host.displayName}
-              </h1>
-              <p className="mt-3 max-w-2xl text-lg leading-relaxed text-paper/75">
+            <span className="truncate font-display text-lg">
+              {host.displayName}
+            </span>
+          </div>
+          <div className="mx-auto w-full max-w-6xl px-4 pb-10 pt-16 sm:px-6 sm:pb-12">
+            <p className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-sm font-medium backdrop-blur">
+              <MapPin className="h-4 w-4" aria-hidden />
+              {host.location}
+            </p>
+            <h1 className="mt-3 max-w-3xl font-display text-5xl leading-[1.05] sm:text-6xl">
+              {host.displayName}
+            </h1>
+            {host.tagline ? (
+              <p className="mt-3 max-w-xl text-lg leading-relaxed text-white/90">
                 {host.tagline}
               </p>
-            </div>
+            ) : null}
+            <HeroChannels channels={host.channels} className="mt-6" />
           </div>
-          <dl className="mt-10 grid max-w-xl grid-cols-3 gap-3 text-center">
-            {[
-              [
-                String(host.units.length),
-                host.units.length === 1 ? "Unit" : "Units",
-              ],
-              [`Since ${host.hostingSince}`, "Hosting"],
-              [
-                String(Math.max(...host.units.map((unit) => unit.capacity))),
-                "Max guests",
-              ],
-            ].map(([value, label]) => (
-              <div
-                key={label}
-                className="rounded-xl border border-paper/15 bg-paper/5 px-3 py-4"
-              >
-                <dt className="sr-only">{label}</dt>
-                <dd className="font-display text-xl">{value}</dd>
-                <p aria-hidden className="mt-0.5 text-xs text-paper/60">
-                  {label}
-                </p>
-              </div>
-            ))}
-          </dl>
-        </div>
-      </section>
+        </section>
 
-      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <div className="min-w-0 space-y-12">
-          <section aria-labelledby="units-heading">
-            <div className="flex flex-wrap items-end justify-between gap-2">
-              <div>
-                <h2
-                  id="units-heading"
-                  className="font-display text-3xl text-pine"
-                >
-                  Choose your stay
-                </h2>
-                <p className="mt-1 text-sm text-ink/60">
-                  Every unit has its own calendar. Open one to see which days
-                  are free.
-                </p>
-              </div>
-              <p className="text-sm text-ink/55">
-                {host.units.length} {host.units.length === 1 ? "unit" : "units"}
-              </p>
-            </div>
+        <div className="mx-auto max-w-6xl px-4 pb-6 pt-12 sm:px-6">
+          <section aria-labelledby="units-heading" id="units">
+            <h2 id="units-heading" className="font-display text-4xl text-pine">
+              Our units
+            </h2>
+            <p className="mt-2 max-w-xl text-ink/60">
+              Every unit has its own calendar. The squares show the next 14
+              nights: light is free, grey is booked.
+            </p>
             {host.units.length ? (
-              <div className="mt-6 grid gap-5 sm:grid-cols-2">
+              <div className="mt-6">
                 {host.units.map((unit, index) => (
-                  <UnitCard
+                  <UnitRow
                     key={unit.id}
                     unit={unit}
-                    tone={index}
+                    index={index}
                     today={today}
                     href={`/h/${encodeURIComponent(host.slug)}/${encodeURIComponent(unit.slug)}`}
                   />
@@ -183,32 +165,38 @@ export default async function HostPage({
             )}
           </section>
 
-          <section aria-labelledby="about-heading">
-            <h2 id="about-heading" className="font-display text-3xl text-pine">
-              About {host.displayName}
-            </h2>
-            <p className="mt-3 max-w-2xl whitespace-pre-line leading-relaxed text-ink/75">
-              {host.about}
-            </p>
+          <section
+            aria-labelledby="about-heading"
+            className="mt-10 grid gap-8 rounded-3xl bg-pine-mist p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start"
+          >
+            <div>
+              <h2
+                id="about-heading"
+                className="font-display text-3xl text-pine"
+              >
+                About {host.displayName}
+              </h2>
+              {host.about ? (
+                <p className="mt-3 max-w-2xl whitespace-pre-line leading-relaxed text-ink/75">
+                  {host.about}
+                </p>
+              ) : null}
+              <p className="mt-3 text-sm text-ink/60">
+                Hosting since {host.hostingSince}. Questions about a unit or
+                your dates? Message the host the way that suits you. Your
+                payment and stay are arranged directly with them.
+              </p>
+            </div>
+            <div>
+              <h3 className="mb-3 font-display text-xl text-pine">
+                Get in touch
+              </h3>
+              <ChannelList channels={host.channels} />
+            </div>
           </section>
         </div>
-
-        <aside className="lg:sticky lg:top-6 lg:self-start">
-          <Card>
-            <CardBody className="space-y-4">
-              <div className="flex items-center gap-1.5">
-                <h2 className="font-display text-xl text-pine">Get in touch</h2>
-                <InfoTip>
-                  Questions about a unit or your dates? Message the host the way
-                  that suits you. Hostayo runs the booking tools. Your payment
-                  and stay are arranged directly with the host.
-                </InfoTip>
-              </div>
-              <ChannelList channels={host.channels} />
-            </CardBody>
-          </Card>
-        </aside>
-      </div>
-    </PublicShell>
+      </main>
+      <ShowcaseFooter location={host.location} />
+    </div>
   );
 }

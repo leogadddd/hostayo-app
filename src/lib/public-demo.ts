@@ -21,7 +21,10 @@ import {
   listUnitAmenities,
 } from "@/server/inventory/amenities";
 import { getOccupancySegments } from "@/server/inventory/availability";
-import { listPublicUnitPhotos } from "@/server/inventory/public-photos";
+import {
+  listPublicPropertyCovers,
+  listPublicUnitPhotos,
+} from "@/server/inventory/public-photos";
 import { isStoredPhotoKey } from "@/lib/photos";
 import { findActiveGuestToken } from "@/server/reservations/guest-link";
 
@@ -77,6 +80,8 @@ export interface PublicHost {
   tagline: string;
   about: string;
   logoUrl: string | null;
+  /** A wide photo for the top of the host page: a property cover, else a unit's. */
+  coverImageUrl: string | null;
   location: string;
   /** Enabled channels in display order. */
   channels: ContactChannel[];
@@ -293,6 +298,15 @@ export const getPublicHost = cache(
         propertyId: property.id,
       })),
     );
+    const propertyCovers = await listPublicPropertyCovers(organization.id, [
+      ...new Set(rows.map(({ property }) => property.id)),
+    ]);
+    const coverImageUrl =
+      rows
+        .map(({ property }) => propertyCovers.get(property.id))
+        .find(Boolean) ??
+      rows.map(({ unit }) => photosByUnit.get(unit.id)?.cover).find(Boolean) ??
+      null;
     // Photos kept as a web address or inline image before uploads existed.
     const legacyPhoto = (value: string | null) =>
       value && !isStoredPhotoKey(value) ? value : null;
@@ -361,6 +375,7 @@ export const getPublicHost = cache(
       logoUrl: isStoredPhotoKey(organization.logoUrl)
         ? `/api/public/hosts/${encodeURIComponent(slug)}/logo`
         : organization.logoUrl,
+      coverImageUrl,
       location:
         [organization.city ?? organization.municipality, organization.province]
           .filter(Boolean)

@@ -110,3 +110,32 @@ export async function listPublicUnitPhotos(
   }
   return result;
 }
+
+/** Public URLs of each property's own cover photo, keyed by property id. */
+export async function listPublicPropertyCovers(
+  organizationId: string,
+  propertyIds: string[],
+): Promise<Map<string, string>> {
+  const covers = new Map<string, string>();
+  if (!propertyIds.length) return covers;
+  const rows = await db
+    .select({
+      id: inventoryPhotos.id,
+      propertyId: inventoryPhotos.propertyId,
+      updatedAt: inventoryPhotos.updatedAt,
+    })
+    .from(inventoryPhotos)
+    .where(
+      and(
+        eq(inventoryPhotos.organizationId, organizationId),
+        inArray(inventoryPhotos.propertyId, propertyIds),
+        isNull(inventoryPhotos.unitId),
+        eq(inventoryPhotos.isCover, true),
+        isNull(inventoryPhotos.deletedAt),
+      ),
+    );
+  for (const row of rows) {
+    covers.set(row.propertyId, publicPhotoSrc(row.id, row.updatedAt));
+  }
+  return covers;
+}
