@@ -6,26 +6,30 @@
 
 ## Introduction
 
-Hostayo is a booking and operations tool for short-stay hosts in the Philippines. It takes a booking from the first message to checkout, and shows you the work and money attached to every stay, whether you host one room or manage a whole portfolio.
+Hostayo is a management app for your staycation in the Philippines. It takes a booking from the first message to checkout, and shows you the work and money attached to every stay, so one host can run their place without a spreadsheet and a group chat.
 
 ## The problem
 
 Most small hosts run their business out of Messenger threads, screenshots of payments, a spreadsheet for the calendar and a group chat with the cleaner. It works until it doesn't:
 
-- Two guests ask for the same weekend and someone gets double-booked
+- Dates live in more than one place, so a clash is easy to miss
 - Nobody remembers who paid the deposit, or how much is still owed
 - The cleaner doesn't know a unit is vacant until you tell them
 - At the end of the month you can't say what each unit really earned
 
 ## The solution
 
-Hostayo keeps all of it in one place. Your calendar blocks overlapping bookings. Every guest gets one link with their dates, house rules and balance. Cleaning checklists appear the moment a guest checks out. And your money is laid out plainly: cash collected, deposits you're holding and expenses, each labelled.
+Hostayo keeps all of it in one place. Your calendar blocks overlapping bookings entered in it. Every guest gets one link with their dates, house rules and balance. Cleaning checklists appear the moment a guest checks out. And your money is laid out plainly: cash collected, deposits you're holding and expenses, each labelled.
+
+## A note on double booking
+
+No app can promise zero double bookings once other channels are involved. Hostayo blocks overlaps for anything entered in it, but calendars synced from other channels refresh on a delay, so a short window always remains. Check the calendar right before you confirm a booking.
 
 ## What Hostayo does
 
 **Bookings and calendar**
-- One calendar for every unit, whether you host one room or a whole portfolio
-- Block dates in seconds, with overlapping bookings stopped, even when two people book at once
+- One calendar for your staycation and every unit in it
+- Block dates in seconds, with overlapping bookings entered in Hostayo stopped, even when two people book at once
 - Holds, confirmations, check-in, check-out, extensions and cancellations, all from the booking itself
 - Keep track of what's in each unit and which dates are open
 
@@ -55,7 +59,7 @@ Made in the Philippines, with Asia/Manila time and pesos throughout.
 ## Coming soon
 
 - **Seasonal pricing:** weekend and peak rates, discounts and minimum stays
-- **Calendar sync:** two-way iCal sync with your other booking channels
+- **Calendar sync:** iCal import and export for your other booking channels. Syncs refresh on a delay, so Hostayo will flag overlaps for you to resolve rather than promise none.
 - **Owner reports:** monthly income and profit per unit, exportable as PDF or CSV
 - **Guest messaging:** automatic confirmation and reminder messages
 
