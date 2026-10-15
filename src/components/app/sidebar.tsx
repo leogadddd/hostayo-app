@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useSyncExternalStore } from "react";
+import { useMemo, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -25,6 +25,7 @@ import {
   Landmark,
   MessageSquareText,
   Percent,
+  ScrollText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SIDEBAR_GROUPS_COOKIE } from "@/lib/sidebar-groups";
@@ -34,6 +35,7 @@ import { Logo, LogoMark } from "@/components/logo";
 import { AccountMenu } from "@/components/app/account-menu";
 import { SharePublicLink } from "@/components/app/share-public-link";
 import { LiveClock } from "@/components/app/live-clock";
+import { GlobalSearch } from "@/components/app/global-search";
 import {
   OrganizationSelector,
   type OrganizationOption,
@@ -198,6 +200,97 @@ function linkVisible(
     !item.anyOf ||
     item.anyOf.some((permission) => can({ role, permissions }, permission))
   );
+}
+
+/** A page the header search can jump to. */
+export interface SearchPage {
+  href: string;
+  label: string;
+  group?: string;
+  keywords?: string;
+  icon: typeof LayoutDashboard;
+}
+
+/** Pages with no sidebar entry of their own that people still look for. */
+const EXTRA_SEARCH_PAGES: readonly (NavLink & { keywords?: string })[] = [
+  {
+    href: "/settings/profile",
+    label: "Profile",
+    icon: Settings,
+    keywords: "account name photo",
+  },
+  {
+    href: "/settings/security",
+    label: "Security",
+    icon: Settings,
+    keywords: "password two-factor 2fa",
+  },
+  {
+    href: "/settings/organization",
+    label: "Organization",
+    icon: Settings,
+    anyOf: ["organization.update"],
+    keywords: "business name logo",
+  },
+  {
+    href: "/settings/team",
+    label: "Team",
+    icon: Settings,
+    anyOf: ["team.view"],
+    keywords: "members staff invite",
+  },
+  {
+    href: "/settings/permissions",
+    label: "Permissions",
+    icon: Settings,
+    anyOf: ["team.view"],
+    keywords: "roles access",
+  },
+  {
+    href: "/settings/platforms",
+    label: "Booking platforms",
+    icon: Settings,
+    anyOf: ["platforms.view"],
+    keywords: "airbnb booking.com direct",
+  },
+  {
+    href: "/settings/support",
+    label: "Support",
+    icon: Settings,
+    keywords: "help contact",
+  },
+  {
+    href: "/audit-logs",
+    label: "Audit logs",
+    icon: ScrollText,
+    anyOf: ["audit_logs.view"],
+    keywords: "activity history",
+  },
+];
+
+/** Every page the member can open, for the header search: the sidebar's links plus a few settings pages. */
+export function searchablePages(
+  role: RoleKey,
+  permissions: readonly Permission[] | undefined,
+  l1: boolean,
+): SearchPage[] {
+  const pages: SearchPage[] = [];
+  for (const entry of NAV) {
+    if (isGroup(entry)) {
+      if (entry.l1Only && !l1) continue;
+      for (const item of entry.items) {
+        if (linkVisible(item, role, permissions))
+          pages.push({ ...item, group: entry.label });
+      }
+    } else if (linkVisible(entry, role, permissions)) {
+      pages.push(entry);
+    }
+  }
+  for (const item of EXTRA_SEARCH_PAGES) {
+    if (linkVisible(item, role, permissions))
+      pages.push({ ...item, group: "Settings" });
+  }
+  return pages;
 }
 
 function linkActive(item: NavLink, pathname: string) {
@@ -489,6 +582,10 @@ export function AppHeader({
     },
   ];
   const activeOrganizationId = props.organizationId ?? organizations[0]!.id;
+  const searchPages = useMemo(
+    () => searchablePages(props.role, props.permissions, props.l1 ?? false),
+    [props.role, props.permissions, props.l1],
+  );
   return (
     <header
       data-testid="app-header"
@@ -555,6 +652,13 @@ export function AppHeader({
           imageSrc={props.organizationImage ?? null}
           className="hidden lg:block"
           l1={props.l1}
+        />
+      </div>
+      <div className="flex min-w-0 flex-1 justify-end md:justify-center md:px-4">
+        <GlobalSearch
+          organizationId={activeOrganizationId}
+          userEmail={props.userEmail}
+          pages={searchPages}
         />
       </div>
       <div className="flex shrink-0 items-center gap-5">
