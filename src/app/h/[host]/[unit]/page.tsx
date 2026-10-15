@@ -16,7 +16,8 @@ import { buttonClassName } from "@/components/ui/button";
 import { amenityIcon } from "@/app/(app)/properties/amenity-icons";
 import { UnitAvailability } from "@/components/public/unit-availability";
 import { clockLabel } from "@/components/public/format";
-import { PhotoCarousel } from "@/components/public/photo-carousel";
+import { ChannelList } from "@/components/public/contact-channel-list";
+import { PhotoGrid } from "@/components/public/photo-grid";
 import {
   AvailabilityStrip,
   HeroChannels,
@@ -66,7 +67,7 @@ const WEEKDAY = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function AmenityGrid({ items }: { items: PublicAmenity[] }) {
   return (
-    <ul className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+    <ul className="grid gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((amenity) => {
         const Icon = amenityIcon(amenity.icon);
         return (
@@ -85,24 +86,29 @@ function AmenityGrid({ items }: { items: PublicAmenity[] }) {
   );
 }
 
-function Box({
+/** A block under the hero: a big heading, a line of help, then the content. */
+function Block({
   id,
   title,
+  intro,
   children,
 }: {
   id: string;
   title: string;
+  intro?: string;
   children: React.ReactNode;
 }) {
   return (
     <section
       aria-labelledby={`${id}-heading`}
-      className="rounded-2xl border border-pine/12 bg-surface p-5 sm:p-6"
+      id={id}
+      className="scroll-mt-6 border-t border-pine/10 py-10 first:border-t-0 first:pt-0"
     >
-      <h2 id={`${id}-heading`} className="mb-4 font-display text-xl text-pine">
+      <h2 id={`${id}-heading`} className="font-display text-4xl text-pine">
         {title}
       </h2>
-      {children}
+      {intro ? <p className="mt-2 max-w-xl text-ink/60">{intro}</p> : null}
+      <div className="mt-6">{children}</div>
     </section>
   );
 }
@@ -115,6 +121,9 @@ const STEPS = [
   ],
   ["Get confirmation", "The host confirms and arranges payment with you."],
 ] as const;
+
+const GLASS_CHIP =
+  "flex items-center gap-1.5 rounded-full bg-white/15 px-3.5 py-1.5 text-sm font-medium backdrop-blur";
 
 export default async function UnitPage({
   params,
@@ -145,6 +154,7 @@ export default async function UnitPage({
   const photos = [unit.imageUrl, ...unit.imageGallery].filter(
     (src): src is string => Boolean(src),
   );
+  const heroImage = photos[0] ?? host.coverImageUrl;
   const open = nextOpenDate(unit.booked, today);
   const openNow = open === today;
 
@@ -186,61 +196,176 @@ export default async function UnitPage({
           }}
         />
       ) : null}
-      <header className="sticky top-0 z-20 border-b border-pine/10 bg-surface/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <Link
-            href={hostHref}
-            className="inline-flex min-w-0 items-center gap-1.5 font-medium text-pine hover:underline"
-          >
-            <CaretLeft className="h-4 w-4 shrink-0" aria-hidden />
-            <span className="truncate">All units</span>
-          </Link>
-          <HeroChannels
-            channels={unitChannels}
-            tone="light"
-            collapseOnMobile
-            className="flex-nowrap"
+      <main id="main" className="flex-1">
+        <section className="relative isolate flex min-h-[26rem] flex-col justify-between overflow-hidden bg-pine text-white sm:min-h-[30rem]">
+          {heroImage ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={heroImage}
+              alt=""
+              className="absolute inset-0 -z-20 h-full w-full object-cover"
+            />
+          ) : (
+            <div
+              aria-hidden
+              className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_20%_20%,#3a5851_0%,#203a35_55%,#162925_100%)]"
+            />
+          )}
+          <div
+            aria-hidden
+            className="absolute inset-0 -z-10 bg-gradient-to-b from-pine-deep/60 via-pine-deep/20 to-pine-deep/85"
           />
-        </div>
-      </header>
-
-      <main
-        id="main"
-        className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6"
-      >
-        <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] lg:items-start">
-          <PhotoCarousel photos={photos} alt={unit.name} />
-          <section className="rounded-2xl border border-pine/12 bg-surface p-5 sm:p-6">
-            <p className="flex items-center gap-1.5 text-sm text-ink/55">
+          <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 pt-5 sm:px-6">
+            <Link
+              href={hostHref}
+              className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-2 text-sm font-semibold text-pine shadow-md hover:bg-paper"
+            >
+              <CaretLeft className="h-4 w-4" aria-hidden />
+              All units
+            </Link>
+            <span className="truncate font-display text-lg">
+              {host.displayName}
+            </span>
+          </div>
+          <div className="mx-auto w-full max-w-6xl px-4 pb-10 pt-16 sm:px-6 sm:pb-12">
+            <p className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-sm font-medium backdrop-blur">
               <MapPin className="h-4 w-4" aria-hidden />
               {unit.propertyName} · {unit.location}
             </p>
-            <h1 className="mt-1 font-display text-4xl text-pine">
+            <h1 className="mt-3 max-w-3xl font-display text-5xl leading-[1.05] sm:text-6xl">
               {unit.name}
             </h1>
-            <p className="mt-1 text-sm text-ink/55">
-              Hosted by {host.displayName}
-            </p>
-            <ul className="mt-4 flex flex-wrap gap-2 text-sm font-medium text-ink/80">
-              <li className="flex items-center gap-1.5 rounded-lg bg-pine-mist px-3 py-1.5">
-                <Users className="h-4 w-4 text-pine" aria-hidden />
+            <ul className="mt-4 flex flex-wrap gap-2">
+              <li className={GLASS_CHIP}>
+                <Users className="h-4 w-4" aria-hidden />
                 Sleeps {unit.capacity}
               </li>
-              <li className="flex items-center gap-1.5 rounded-lg bg-pine-mist px-3 py-1.5">
-                <BedDouble className="h-4 w-4 text-pine" aria-hidden />
+              <li className={GLASS_CHIP}>
+                <BedDouble className="h-4 w-4" aria-hidden />
                 {unit.bedrooms} {unit.bedrooms === 1 ? "bedroom" : "bedrooms"}
               </li>
-              <li className="flex items-center gap-1.5 rounded-lg bg-pine-mist px-3 py-1.5">
-                <Bath className="h-4 w-4 text-pine" aria-hidden />
+              <li className={GLASS_CHIP}>
+                <Bath className="h-4 w-4" aria-hidden />
                 {unit.bathrooms} {unit.bathrooms === 1 ? "bath" : "baths"}
               </li>
             </ul>
+            <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
+              <p className="text-white/80">
+                <span className="font-display text-3xl text-white">
+                  {formatPHP(unit.nightlyRateCents)}
+                </span>{" "}
+                / night
+              </p>
+              <Badge tone={openNow ? "sage" : "clay"}>
+                {openNow
+                  ? "Open tonight"
+                  : open
+                    ? `Next open ${shortDate(open)}`
+                    : "Fully booked"}
+              </Badge>
+            </div>
+            <div className="mt-6 hidden flex-wrap items-center gap-3 sm:flex">
+              <a
+                href="#calendar"
+                className="inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 font-semibold text-pine hover:bg-paper"
+              >
+                Pick your dates
+              </a>
+              <HeroChannels
+                channels={unitChannels}
+                className="hidden sm:flex"
+              />
+            </div>
+          </div>
+        </section>
+
+        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+          {photos.length > 1 ? (
+            <Block
+              id="photos"
+              title="Photos"
+              intro={`${photos.length} photos of ${unit.name}.`}
+            >
+              <PhotoGrid photos={photos} alt={unit.name} />
+            </Block>
+          ) : null}
+
+          <Block
+            id="calendar"
+            title="Free dates"
+            intro="Choose your check-in and check-out. The squares show the next 14 nights: light is free, grey is booked."
+          >
+            <div className="mb-6 max-w-xl">
+              <AvailabilityStrip booked={unit.booked} today={today} />
+            </div>
+            <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] lg:items-start">
+              <UnitAvailability
+                today={today}
+                booked={unit.booked}
+                nightlyRateCents={unit.nightlyRateCents}
+                dayRates={unit.dayRates}
+                cleaningFeeCents={unit.cleaningFeeCents}
+                channels={unitChannels}
+                hostName={host.displayName}
+                unitName={unit.name}
+                initialRange={initialRange}
+              />
+              <div className="rounded-2xl border border-pine/12 bg-surface p-5 sm:p-6">
+                <h3 className="mb-3 font-display text-xl text-pine">Rates</h3>
+                <dl className="divide-y divide-pine/10 text-sm">
+                  <div className="flex justify-between gap-4 py-2.5">
+                    <dt className="text-ink/65">Per night</dt>
+                    <dd className="font-semibold text-pine">
+                      {formatPHP(unit.nightlyRateCents)}
+                    </dd>
+                  </div>
+                  {weekendRates.map(([day, cents]) => (
+                    <div
+                      key={day}
+                      className="flex justify-between gap-4 py-2.5"
+                    >
+                      <dt className="text-ink/65">
+                        {WEEKDAY[Number(day)]} night
+                      </dt>
+                      <dd className="font-semibold text-pine">
+                        {formatPHP(cents)}
+                      </dd>
+                    </div>
+                  ))}
+                  {unit.cleaningFeeCents ? (
+                    <div className="flex justify-between gap-4 py-2.5">
+                      <dt className="text-ink/65">Cleaning fee</dt>
+                      <dd className="font-semibold text-pine">
+                        {formatPHP(unit.cleaningFeeCents)}
+                      </dd>
+                    </div>
+                  ) : null}
+                  {unit.securityDepositCents ? (
+                    <div className="flex justify-between gap-4 py-2.5">
+                      <dt className="text-ink/65">Refundable deposit</dt>
+                      <dd className="font-semibold text-pine">
+                        {formatPHP(unit.securityDepositCents)}
+                      </dd>
+                    </div>
+                  ) : null}
+                  {unit.reservationFeeLabel ? (
+                    <div className="flex gap-2 py-2.5 text-ink/65">
+                      <Clock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                      <dd>{unit.reservationFeeLabel}</dd>
+                    </div>
+                  ) : null}
+                </dl>
+              </div>
+            </div>
+          </Block>
+
+          <Block id="about" title="About this unit">
             {unit.description ? (
-              <p className="mt-4 leading-relaxed text-ink/75">
+              <p className="max-w-2xl leading-relaxed text-ink/75">
                 {unit.description}
               </p>
             ) : null}
-            <dl className="mt-4 grid grid-cols-2 gap-3">
+            <dl className="mt-6 grid max-w-md grid-cols-2 gap-3">
               <div className="flex items-center gap-3 rounded-xl border border-pine/12 bg-linen px-4 py-3">
                 <LogIn className="h-5 w-5 text-moss" aria-hidden />
                 <div>
@@ -260,138 +385,72 @@ export default async function UnitPage({
                 </div>
               </div>
             </dl>
-            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-pine/10 pt-4">
-              <p className="text-ink/55">
-                <span className="font-display text-2xl text-pine">
-                  {formatPHP(unit.nightlyRateCents)}
-                </span>{" "}
-                / night
-              </p>
-              <Badge tone={openNow ? "sage" : "clay"}>
-                {openNow
-                  ? "Open tonight"
-                  : open
-                    ? `Next open ${shortDate(open)}`
-                    : "Fully booked"}
-              </Badge>
-            </div>
-            <div className="mt-3">
-              <AvailabilityStrip booked={unit.booked} today={today} />
-            </div>
-          </section>
-        </div>
+          </Block>
 
-        <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] lg:items-start">
-          <div className="min-w-0 space-y-6">
-            <section aria-label="Available dates" id="calendar">
-              <UnitAvailability
-                today={today}
-                booked={unit.booked}
-                nightlyRateCents={unit.nightlyRateCents}
-                dayRates={unit.dayRates}
-                cleaningFeeCents={unit.cleaningFeeCents}
-                channels={unitChannels}
-                hostName={host.displayName}
-                unitName={unit.name}
-                initialRange={initialRange}
-              />
-            </section>
-            {unit.unitAmenities.length || unit.propertyAmenities.length ? (
-              <Box id="amenities" title="What is included">
-                {unit.unitAmenities.length ? (
-                  <AmenityGrid items={unit.unitAmenities} />
-                ) : null}
-                {unit.propertyAmenities.length ? (
-                  <>
-                    <h3 className="mb-3 mt-6 font-display text-lg text-pine">
-                      Around {unit.propertyName}
-                    </h3>
-                    <AmenityGrid items={unit.propertyAmenities} />
-                  </>
-                ) : null}
-              </Box>
-            ) : null}
-          </div>
+          {unit.unitAmenities.length || unit.propertyAmenities.length ? (
+            <Block id="amenities" title="What is included">
+              {unit.unitAmenities.length ? (
+                <AmenityGrid items={unit.unitAmenities} />
+              ) : null}
+              {unit.propertyAmenities.length ? (
+                <>
+                  <h3 className="mb-3 mt-8 font-display text-xl text-pine">
+                    Around {unit.propertyName}
+                  </h3>
+                  <AmenityGrid items={unit.propertyAmenities} />
+                </>
+              ) : null}
+            </Block>
+          ) : null}
 
-          <div className="min-w-0 space-y-6">
-            <Box id="rates" title="Rates">
-              <dl className="divide-y divide-pine/10 text-sm">
-                <div className="flex justify-between gap-4 py-2.5">
-                  <dt className="text-ink/65">Per night</dt>
-                  <dd className="font-semibold text-pine">
-                    {formatPHP(unit.nightlyRateCents)}
-                  </dd>
-                </div>
-                {weekendRates.map(([day, cents]) => (
-                  <div key={day} className="flex justify-between gap-4 py-2.5">
-                    <dt className="text-ink/65">
-                      {WEEKDAY[Number(day)]} night
-                    </dt>
-                    <dd className="font-semibold text-pine">
-                      {formatPHP(cents)}
-                    </dd>
-                  </div>
+          {unit.guestHouseRules.length ? (
+            <Block id="rules" title="House rules">
+              <ul className="max-w-2xl space-y-2.5">
+                {unit.guestHouseRules.map((rule) => (
+                  <li key={rule} className="flex gap-3 text-ink/75">
+                    <span
+                      aria-hidden
+                      className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-clay"
+                    />
+                    {rule}
+                  </li>
                 ))}
-                {unit.cleaningFeeCents ? (
-                  <div className="flex justify-between gap-4 py-2.5">
-                    <dt className="text-ink/65">Cleaning fee</dt>
-                    <dd className="font-semibold text-pine">
-                      {formatPHP(unit.cleaningFeeCents)}
-                    </dd>
-                  </div>
-                ) : null}
-                {unit.securityDepositCents ? (
-                  <div className="flex justify-between gap-4 py-2.5">
-                    <dt className="text-ink/65">Refundable deposit</dt>
-                    <dd className="font-semibold text-pine">
-                      {formatPHP(unit.securityDepositCents)}
-                    </dd>
-                  </div>
-                ) : null}
-                {unit.reservationFeeLabel ? (
-                  <div className="flex gap-2 py-2.5 text-ink/65">
-                    <Clock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-                    <dd>{unit.reservationFeeLabel}</dd>
-                  </div>
-                ) : null}
-              </dl>
-            </Box>
+              </ul>
+            </Block>
+          ) : null}
 
-            <Box id="how" title="How to book">
-              <ol className="space-y-4">
+          <section
+            aria-labelledby="how-heading"
+            className="mt-4 grid gap-8 rounded-3xl bg-pine-mist p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start"
+          >
+            <div>
+              <h2 id="how-heading" className="font-display text-3xl text-pine">
+                How to book
+              </h2>
+              <ol className="mt-5 space-y-4">
                 {STEPS.map(([title, detail], index) => (
                   <li key={title} className="flex gap-3">
                     <span
                       aria-hidden
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-pine-mist font-semibold text-pine"
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white font-semibold text-pine"
                     >
                       {index + 1}
                     </span>
                     <div>
                       <p className="font-medium text-pine">{title}</p>
-                      <p className="text-sm text-ink/60">{detail}</p>
+                      <p className="text-sm text-ink/65">{detail}</p>
                     </div>
                   </li>
                 ))}
               </ol>
-            </Box>
-
-            {unit.guestHouseRules.length ? (
-              <Box id="rules" title="House rules">
-                <ul className="space-y-2.5">
-                  {unit.guestHouseRules.map((rule) => (
-                    <li key={rule} className="flex gap-3 text-ink/75">
-                      <span
-                        aria-hidden
-                        className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-clay"
-                      />
-                      {rule}
-                    </li>
-                  ))}
-                </ul>
-              </Box>
-            ) : null}
-          </div>
+            </div>
+            <div>
+              <h3 className="mb-3 font-display text-xl text-pine">
+                Message {host.displayName}
+              </h3>
+              <ChannelList channels={unitChannels} />
+            </div>
+          </section>
         </div>
       </main>
       <ShowcaseFooter location={unit.location} />

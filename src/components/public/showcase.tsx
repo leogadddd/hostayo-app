@@ -21,29 +21,20 @@ export function shortDate(date: string) {
   return OPEN_LABEL.format(new Date(`${date}T00:00:00Z`));
 }
 
-/** The host's channels as pills, over a photo or on a white bar; the first one is the filled one. */
+/** The host's channels as pills over a photo; the first one is the filled one. */
 export function HeroChannels({
   channels,
   className,
-  tone = "photo",
-  collapseOnMobile = false,
 }: {
   channels: ContactChannel[];
   className?: string;
-  /** "photo" sits over an image; "light" sits on a white bar. */
-  tone?: "photo" | "light";
-  /** Show only the first channel below the sm breakpoint. */
-  collapseOnMobile?: boolean;
 }) {
   const list = activeChannels(channels).slice(0, 4);
   if (!list.length) return null;
   return (
     <ul className={cn("flex flex-wrap gap-2", className)}>
       {list.map((channel, index) => (
-        <li
-          key={channel.id}
-          className={cn(collapseOnMobile && index > 0 && "hidden sm:block")}
-        >
+        <li key={channel.id}>
           <a
             href={channelHref(channel)}
             target={
@@ -56,13 +47,9 @@ export function HeroChannels({
             rel="noopener noreferrer"
             className={cn(
               "inline-flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-4 text-sm font-semibold transition-colors",
-              tone === "photo"
-                ? index === 0
-                  ? "bg-white text-pine hover:bg-paper"
-                  : "border border-white/50 bg-white/15 text-white backdrop-blur hover:bg-white/25"
-                : index === 0
-                  ? "bg-pine text-white hover:bg-pine-soft"
-                  : "border border-pine/20 bg-white text-pine hover:bg-pine-mist/60",
+              index === 0
+                ? "bg-white text-pine hover:bg-paper"
+                : "border border-white/50 bg-white/15 text-white backdrop-blur hover:bg-white/25",
             )}
           >
             <ChannelIcon kind={channel.kind} className="h-7 w-7 rounded-full" />
