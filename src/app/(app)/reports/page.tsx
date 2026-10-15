@@ -27,6 +27,7 @@ import { getDashboardSeries } from "@/server/reports/dashboard";
 import { getReport, ReportError } from "@/server/reports/service";
 import { ReportCharts, type ReportChartsData } from "./report-charts";
 import { listProperties } from "@/server/inventory/service";
+import { InfoTip } from "@/components/ui/info-tip";
 
 export const metadata: Metadata = { title: "Reports" };
 
@@ -431,15 +432,6 @@ function ReportBody({
                 }
               />
             </div>
-            <p className="mt-4 text-xs text-ink/55">
-              Occupancy = occupied nights ÷ bookable nights for the period. Both
-              counts use units currently marked Active and exclude blocked
-              nights. Historical unit status changes are not reconstructed.
-              Holds, cancelled and expired stays never count as occupied. Booked
-              value and average accommodation rate include all booked stay
-              nights, even for units now inactive, but never refundable
-              deposits.
-            </p>
           </CardBody>
         </Card>
       </section>
@@ -475,12 +467,23 @@ function ReportBody({
       <section aria-labelledby="breakdown-heading">
         <Card>
           <CardHeader>
-            <h2
-              id="breakdown-heading"
-              className="font-display text-lg text-pine"
-            >
-              Occupancy by property
-            </h2>
+            <div className="flex items-center gap-1.5">
+              <h2
+                id="breakdown-heading"
+                className="font-display text-lg text-pine"
+              >
+                Occupancy by property
+              </h2>
+              <InfoTip>
+                Occupancy = occupied nights ÷ bookable nights for the period.
+                Both counts use units currently marked Active and exclude
+                blocked nights. Historical unit status changes are not
+                reconstructed. Holds, cancelled and expired stays never count as
+                occupied. Booked value and average accommodation rate include
+                all booked stay nights, even for units now inactive, but never
+                refundable deposits.
+              </InfoTip>
+            </div>
           </CardHeader>
           <CardBody className="p-0">
             {summary.propertyBreakdown.length === 0 ? (

@@ -31,6 +31,7 @@ import {
   MemberActions,
   RolesInfoButton,
 } from "../team-forms";
+import { InfoTip } from "@/components/ui/info-tip";
 
 export const metadata: Metadata = { title: "Team settings" };
 
@@ -155,13 +156,15 @@ export default async function TeamSettingsPage() {
       <Card className="overflow-hidden bg-card">
         <CardHeader className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="font-display text-xl text-pine">
-              Pending access requests
-            </h2>
-            <p className="mt-1 max-w-xl text-sm text-ink/60">
-              People who entered your organization join code. They can’t see
-              anything until you approve them.
-            </p>
+            <div className="flex items-center gap-1.5">
+              <h2 className="font-display text-xl text-pine">
+                Pending access requests
+              </h2>
+              <InfoTip>
+                People who entered your organization join code. They can’t see
+                anything until you approve them.
+              </InfoTip>
+            </div>
           </div>
           {canInvite ? <JoinCodeControl /> : null}
         </CardHeader>

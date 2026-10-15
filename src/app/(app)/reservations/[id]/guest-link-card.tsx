@@ -12,6 +12,7 @@ import {
   type GuestLinkFormState,
 } from "../actions";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
+import { InfoTip } from "@/components/ui/info-tip";
 
 function formatDateTime(value: Date) {
   return new Intl.DateTimeFormat("en-PH", {
@@ -140,6 +141,11 @@ export function GuestLinkCard({
           <div className="flex items-center justify-between gap-2">
             <span className="text-sm font-medium text-pine">
               Link is active
+              <InfoTip className="ml-1.5">
+                For security, the original link can’t be shown again. Create a
+                replacement to get a new one. Replacing or revoking disables the
+                current link immediately.
+              </InfoTip>
             </span>
             <span className="rounded-full bg-sage px-2.5 py-0.5 text-xs font-medium text-pine">
               Active
@@ -159,7 +165,6 @@ export function GuestLinkCard({
               </dd>
             </div>
           </dl>
-          {/* <p className="text-xs leading-relaxed text-ink/50">For security, the original link can’t be shown again. Create a replacement to get a new one.</p> */}
           <div className="grid grid-cols-2 gap-2">
             <ConfirmationDialog
               trigger={
@@ -196,7 +201,6 @@ export function GuestLinkCard({
               }
             />
           </div>
-          {/* <p className="text-xs leading-relaxed text-ink/50">Replacing or revoking disables the current link immediately.</p> */}
         </div>
       ) : null}
 

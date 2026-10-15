@@ -58,10 +58,8 @@ import { MiniCalendar, type MiniCalendarEvent } from "./mini-calendar";
 import { NotesCard } from "./notes-card";
 import { PerformanceSection } from "./performance";
 import { PlatformBreakdown } from "./platform-breakdown";
-import {
-  ExpenseBreakdown,
-  type ExpenseCategoryRow,
-} from "./expense-breakdown";
+import { ExpenseBreakdown, type ExpenseCategoryRow } from "./expense-breakdown";
+import { InfoTip } from "@/components/ui/info-tip";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -575,13 +573,15 @@ export default async function DashboardPage() {
             <Card className="flex flex-col">
               <CardHeader className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <h2 className="font-display text-xl text-pine">
-                    Today&apos;s schedule
-                  </h2>
-                  <p className="mt-1 text-xs text-ink/50">
-                    Who&apos;s leaving and who&apos;s coming, in the order it
-                    happens.
-                  </p>
+                  <div className="flex items-center gap-1.5">
+                    <h2 className="font-display text-xl text-pine">
+                      Today&apos;s schedule
+                    </h2>
+                    <InfoTip>
+                      Who&apos;s leaving and who&apos;s coming, in the order it
+                      happens.
+                    </InfoTip>
+                  </div>
                 </div>
                 <Badge tone="neutral">
                   {plural(arrivals.length + departures.length, "movement")}
@@ -592,10 +592,6 @@ export default async function DashboardPage() {
                   <CircleCheck className="h-7 w-7 text-sage-deep" aria-hidden />
                   <p className="mt-2 text-sm text-ink/60">
                     No arrivals or departures today.
-                  </p>
-                  <p className="mt-1 max-w-sm text-xs text-ink/45">
-                    Use the quiet window to clear turnover work and follow up on
-                    holds.
                   </p>
                 </CardBody>
               ) : (
@@ -704,12 +700,14 @@ export default async function DashboardPage() {
             <Card className="flex flex-col">
               <CardHeader className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="font-display text-xl text-pine">
-                    Needs attention
-                  </h2>
-                  <p className="mt-1 text-xs text-ink/50">
-                    What&apos;s waiting on you, most urgent first.
-                  </p>
+                  <div className="flex items-center gap-1.5">
+                    <h2 className="font-display text-xl text-pine">
+                      Needs attention
+                    </h2>
+                    <InfoTip>
+                      What&apos;s waiting on you, most urgent first.
+                    </InfoTip>
+                  </div>
                 </div>
                 {attentionCount ? (
                   <Badge tone="clay">{attentionCount}</Badge>
@@ -844,12 +842,14 @@ export default async function DashboardPage() {
             <Card id="damage" className="flex scroll-mt-24 flex-col">
               <CardHeader className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="font-display text-xl text-pine">
-                    Damage reports
-                  </h2>
-                  <p className="mt-1 text-xs text-ink/50">
-                    Open reports waiting to be fixed or charged.
-                  </p>
+                  <div className="flex items-center gap-1.5">
+                    <h2 className="font-display text-xl text-pine">
+                      Damage reports
+                    </h2>
+                    <InfoTip>
+                      Open reports waiting to be fixed or charged.
+                    </InfoTip>
+                  </div>
                 </div>
                 {damage.length ? (
                   <Badge tone="clay">{damage.length} open</Badge>

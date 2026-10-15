@@ -3,10 +3,12 @@
 import { useRef, type ComponentType } from "react";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { InfoTip } from "./info-tip";
 
 export interface ChoiceCardOption<T extends string> {
   value: T;
   label: string;
+  /** Helper text, shown in a tooltip behind an info badge on the card. */
   description?: string;
   icon?: ComponentType<{ className?: string }>;
   /** A brand logo image, shown instead of `icon`. */
@@ -85,69 +87,82 @@ export function ChoiceCards<T extends string>({
         const Icon = option.icon;
         const active = option.value === value;
         return (
-          <button
-            key={option.value}
-            type="button"
-            role="radio"
-            data-value={option.value}
-            aria-checked={active}
-            disabled={option.disabled}
-            tabIndex={option.value === focusable ? 0 : -1}
-            onClick={() => onChange(option.value)}
-            className={cn(
-              "relative flex min-w-0 rounded-xl border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay disabled:cursor-not-allowed disabled:opacity-45",
-              variant === "tile"
-                ? "flex-col items-center gap-1.5 px-1.5 py-3 text-center"
-                : "items-start gap-3 p-3 text-left",
-              active
-                ? "border-clay bg-clay-mist/40 ring-1 ring-clay"
-                : "border-pine/15 bg-surface hover:border-pine/35",
-            )}
-          >
-            {option.logo ? (
-              <img
-                src={option.logo}
-                alt=""
-                aria-hidden
-                className="h-9 w-9 shrink-0 rounded-lg"
-              />
-            ) : Icon ? (
-              <span
-                className={cn(
-                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors",
-                  active ? "bg-clay text-white" : "bg-sage/60 text-pine",
-                )}
-              >
-                <Icon className="h-4 w-4" />
-              </span>
-            ) : null}
-            <span
+          <div key={option.value} className="relative flex min-w-0">
+            <button
+              type="button"
+              role="radio"
+              data-value={option.value}
+              aria-checked={active}
+              disabled={option.disabled}
+              tabIndex={option.value === focusable ? 0 : -1}
+              onClick={() => onChange(option.value)}
               className={cn(
-                "min-w-0",
-                variant === "tile" ? "w-full" : "flex-1 self-center",
+                "relative flex min-w-0 flex-1 rounded-xl border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay disabled:cursor-not-allowed disabled:opacity-45",
+                variant === "tile"
+                  ? "flex-col items-center gap-1.5 px-1.5 py-3 text-center"
+                  : "items-start gap-3 p-3 text-left",
+                active
+                  ? "border-clay bg-clay-mist/40 ring-1 ring-clay"
+                  : "border-pine/15 bg-surface hover:border-pine/35",
               )}
             >
-              <span
-                className={cn(
-                  "block font-medium text-pine",
-                  variant === "tile" ? "truncate text-xs" : "text-sm",
-                )}
-              >
-                {option.label}
-              </span>
-              {option.description ? (
-                <span className="mt-0.5 block text-xs text-ink/60">
-                  {option.description}
+              {option.logo ? (
+                <img
+                  src={option.logo}
+                  alt=""
+                  aria-hidden
+                  className="h-9 w-9 shrink-0 rounded-lg"
+                />
+              ) : Icon ? (
+                <span
+                  className={cn(
+                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors",
+                    active ? "bg-clay text-white" : "bg-sage/60 text-pine",
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
                 </span>
               ) : null}
-            </span>
-            {active ? (
-              <Check
-                className="absolute right-2.5 top-2.5 h-3.5 w-3.5 text-clay-deep"
-                aria-hidden
-              />
+              <span
+                className={cn(
+                  "min-w-0",
+                  variant === "tile" ? "w-full" : "flex-1 self-center",
+                )}
+              >
+                <span
+                  className={cn(
+                    "block font-medium text-pine",
+                    variant === "tile" ? "truncate text-xs" : "text-sm",
+                  )}
+                >
+                  {option.label}
+                </span>
+              </span>
+              {active ? (
+                <Check
+                  className={cn(
+                    "absolute top-2.5 h-3.5 w-3.5 text-clay-deep",
+                    option.description && variant !== "tile"
+                      ? "right-8"
+                      : "right-2.5",
+                  )}
+                  aria-hidden
+                />
+              ) : null}
+            </button>
+            {option.description ? (
+              <span
+                className={cn(
+                  "absolute z-10",
+                  variant === "tile"
+                    ? "right-1.5 top-1.5"
+                    : "right-2.5 top-2.5",
+                )}
+              >
+                <InfoTip>{option.description}</InfoTip>
+              </span>
             ) : null}
-          </button>
+          </div>
         );
       })}
     </div>

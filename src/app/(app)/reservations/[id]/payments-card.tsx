@@ -13,6 +13,7 @@ import { PaymentMethodLabel } from "@/components/app/payment-method-logo";
 import { formatPHP } from "@/lib/money";
 import type { ReservationLedger } from "@/server/payments/service";
 import { ProofQueue } from "./proof-queue";
+import { InfoTip } from "@/components/ui/info-tip";
 
 const TIME_LABEL = new Intl.DateTimeFormat("en-PH", {
   dateStyle: "medium",
@@ -87,16 +88,18 @@ export function PaymentsCard({
                 </dd>
               </div>
               <div className="flex justify-between gap-3 rounded-lg bg-sage/35 p-3">
-                <dt className="font-medium text-pine">Deposit still held</dt>
+                <dt className="font-medium text-pine">
+                  Deposit still held
+                  <InfoTip className="ml-1.5">
+                    The deposit is a refundable liability — it never counts
+                    towards the booking balance.
+                  </InfoTip>
+                </dt>
                 <dd className="font-semibold text-pine">
                   {formatPHP(balances.depositHeldCents)}
                 </dd>
               </div>
             </dl>
-            <p className="mt-3 text-xs leading-relaxed text-ink/50">
-              The deposit is a refundable liability — it never counts towards
-              the booking balance.
-            </p>
           </div>
         </div>
 

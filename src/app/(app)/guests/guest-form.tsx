@@ -22,6 +22,7 @@ import {
   useFormValues,
 } from "../properties/form-kit";
 import { GuestAvatar, GuestTags } from "./guest-display";
+import { InfoTip } from "@/components/ui/info-tip";
 
 export interface GuestFormValues {
   name: string;
@@ -375,7 +376,10 @@ export function GuestForm({
         >
           <div className="space-y-5">
             <div>
-              <Label htmlFor="tags">
+              <Label
+                htmlFor="tags"
+                info={<>Separate tags with commas. Up to 10.</>}
+              >
                 Tags <Optional />
               </Label>
               <Input
@@ -400,9 +404,9 @@ export function GuestForm({
               <span>
                 <span className="block text-sm font-medium text-ink">
                   Flag this guest
-                </span>
-                <span className="block text-xs text-ink/55">
-                  Shows a warning on their profile and in the guest list.
+                  <InfoTip className="ml-1.5">
+                    Shows a warning on their profile and in the guest list.
+                  </InfoTip>
                 </span>
               </span>
             </label>
@@ -431,9 +435,9 @@ export function GuestForm({
               <span>
                 <span className="block text-sm font-medium text-ink">
                   Agreed to promotions
-                </span>
-                <span className="block text-xs text-ink/55">
-                  Only tick this if the guest said yes to offers and updates.
+                  <InfoTip className="ml-1.5">
+                    Only tick this if the guest said yes to offers and updates.
+                  </InfoTip>
                 </span>
               </span>
             </label>

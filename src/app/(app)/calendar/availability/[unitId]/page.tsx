@@ -1,4 +1,6 @@
 import { accommodationLines } from "@/lib/rates";
+import { unitRateResolver } from "@/lib/pricing-rules";
+import { listPricingRules } from "@/server/pricing/service";
 import { photoSrc } from "@/lib/photos";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -49,6 +51,7 @@ import {
   RulesPanel,
 } from "./stay-details";
 import { InfoTabs, StayPlanner } from "./stay-planner";
+import { InfoTip } from "@/components/ui/info-tip";
 
 export const metadata: Metadata = { title: "Stay details" };
 
@@ -146,6 +149,12 @@ export default async function StayShowcasePage({
         nights: search.nights,
         baseCents: unit.defaultNightlyRateCents,
         dayRates: unit.dayRates,
+        rateFor: unitRateResolver(
+          unit,
+          await listPricingRules(membership.organizationId, {
+            activeOnly: true,
+          }),
+        ),
       })
     : [];
   const stayCents = stayLines.reduce(
@@ -415,18 +424,15 @@ export default async function StayShowcasePage({
                     Open in calendar
                   </Link>
                 </div>
-                <p className="mt-3 text-center text-xs text-ink/50">
-                  Saving the reservation runs the final conflict check.
-                </p>
               </>
             ) : (
               <>
                 <p className="font-display text-lg text-pine">
                   Check dates for this unit
-                </p>
-                <p className="mt-1 text-sm text-ink/60">
-                  Search stay dates and a guest count to see if {unit.name} is
-                  free.
+                  <InfoTip className="ml-1.5">
+                    Search stay dates and a guest count to see if {unit.name} is
+                    free. Saving the reservation runs the final conflict check.
+                  </InfoTip>
                 </p>
                 {showRates && unit.defaultNightlyRateCents ? (
                   <p className="mt-4 text-sm text-ink/60">

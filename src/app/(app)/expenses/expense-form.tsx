@@ -45,6 +45,7 @@ import {
   type ExpenseFormState,
 } from "./actions";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
+import { InfoTip } from "@/components/ui/info-tip";
 
 export interface PropertyOption {
   id: string;
@@ -437,8 +438,10 @@ export function FormSection({
 }) {
   return (
     <section className="border-t border-pine/10 pt-5">
-      <h3 className="font-display text-lg text-pine">{title}</h3>
-      {hint ? <p className="text-sm text-ink/60">{hint}</p> : null}
+      <div className="flex items-center gap-1.5">
+        <h3 className="font-display text-lg text-pine">{title}</h3>
+        {hint ? <InfoTip>{hint}</InfoTip> : null}
+      </div>
       <div className="mt-3">{children}</div>
     </section>
   );
@@ -601,9 +604,9 @@ function ReceiptField({ expense }: { expense?: ExpenseFormValues }) {
           <span className="min-w-0">
             <span className="block text-sm font-medium text-pine">
               {expense?.hasReceipt ? "Replace receipt" : "Add a photo"}
-            </span>
-            <span className="block text-xs text-ink/55">
-              JPG, PNG or WebP up to 4 MB. On a phone this opens the camera.
+              <InfoTip className="ml-1.5">
+                JPG, PNG or WebP up to 4 MB. On a phone this opens the camera.
+              </InfoTip>
             </span>
           </span>
         </label>

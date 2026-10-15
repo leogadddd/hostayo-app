@@ -6,7 +6,7 @@ import { listManagedPlatforms } from "@/server/reservations/platforms";
 import { PlatformLogo } from "@/components/app/platform-badge";
 import { Badge } from "@/components/ui/badge";
 import { buttonClassName } from "@/components/ui/button";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { Card, CardHeader } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -16,6 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PlatformRowActions, RestorePlatformButton } from "./platform-forms";
+import { InfoTip } from "@/components/ui/info-tip";
 
 /** Caller must have checked `platforms.view`. */
 export async function PlatformsSection({
@@ -126,13 +127,15 @@ export async function PlatformsSection({
       {removed.length ? (
         <Card className="overflow-hidden bg-card">
           <CardHeader>
-            <h2 className="font-display text-xl text-pine">
-              Removed platforms
-            </h2>
-            <p className="mt-1 max-w-xl text-sm text-ink/60">
-              Not offered for new reservations. Past bookings still show where
-              they came from.
-            </p>
+            <div className="flex items-center gap-1.5">
+              <h2 className="font-display text-xl text-pine">
+                Removed platforms
+              </h2>
+              <InfoTip>
+                Not offered for new reservations. Past bookings still show where
+                they came from.
+              </InfoTip>
+            </div>
           </CardHeader>
           <Table aria-label="Removed platforms">
             <TableBody>
@@ -166,16 +169,6 @@ export async function PlatformsSection({
           </Table>
         </Card>
       ) : null}
-
-      <Card className="bg-card">
-        <CardBody className="text-sm text-ink/65">
-          <p>
-            This setting matters only when the selected unit has a required down
-            payment. It decides whether that unit&apos;s down payment is
-            required before bookings from this platform are confirmed.
-          </p>
-        </CardBody>
-      </Card>
     </div>
   );
 }

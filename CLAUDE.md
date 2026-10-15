@@ -65,6 +65,21 @@ custom ones are deleted. `down_payment_applies` directly controls whether a
 unit's down payment (`src/lib/reservation-fee.ts`) applies to bookings from
 that platform.
 
+## Pricing rules
+
+Account-wide nightly price rules (`pricing_rules`, `src/lib/pricing-rules.ts`)
+sit on top of a unit's regular and day-of-week rates. A rule has optional
+dates (optionally repeating yearly), optional weekdays, a target (all units,
+properties, or single units; a property covers units added later) and an
+adjustment (percent, amount or fixed price). Among the rules matching a night
+the highest `priority` non-stacking rule wins; stacking rules always apply on
+top, highest priority first. `resolveNightlyRate` is the one place that
+decides a night's price; callers pass `unitRateResolver(unit, rules)` as
+`rateFor` to `accommodationLines` / `buildDefaultCharges`. Reservations
+snapshot their charges, so changing a rule never reprices a booking. Teams
+manage rules at Pricing (`pricing.*` permissions). The guest-facing unit page
+(`/h/...`) still prices by weekday rates only.
+
 ## L1 operators
 
 `system_admins` lists L1 operators, who get owner access to every
@@ -95,6 +110,24 @@ email. Rows live in `early_access_requests`; `readAt` null means new. L1
 operators read them at `/early-access` (sidebar: Early access), where they can
 mark requests read or unread and delete them. Everyone else gets a 404, and
 each server action re-checks L1.
+
+## UI copy: helper text goes in an info tooltip
+
+Never write helper text as a visible paragraph under a field, card, choice
+card, heading or dialog. Put it in an info badge with a tooltip instead, using
+`InfoTip` (`src/components/ui/info-tip.tsx`):
+
+- Field labels: `<Label htmlFor="x" info="Explanation">Name</Label>`.
+- Headings: put `<InfoTip>…</InfoTip>` beside the heading (see `FormSection`,
+  whose `description`/`hint` already render as a tooltip).
+- Choice cards: set `description` on the option; `ChoiceCards` shows it as a
+  badge in the card's top-right corner. Never render it inline.
+- Do not nest `InfoTip` inside another button; position it as a sibling.
+
+Applies to explanations, hints, caveats, formats and limits ("JPG up to 4
+MB"), time estimates and privacy notes. Still shown inline: error and
+validation messages, empty states, counts, timestamps, balances and progress
+figures, and `aria-label`s.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

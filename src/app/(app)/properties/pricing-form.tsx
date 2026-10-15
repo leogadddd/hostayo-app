@@ -500,7 +500,15 @@ export function UnitPricingForm({
                 />
               </div>
               <div>
-                <Label htmlFor="unit-extension-rate">
+                <Label
+                  htmlFor="unit-extension-rate"
+                  info={
+                    <>
+                      Leave empty to charge the stay’s accommodation total ÷ its
+                      length in hours.
+                    </>
+                  }
+                >
                   Hourly rate{" "}
                   <span className="font-normal text-ink/45">(optional)</span>
                 </Label>
@@ -510,10 +518,6 @@ export function UnitPricingForm({
                   defaultValue={values.extensionHourlyRate}
                   placeholder="Auto"
                 />
-                <p className="mt-1 text-xs text-ink/55">
-                  Leave empty to charge the stay’s accommodation total ÷ its
-                  length in hours.
-                </p>
               </div>
             </div>
           ) : (

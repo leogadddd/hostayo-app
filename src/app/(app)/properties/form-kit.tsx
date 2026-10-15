@@ -1,5 +1,6 @@
 "use client";
 
+import { InfoTip } from "@/components/ui/info-tip";
 import Link from "next/link";
 import {
   useCallback,
@@ -27,10 +28,10 @@ export function FormSection({
 }) {
   return (
     <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)] sm:p-6">
-      <h2 className="font-display text-xl text-pine">{title}</h2>
-      {description ? (
-        <p className="mt-1 text-sm text-ink/55">{description}</p>
-      ) : null}
+      <div className="flex items-center gap-1.5">
+        <h2 className="font-display text-xl text-pine">{title}</h2>
+        {description ? <InfoTip>{description}</InfoTip> : null}
+      </div>
       <div className="mt-5">{children}</div>
     </section>
   );
@@ -182,7 +183,6 @@ export function PhotoField({
             </Button>
           ) : null}
         </div>
-        <p className="text-xs text-ink/50">JPG, PNG, or WebP · up to 4 MB.</p>
         {error ? (
           <p className="text-xs text-clay-deep" role="alert">
             {error}

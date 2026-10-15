@@ -15,6 +15,7 @@ import {
   skipRecurringAction,
   type RecurringFormState,
 } from "./recurring/actions";
+import { InfoTip } from "@/components/ui/info-tip";
 
 export interface DueBill {
   id: string;
@@ -142,6 +143,10 @@ export function DueBills({
         <h2 className="flex items-center gap-2 font-display text-lg text-pine">
           <CalendarClock className="h-5 w-5 text-clay-deep" aria-hidden />
           Bills due
+          <InfoTip>
+            Nothing is recorded until you confirm. Change the amount first for
+            bills that vary, like electricity.
+          </InfoTip>
           <span className="text-sm font-normal text-ink/50">
             {bills.length}
           </span>
@@ -159,10 +164,6 @@ export function DueBills({
             <DueRow key={bill.id} bill={bill} today={today} canAct={canAct} />
           ))}
         </ul>
-        <p className="border-t border-pine/10 px-5 py-3 text-xs text-ink/55">
-          Nothing is recorded until you confirm. Change the amount first for
-          bills that vary, like electricity.
-        </p>
       </CardBody>
     </Card>
   );

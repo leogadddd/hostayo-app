@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Check, Lock, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { Card, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import {
   ACTION_LABELS,
@@ -302,14 +302,6 @@ export function PermissionMatrixEditor({
             </tbody>
           </table>
         </div>
-        <CardBody className="border-t border-pine/10">
-          <p className="text-xs leading-relaxed text-ink/55">
-            Changes apply the next time each member loads a page. Seeing an area
-            is required for any other action in it, so turning “See” off also
-            turns off the rest of that area. Every change is recorded in the
-            audit log.
-          </p>
-        </CardBody>
       </Card>
       <p className="sr-only" role="status" aria-live="polite">
         {announcement}

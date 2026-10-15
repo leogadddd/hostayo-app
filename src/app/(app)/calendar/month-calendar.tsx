@@ -118,12 +118,6 @@ export function MonthCalendar({
             </Link>
           </div>
         </div>
-        <p
-          id="calendar-scroll-help"
-          className="border-b border-pine/10 px-4 py-2 text-xs text-ink/60 md:hidden"
-        >
-          Swipe across the month to view all dates.
-        </p>
         <div
           tabIndex={0}
           role="region"

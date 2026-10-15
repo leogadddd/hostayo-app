@@ -221,7 +221,12 @@ export function PropertyForm({
               />
             </div>
             <div>
-              <Label htmlFor="turnoverHours">Turnover time</Label>
+              <Label
+                htmlFor="turnoverHours"
+                info={<>Kept free for cleaning after each check-out.</>}
+              >
+                Turnover time
+              </Label>
               <div className="grid grid-cols-2 gap-2">
                 <div className="relative">
                   <Input
@@ -259,9 +264,6 @@ export function PropertyForm({
                   </span>
                 </div>
               </div>
-              <p className="mt-1.5 text-xs text-ink/50">
-                Kept free for cleaning after each check-out.
-              </p>
             </div>
             <div>
               <Label htmlFor="timezone">Timezone</Label>

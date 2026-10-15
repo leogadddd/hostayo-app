@@ -146,7 +146,17 @@ function InviteTeamMemberRound({
   return (
     <form action={formAction} className="space-y-5">
       <div>
-        <Label htmlFor="invite-email">Email address</Label>
+        <Label
+          htmlFor="invite-email"
+          info={
+            <>
+              The invitation only works for an account signed in with this exact
+              email address.
+            </>
+          }
+        >
+          Email address
+        </Label>
         <Input
           id="invite-email"
           name="email"
@@ -157,12 +167,7 @@ function InviteTeamMemberRound({
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           aria-invalid={state.error ? true : undefined}
-          aria-describedby="invite-email-hint"
         />
-        <p id="invite-email-hint" className="mt-1.5 text-xs text-ink/55">
-          The invitation only works for an account signed in with this exact
-          email address.
-        </p>
       </div>
       <div>
         <Label htmlFor="invite-role">Role</Label>

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/session";
 import { getOnboardingState, guardOnboardingStep } from "../state";
 import { PropertyForm } from "./property-form";
+import { InfoTip } from "@/components/ui/info-tip";
 
 export const metadata: Metadata = { title: "Add your first property" };
 
@@ -16,13 +17,10 @@ export default async function OnboardingPropertyPage() {
     <div>
       <h1 className="animate-rise font-display text-4xl text-pine">
         Add your first property
+        <InfoTip className="ml-2">
+          The building or place your guests stay at.
+        </InfoTip>
       </h1>
-      <p
-        className="animate-rise mt-3 max-w-xl text-sm leading-relaxed text-ink/60"
-        style={{ animationDelay: "80ms" }}
-      >
-        The building or place your guests stay at.
-      </p>
       <div className="animate-rise mt-8" style={{ animationDelay: "160ms" }}>
         <PropertyForm
           defaults={{

@@ -159,10 +159,6 @@ export default async function OnboardingIntroPage({
               </li>
             ))}
           </ul>
-          <p className="mt-5 text-xs leading-relaxed text-ink/55">
-            Were you sent an invitation link? Open that link while signed in
-            with the invited email address to join directly.
-          </p>
         </section>
       )}
     </div>

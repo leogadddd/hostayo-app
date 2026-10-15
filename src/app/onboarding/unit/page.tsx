@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/session";
 import { getOnboardingState, guardOnboardingStep } from "../state";
 import { UnitForm } from "./unit-form";
+import { InfoTip } from "@/components/ui/info-tip";
 
 export const metadata: Metadata = { title: "Add your first unit" };
 
@@ -16,13 +17,10 @@ export default async function OnboardingUnitPage() {
     <div>
       <h1 className="animate-rise font-display text-4xl text-pine">
         Add a unit to {state.property!.name}
+        <InfoTip className="ml-2">
+          The room or space guests book, like a condo unit or villa.
+        </InfoTip>
       </h1>
-      <p
-        className="animate-rise mt-3 max-w-xl text-sm leading-relaxed text-ink/60"
-        style={{ animationDelay: "80ms" }}
-      >
-        The room or space guests book, like a condo unit or villa.
-      </p>
       <div className="animate-rise mt-8" style={{ animationDelay: "160ms" }}>
         <UnitForm defaultName={state.unit?.name ?? ""} />
       </div>

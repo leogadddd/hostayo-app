@@ -9,6 +9,7 @@ import { Input, Label } from "@/components/ui/input";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
 import { saveProfile, type ProfileFormState } from "./actions";
 import { SettingsSaveBar } from "../settings-save-bar";
+import { InfoTip } from "@/components/ui/info-tip";
 
 export function ProfileForm({
   name,
@@ -62,10 +63,14 @@ export function ProfileForm({
       <Card className="min-w-0 bg-card">
         <CardBody>
           <section>
-            <h2 className="font-display text-xl text-pine">Profile picture</h2>
-            <p className="mt-1 text-sm text-ink/60">
-              Upload a photo to personalize your Hostayo account.
-            </p>
+            <div className="flex items-center gap-1.5">
+              <h2 className="font-display text-xl text-pine">
+                Profile picture
+              </h2>
+              <InfoTip>
+                Upload a photo to personalize your Hostayo account.
+              </InfoTip>
+            </div>
             <ProfileImageField
               currentImage={image}
               onApplied={() => setDirty(true)}
@@ -158,20 +163,22 @@ export function ProfileForm({
             />
           </div>
           <div className="mt-4">
-            <Label htmlFor="email">Email</Label>
+            <Label
+              htmlFor="email"
+              info={<>Email changes are not available yet.</>}
+            >
+              Email
+            </Label>
             <Input id="email" value={email} disabled />
-            <p className="mt-1.5 text-xs text-ink/50">
-              Email changes are not available yet.
-            </p>
           </div>
         </CardBody>
       </Card>
       <Card className="min-w-0 bg-card">
         <CardBody>
-          <h2 className="font-display text-xl text-pine">Personal address</h2>
-          <p className="mt-1 text-sm text-ink/60">
-            Optional and visible only to you.
-          </p>
+          <div className="flex items-center gap-1.5">
+            <h2 className="font-display text-xl text-pine">Personal address</h2>
+            <InfoTip>Optional and visible only to you.</InfoTip>
+          </div>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2">
               <Label htmlFor="address-line-1">Address line 1</Label>
@@ -413,9 +420,6 @@ function ProfileImageField({
             </Button>
           ) : null}
         </div>
-        <p className="mt-2 text-xs text-ink/50">
-          JPG, PNG, or WebP · up to 4 MB.
-        </p>
         {error ? <p className="mt-1 text-xs text-terracotta">{error}</p> : null}
       </div>
       <dialog

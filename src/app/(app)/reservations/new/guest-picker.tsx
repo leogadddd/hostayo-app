@@ -248,12 +248,6 @@ export function GuestPicker({
               Cancel
             </Button>
           ) : null}
-          <p className="basis-full text-xs text-ink/50">
-            {guests.length
-              ? `Type to search ${guests.length} ${guests.length === 1 ? "guest" : "guests"}.`
-              : "No guests yet."}
-            {canCreate ? " Not there yet? Add them as a new guest." : ""}
-          </p>
         </div>
       )}
 

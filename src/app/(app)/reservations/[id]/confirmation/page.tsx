@@ -36,6 +36,7 @@ import {
   timeLabel,
   UnitPhoto,
 } from "../../../calendar/availability/stay-display";
+import { InfoTip } from "@/components/ui/info-tip";
 
 export const metadata: Metadata = { title: "Reservation saved" };
 
@@ -273,9 +274,15 @@ export default async function ReservationConfirmationPage({
 
         <aside className="min-w-0 lg:sticky lg:top-0">
           <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)]">
-            <h2 className="font-display text-xl text-pine">
-              Payment breakdown
-            </h2>
+            <div className="flex items-center gap-1.5">
+              <h2 className="font-display text-xl text-pine">
+                Payment breakdown
+              </h2>
+              <InfoTip>
+                Priced at the unit’s default rates. The owner manages charges
+                and payments.
+              </InfoTip>
+            </div>
             {canSeeMoney && balances ? (
               <dl className="mt-4 space-y-2 text-sm">
                 {charges
@@ -336,12 +343,7 @@ export default async function ReservationConfirmationPage({
                   </dd>
                 </div>
               </dl>
-            ) : (
-              <p className="mt-2 text-sm text-ink/60">
-                Priced at the unit’s default rates. The owner manages charges
-                and payments.
-              </p>
-            )}
+            ) : null}
           </section>
         </aside>
       </div>

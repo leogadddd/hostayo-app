@@ -213,9 +213,6 @@ function ReportProblemCard({ context }: { context: ProblemReportContext }) {
                 {error}
               </p>
             ) : null}
-            <p className="mt-1.5 text-xs text-ink/45">
-              Please leave out passwords and guests’ personal details.
-            </p>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
             <Button

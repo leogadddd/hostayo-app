@@ -7,6 +7,7 @@ import {
   type ChoiceCardOption,
 } from "@/components/ui/choice-cards";
 import { applyThemePreference, type ThemePreference } from "@/lib/theme";
+import { InfoTip } from "@/components/ui/info-tip";
 
 const OPTIONS: readonly ChoiceCardOption<ThemePreference>[] = [
   {
@@ -34,12 +35,12 @@ export function ThemeSelector({
 
   return (
     <div>
-      <h2 id="theme-label" className="text-sm font-medium text-pine">
-        Theme
-      </h2>
-      <p className="mt-1 text-sm leading-relaxed text-ink/60">
-        Choose how Hostayo looks on this device.
-      </p>
+      <div className="flex items-center gap-1.5">
+        <h2 id="theme-label" className="text-sm font-medium text-pine">
+          Theme
+        </h2>
+        <InfoTip>Choose how Hostayo looks on this device.</InfoTip>
+      </div>
       <ChoiceCards
         aria-labelledby="theme-label"
         value={preference}

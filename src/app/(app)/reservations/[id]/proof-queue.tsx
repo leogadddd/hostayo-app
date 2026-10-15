@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import { dismissProofAction, type PaymentFormState } from "./payment-actions";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
+import { InfoTip } from "@/components/ui/info-tip";
 
 export interface ProofItem {
   id: string;
@@ -52,7 +53,13 @@ export function ProofQueue({
       <Table aria-label="Guest payment references">
         <TableHeader>
           <TableRow>
-            <TableHead>Reference</TableHead>
+            <TableHead>
+              Reference
+              <InfoTip className="ml-1.5">
+                References are guest-submitted evidence — verify the money
+                arrived in your account before recording.
+              </InfoTip>
+            </TableHead>
             <TableHead>Submitted</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-right">Action</TableHead>
@@ -115,10 +122,6 @@ export function ProofQueue({
           ))}
         </TableBody>
       </Table>
-      <p className="text-xs text-ink/50">
-        References are guest-submitted evidence — verify the money arrived in
-        your account before recording.
-      </p>
     </div>
   );
 }

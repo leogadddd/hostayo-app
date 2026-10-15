@@ -68,6 +68,7 @@ import { ExtensionsCard } from "./extensions-card";
 import { GuestLinkCard } from "./guest-link-card";
 import { PaymentsCard } from "./payments-card";
 import { ReservationHistory } from "./reservation-history";
+import { InfoTip } from "@/components/ui/info-tip";
 
 export const metadata: Metadata = { title: "Reservation" };
 
@@ -714,17 +715,19 @@ export default async function ReservationDetailPage({
                         </TableCell>
                       </TableRow>
                       <TableRow>
-                        <TableCell colSpan={4}>Refundable deposit</TableCell>
+                        <TableCell colSpan={4}>
+                          Refundable deposit
+                          <InfoTip className="ml-1.5">
+                            The security deposit is not part of the booking
+                            total and does not reduce the booking balance.
+                          </InfoTip>
+                        </TableCell>
                         <TableCell className="whitespace-nowrap text-right text-pine">
                           {formatPHP(totals.depositTotalCents)}
                         </TableCell>
                       </TableRow>
                     </TableFooter>
                   </Table>
-                  <p className="mt-4 text-xs leading-relaxed text-ink/55">
-                    The security deposit is not part of the booking total and
-                    does not reduce the booking balance.
-                  </p>
                 </CardBody>
               </Card>
               <PaymentsCard

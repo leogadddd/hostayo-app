@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { InfoTip } from "./info-tip";
 
 export function Input({ className, ...props }: React.ComponentProps<"input">) {
   return (
@@ -17,13 +18,28 @@ export function Input({ className, ...props }: React.ComponentProps<"input">) {
 
 export function Label({
   className,
+  info,
   ...props
-}: React.LabelHTMLAttributes<HTMLLabelElement>) {
-  return (
+}: React.LabelHTMLAttributes<HTMLLabelElement> & {
+  /** Helper text, shown in a tooltip behind an info badge. */
+  info?: React.ReactNode;
+}) {
+  const label = (
     <label
-      className={cn("mb-1.5 block text-sm font-medium text-ink", className)}
+      className={cn(
+        "block text-sm font-medium text-ink",
+        info ? "" : "mb-1.5",
+        className,
+      )}
       {...props}
     />
+  );
+  if (!info) return label;
+  return (
+    <div className="mb-1.5 flex items-center gap-1.5">
+      {label}
+      <InfoTip>{info}</InfoTip>
+    </div>
   );
 }
 

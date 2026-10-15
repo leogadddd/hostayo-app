@@ -42,10 +42,6 @@ export function BlockForms({
 
   return (
     <form action={formAction} className="space-y-4">
-      <p className="text-sm text-ink/60">
-        The end date is exclusive: a block from September 5 to 7 covers the
-        nights of the 5th and 6th.
-      </p>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <Label htmlFor="block-start">Start date (first blocked night)</Label>
@@ -61,7 +57,7 @@ export function BlockForms({
           />
         </div>
         <div>
-          <Label htmlFor="block-end">End date (first bookable night)</Label>
+          <Label htmlFor="block-end" info={<>The end date is exclusive: a block from September 5 to 7 covers the nights of the 5th and 6th.</>}>End date (first bookable night)</Label>
           <DateInput
             id="block-end"
             name="endDate"

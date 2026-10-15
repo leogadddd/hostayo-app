@@ -152,7 +152,12 @@ export function AddDeductionForm({
       />
 
       <div>
-        <Label htmlFor="deduction-reason">What is it for?</Label>
+        <Label
+          htmlFor="deduction-reason"
+          info={<>Shown with the deduction in the payment history.</>}
+        >
+          What is it for?
+        </Label>
         <div
           className="mb-2 flex flex-wrap gap-2"
           role="group"
@@ -186,9 +191,6 @@ export function AddDeductionForm({
           placeholder="e.g. Stained linens, replacement cost."
           className="min-h-20"
         />
-        <p className="mt-1 text-xs text-ink/50">
-          Shown with the deduction in the payment history.
-        </p>
       </div>
 
       {damageReports.length > 0 ? (

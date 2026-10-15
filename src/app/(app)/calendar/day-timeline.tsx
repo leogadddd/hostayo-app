@@ -27,6 +27,7 @@ import { EventTrigger, QuickViewProvider } from "./event-quick-view";
 import type { DisplayCalendarEvent } from "./month-calendar";
 import { TIME_LABEL, useNow } from "./now-line";
 import type { TimelineUnit } from "./timeline-calendar";
+import { InfoTip } from "@/components/ui/info-tip";
 
 /** Pixels per hour: the zoom. The range keeps a day readable at both ends. */
 export const DEFAULT_HOUR_HEIGHT = 56;
@@ -408,6 +409,9 @@ export function DayTimeline({
                 <Plus className="h-4 w-4" aria-hidden />
               </button>
             </div>
+            <InfoTip>
+              Pinch, hold Ctrl and scroll, or double-click and drag to zoom.
+            </InfoTip>
             {viewSwitcher}
             <Link
               href={todayHref}
@@ -417,9 +421,6 @@ export function DayTimeline({
             </Link>
           </div>
         </div>
-        <p className="border-b border-pine/10 px-4 py-2 text-xs text-ink/60">
-          Pinch, hold Ctrl and scroll, or double-click and drag to zoom.
-        </p>
         <div
           ref={scroller}
           tabIndex={0}

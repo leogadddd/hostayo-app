@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { PlatformLogo } from "@/components/app/platform-badge";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { InfoTip } from "@/components/ui/info-tip";
 
 export type PlatformBreakdownRow = {
   platformId: string | null;
@@ -45,10 +46,10 @@ export function PlatformBreakdown({
     <Card className={className}>
       <CardHeader className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h2 className="font-display text-xl text-pine">Booking sources</h2>
-          <p className="mt-1 text-xs text-ink/50">
-            Reservations checking in during {monthLabel}.
-          </p>
+          <div className="flex items-center gap-1.5">
+            <h2 className="font-display text-xl text-pine">Booking sources</h2>
+            <InfoTip>Reservations checking in during {monthLabel}.</InfoTip>
+          </div>
         </div>
         <Link
           href="/reservations"

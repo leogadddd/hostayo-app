@@ -369,12 +369,7 @@ export function UnitForm({
                 );
               })}
             </fieldset>
-          ) : (
-            <p className="rounded-lg bg-pine-mist px-3 py-3 text-sm text-ink/65">
-              Add contact channels in Settings before choosing which ones to
-              show here.
-            </p>
-          )}
+          ) : null}
         </FormSection>
       </FormLayout>
     </form>

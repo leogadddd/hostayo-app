@@ -8,6 +8,7 @@ import {
   UnitPhoto,
 } from "../../calendar/availability/stay-display";
 import type { UnitOption } from "./reservation-form";
+import { InfoTip } from "@/components/ui/info-tip";
 
 /** The sticky side card: which unit, when, who, and (for owners) what it costs. */
 export function ReservationSummary({
@@ -125,9 +126,15 @@ export function ReservationSummary({
 
         {showPricing ? (
           <div className="border-t border-pine/10 pt-4">
-            <h3 className="text-xs font-medium uppercase tracking-wide text-ink/45">
-              Payment breakdown
-            </h3>
+            <div className="flex items-center gap-1.5">
+              <h3 className="text-xs font-medium uppercase tracking-wide text-ink/45">
+                Payment breakdown
+              </h3>
+              <InfoTip>
+                Priced at the unit’s default rates. The owner reviews charges
+                when confirming.
+              </InfoTip>
+            </div>
             {lines.length ? (
               <dl className="mt-3 space-y-2 text-sm">
                 {lines
@@ -204,12 +211,7 @@ export function ReservationSummary({
               </p>
             )}
           </div>
-        ) : (
-          <p className="border-t border-pine/10 pt-4 text-sm text-ink/60">
-            Priced at the unit’s default rates. The owner reviews charges when
-            confirming.
-          </p>
-        )}
+        ) : null}
       </div>
     </div>
   );

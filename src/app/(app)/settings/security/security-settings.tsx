@@ -31,6 +31,7 @@ import { startTwoFactorSetup } from "@/app/account/two-factor/pending-setup";
 import { setSecurityAlertAction, type SecurityAlert } from "./actions";
 import { PasswordDialog } from "./password-dialog";
 import { RecoveryCodes } from "./recovery-codes";
+import { InfoTip } from "@/components/ui/info-tip";
 
 export function SecuritySettings({
   email,
@@ -160,7 +161,6 @@ function TwoFactorCard({ enabled }: { enabled: boolean }) {
                 router.push("/account/two-factor");
               }}
             />
-            <p className="text-xs text-ink/50">Takes about two minutes.</p>
           </div>
         </CardBody>
       )}
@@ -343,12 +343,14 @@ function SecurityAlerts({
   return (
     <Card className="overflow-hidden bg-card">
       <CardHeader>
-        <h2 className="font-display text-xl text-pine">Security alerts</h2>
-        <p className="mt-1 max-w-xl text-sm text-ink/60">
-          Choose what we tell you about. Alerts go to{" "}
-          <span className="font-medium text-pine">{email}</span> once email
-          alerts are switched on for Hostayo.
-        </p>
+        <div className="flex items-center gap-1.5">
+          <h2 className="font-display text-xl text-pine">Security alerts</h2>
+          <InfoTip>
+            Choose what we tell you about. Alerts go to{" "}
+            <span className="font-medium">{email}</span> once email alerts are
+            switched on for Hostayo.
+          </InfoTip>
+        </div>
       </CardHeader>
       <CardBody className="grid gap-3 sm:grid-cols-2">
         {ALERTS.map((alert) => {

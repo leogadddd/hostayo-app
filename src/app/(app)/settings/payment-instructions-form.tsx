@@ -39,7 +39,15 @@ export function PaymentInstructionsForm({
       onSubmit={() => setDirty(false)}
       className={saveBarVisible ? "pb-24" : undefined}
     >
-      <Label htmlFor="paymentInstructions">
+      <Label
+        htmlFor="paymentInstructions"
+        info={
+          <>
+            Guests see this on their private booking page — include account
+            names and numbers for GCash, Maya or bank transfer.
+          </>
+        }
+      >
         Payment instructions shown to guests
       </Label>
       <Textarea
@@ -51,10 +59,6 @@ export function PaymentInstructionsForm({
           "e.g. Send GCash to 0917 000 0000 (Juan D.), then reply with the reference number."
         }
       />
-      <p className="mt-1.5 text-xs text-ink/50">
-        Guests see this on their private booking page — include account names
-        and numbers for GCash, Maya or bank transfer.
-      </p>
       <SettingsSaveBar
         visible={saveBarVisible}
         pending={pending}

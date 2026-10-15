@@ -211,7 +211,17 @@ export function RecordRefundForm({
       <MethodPicker legend="Returned via" value={method} onChange={setMethod} />
 
       <div>
-        <Label htmlFor="refund-reason">Reason</Label>
+        <Label
+          htmlFor="refund-reason"
+          info={
+            <>
+              Shown in the payment history. Refunds are recorded with the
+              current time.
+            </>
+          }
+        >
+          Reason
+        </Label>
         <div
           className="mb-2 flex flex-wrap gap-2"
           role="group"
@@ -245,10 +255,6 @@ export function RecordRefundForm({
           placeholder="e.g. Guest cancelled, full refund per policy."
           className="min-h-20"
         />
-        <p className="mt-1 text-xs text-ink/50">
-          Shown in the payment history. Refunds are recorded with the current
-          time.
-        </p>
       </div>
 
       <FieldError message={state.error} />

@@ -46,6 +46,7 @@ import {
   type ChargeLineValues,
 } from "@/lib/charges";
 import type { DayRates } from "@/lib/rates";
+import { nightlyRateResolver, type PricingRuleLike } from "@/lib/pricing-rules";
 import { addDaysLocal, nightsBetween } from "@/lib/dates";
 import { centavosToPesosInput, formatPHP, pesosToCentavos } from "@/lib/money";
 import { cn } from "@/lib/utils";
@@ -85,6 +86,7 @@ import {
 } from "@/lib/reservation-fee";
 import { PAYMENT_METHOD_LOGOS } from "@/components/app/payment-method-logo";
 import { GuestPicker } from "./guest-picker";
+import { InfoTip } from "@/components/ui/info-tip";
 
 export interface UnitOption {
   id: string;
@@ -100,6 +102,8 @@ export interface UnitOption {
   nightlyRateCents: number | null;
   /** Weekday rates that differ from the nightly rate; owners only. */
   dayRates: DayRates | null;
+  /** Active pricing rules that price this unit; owners only. */
+  pricingRules: PricingRuleLike[];
   cleaningFeeCents: number | null;
   securityDepositCents: number | null;
   /** The down payment that confirms a booking from the team's own channels; owners only. */
@@ -389,13 +393,6 @@ export function ReservationForm({
   const validRange = Boolean(checkIn && checkOut && checkOut > checkIn);
   const nights = validRange ? nightsBetween(checkIn, checkOut) : null;
   const selectedGuest = guests.find((guest) => guest.id === guestId);
-  const contactChanged = Boolean(
-    edit &&
-    selectedGuest &&
-    (contact.name !== (selectedGuest.name ?? "") ||
-      contact.email !== (selectedGuest.email ?? "") ||
-      contact.phone !== (selectedGuest.phone ?? "")),
-  );
   function chooseGuest(id: string, list = guests) {
     setGuestId(id);
     const guest = list.find((candidate) => candidate.id === id);
@@ -465,6 +462,15 @@ export function ReservationForm({
       buildDefaultCharges({
         nightlyRateCents: selectedUnit.nightlyRateCents,
         dayRates: selectedUnit.dayRates,
+        rateFor: nightlyRateResolver(
+          {
+            id: selectedUnit.id,
+            propertyId: "",
+            nightlyRateCents: selectedUnit.nightlyRateCents,
+            dayRates: selectedUnit.dayRates,
+          },
+          selectedUnit.pricingRules,
+        ),
         checkIn,
         cleaningFeeCents: selectedUnit.cleaningFeeCents,
         securityDepositCents: selectedUnit.securityDepositCents,
@@ -911,9 +917,17 @@ export function ReservationForm({
                   description="The primary guest is who the reservation is for. Add names for everyone else staying."
                 />
                 <div>
-                  <h3 className="mb-2 text-sm font-medium text-ink">
-                    Primary guest
-                  </h3>
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="mb-2 text-sm font-medium text-ink">
+                      Primary guest
+                    </h3>
+                    <InfoTip>
+                      Type to search your guests, or add a new guest if they’re
+                      not there yet. When editing, correcting the contact
+                      details also updates the guest’s profile on all of their
+                      reservations.
+                    </InfoTip>
+                  </div>
                   <GuestPicker
                     guests={guests}
                     value={guestId}
@@ -970,11 +984,6 @@ export function ReservationForm({
                           placeholder="+63 9xx xxx xxxx"
                         />
                       </div>
-                      <p className="text-xs text-ink/50 sm:col-span-2 xl:col-span-3">
-                        {contactChanged
-                          ? `Saving also updates ${selectedGuest.name}’s profile on all of their reservations.`
-                          : "Correct the contact details here if they changed."}
-                      </p>
                     </div>
                   ) : null}
                 </div>
@@ -982,12 +991,15 @@ export function ReservationForm({
                 {platforms.length ? (
                   <fieldset className="border-t border-pine/10 pt-6">
                     <legend className="sr-only">Booked through</legend>
-                    <h3 className="font-display text-lg text-pine" aria-hidden>
-                      Booked through
-                    </h3>
-                    <p className="text-sm text-ink/60">
-                      Where this booking came from.
-                    </p>
+                    <div className="flex items-center gap-1.5">
+                      <h3
+                        className="font-display text-lg text-pine"
+                        aria-hidden
+                      >
+                        Booked through
+                      </h3>
+                      <InfoTip>Where this booking came from.</InfoTip>
+                    </div>
                     <div className="mt-4 flex flex-wrap gap-2">
                       {platforms.map((platform) => {
                         const selected = platform.id === platformId;
@@ -1046,17 +1058,19 @@ export function ReservationForm({
 
                 <div className="border-t border-pine/10 pt-6">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <h3 className="font-display text-lg text-pine">
-                      Additional guests
-                    </h3>
+                    <div className="flex items-center gap-1.5">
+                      <h3 className="font-display text-lg text-pine">
+                        Additional guests
+                      </h3>
+                      <InfoTip>
+                        Names for entry letters or contracts. These don’t create
+                        guest profiles.
+                      </InfoTip>
+                    </div>
                     <span className="text-xs text-ink/55">
                       {guestCount} of {capacity} guests
                     </span>
                   </div>
-                  <p className="text-sm text-ink/60">
-                    Names for entry letters or contracts. These don’t create
-                    guest profiles.
-                  </p>
                   {additional.length ? (
                     <ul className="mt-4 grid gap-3 md:grid-cols-2">
                       {additional.map((name, index) => (
@@ -1098,11 +1112,7 @@ export function ReservationForm({
                         </li>
                       ))}
                     </ul>
-                  ) : (
-                    <p className="mt-3 text-sm text-ink/55">
-                      Only the primary guest is staying.
-                    </p>
-                  )}
+                  ) : null}
                   <Button
                     type="button"
                     variant="outline"
@@ -1463,13 +1473,11 @@ export function ReservationForm({
                                   });
                               }}
                             />
-                            <span>
-                              Received just now
-                              <span className="block text-xs text-ink/50">
-                                Uncheck to enter when it arrived, in the
-                                property timezone.
-                              </span>
-                            </span>
+                            <span>Received just now</span>
+                            <InfoTip>
+                              Uncheck to enter when it arrived, in the property
+                              timezone.
+                            </InfoTip>
                           </label>
                           {!receivedNow ? (
                             // Date and time kept together as YYYY-MM-DDTHH:mm.
@@ -1834,8 +1842,10 @@ function StepHeading({
 }) {
   return (
     <div>
-      <h2 className="font-display text-2xl text-pine">{title}</h2>
-      <p className="mt-1 text-sm text-ink/60">{description}</p>
+      <div className="flex items-center gap-2">
+        <h2 className="font-display text-2xl text-pine">{title}</h2>
+        <InfoTip>{description}</InfoTip>
+      </div>
     </div>
   );
 }

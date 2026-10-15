@@ -18,6 +18,7 @@ import {
   type InvitationActionState,
 } from "../invitation-actions";
 import { StepNav } from "../step-nav";
+import { InfoTip } from "@/components/ui/info-tip";
 
 type PendingRequest = {
   id: string;
@@ -98,14 +99,11 @@ function JoinCodeForm({
     <form action={formAction}>
       <h1 className="animate-rise font-display text-4xl text-pine">
         Join an existing organization
+        <InfoTip className="ml-2">
+          Enter the organization join code the owner shared with you. This sends
+          them a request; you’ll get access once they approve it.
+        </InfoTip>
       </h1>
-      <p
-        className="animate-rise mt-3 max-w-xl text-sm leading-relaxed text-ink/60"
-        style={{ animationDelay: "120ms" }}
-      >
-        Enter the organization join code the owner shared with you. This sends
-        them a request; you’ll get access once they approve it.
-      </p>
       {hasMembership ? (
         <p className="mt-4 text-sm text-ink/60">
           You already belong to an organization.{" "}

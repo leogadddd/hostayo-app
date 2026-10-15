@@ -7,6 +7,7 @@ import { buttonClassName } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { listNights } from "@/lib/dates";
 import { cn } from "@/lib/utils";
+import { InfoTip } from "@/components/ui/info-tip";
 
 export type MiniCalendarTone =
   "confirmed" | "in-house" | "checked-out" | "hold" | "blocked";
@@ -78,11 +79,13 @@ export function MiniCalendar({
     <Card className="flex flex-col">
       <CardHeader className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="font-display text-xl text-pine">{monthLabel}</h2>
-          <p className="mt-1 text-xs text-ink/50">
-            Every stay, hold and block this month. Pick a day to see who&apos;s
-            there.
-          </p>
+          <div className="flex items-center gap-1.5">
+            <h2 className="font-display text-xl text-pine">{monthLabel}</h2>
+            <InfoTip>
+              Every stay, hold and block this month. Pick a day to see
+              who&apos;s there.
+            </InfoTip>
+          </div>
         </div>
         <Link
           href={`/calendar?month=${month}`}

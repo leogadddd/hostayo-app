@@ -8,6 +8,7 @@ import { UnitCard } from "@/components/public/unit-card";
 import { JsonLd } from "@/components/json-ld";
 import { getPublicHost, todayISO } from "@/lib/public-demo";
 import { APP_URL } from "@/lib/site";
+import { InfoTip } from "@/components/ui/info-tip";
 
 type Params = { host: string };
 
@@ -62,7 +63,11 @@ export default async function HostPage({
             description: host.tagline,
             url: `${APP_URL}/h/${encodeURIComponent(host.slug)}`,
             ...(host.logoUrl ? { image: host.logoUrl } : {}),
-            address: { "@type": "PostalAddress", addressLocality: host.location, addressCountry: "PH" },
+            address: {
+              "@type": "PostalAddress",
+              addressLocality: host.location,
+              addressCountry: "PH",
+            },
           }}
         />
       ) : null}
@@ -191,16 +196,15 @@ export default async function HostPage({
         <aside className="lg:sticky lg:top-6 lg:self-start">
           <Card>
             <CardBody className="space-y-4">
-              <h2 className="font-display text-xl text-pine">Get in touch</h2>
-              <p className="text-sm leading-relaxed text-ink/65">
-                Questions about a unit or your dates? Message the host the way
-                that suits you.
-              </p>
+              <div className="flex items-center gap-1.5">
+                <h2 className="font-display text-xl text-pine">Get in touch</h2>
+                <InfoTip>
+                  Questions about a unit or your dates? Message the host the way
+                  that suits you. Hostayo runs the booking tools. Your payment
+                  and stay are arranged directly with the host.
+                </InfoTip>
+              </div>
               <ChannelList channels={host.channels} />
-              <p className="text-xs leading-relaxed text-ink/50">
-                Hostayo runs the booking tools. Your payment and stay are
-                arranged directly with the host.
-              </p>
             </CardBody>
           </Card>
         </aside>

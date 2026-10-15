@@ -23,6 +23,7 @@ import {
   provincesForPhilippineRegion,
 } from "@/lib/philippine-locations";
 import { SettingsSaveBar } from "./settings-save-bar";
+import { InfoTip } from "@/components/ui/info-tip";
 
 export type OrganizationProfileValues = {
   name: string;
@@ -97,12 +98,14 @@ export function OrganizationProfileForm({
       <Card className="bg-card">
         <CardBody>
           <section>
-            <h2 className="font-display text-xl text-pine">
-              Logo &amp; brand image
-            </h2>
-            <p className="mt-1 text-sm text-ink/60">
-              Upload the image used to represent your organization.
-            </p>
+            <div className="flex items-center gap-1.5">
+              <h2 className="font-display text-xl text-pine">
+                Logo &amp; brand image
+              </h2>
+              <InfoTip>
+                Upload the image used to represent your organization.
+              </InfoTip>
+            </div>
             <LogoImageField
               currentLogoUrl={values.logoUrl}
               onApplied={() => setDirty(true)}
@@ -114,12 +117,14 @@ export function OrganizationProfileForm({
       <Card className="bg-card">
         <CardBody>
           <section>
-            <h2 className="font-display text-xl text-pine">
-              Organization details
-            </h2>
-            <p className="mt-1 text-sm text-ink/60">
-              Names used by your team and, when set, your guests.
-            </p>
+            <div className="flex items-center gap-1.5">
+              <h2 className="font-display text-xl text-pine">
+                Organization details
+              </h2>
+              <InfoTip>
+                Names used by your team and, when set, your guests.
+              </InfoTip>
+            </div>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <div>
                 <Label htmlFor="name">Organization name</Label>
@@ -170,11 +175,13 @@ export function OrganizationProfileForm({
       <Card className="bg-card">
         <CardBody>
           <section>
-            <h2 className="font-display text-xl text-pine">Contact</h2>
-            <p className="mt-1 text-sm text-ink/60">
-              Business contact details for your records and future guest-facing
-              communications.
-            </p>
+            <div className="flex items-center gap-1.5">
+              <h2 className="font-display text-xl text-pine">Contact</h2>
+              <InfoTip>
+                Business contact details for your records and future
+                guest-facing communications.
+              </InfoTip>
+            </div>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <div>
                 <Label htmlFor="contactEmail">Email</Label>
@@ -381,10 +388,6 @@ function LogoImageField({
             </Button>
           ) : null}
         </div>
-        <p className="mt-2 text-xs text-ink/50">
-          JPG, PNG, or WebP · up to 4 MB. You can reposition and scale it before
-          saving.
-        </p>
         {error ? <p className="mt-1 text-xs text-terracotta">{error}</p> : null}
       </div>
       <dialog
@@ -515,10 +518,10 @@ function AddressFields({
   }, [region, province, city, municipality, onChange]);
   return (
     <section>
-      <h2 className="font-display text-xl text-pine">Business address</h2>
-      <p className="mt-1 text-sm text-ink/60">
-        Country is currently fixed to the Philippines.
-      </p>
+      <div className="flex items-center gap-1.5">
+        <h2 className="font-display text-xl text-pine">Business address</h2>
+        <InfoTip>Country is currently fixed to the Philippines.</InfoTip>
+      </div>
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <Label htmlFor="addressLine1">Address line 1</Label>

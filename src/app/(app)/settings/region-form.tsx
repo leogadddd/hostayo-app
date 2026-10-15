@@ -35,7 +35,18 @@ export function RegionForm({ defaultTimezone }: { defaultTimezone: string }) {
       className={saveBarVisible ? "space-y-6 pb-24" : "space-y-6"}
     >
       <div>
-        <Label htmlFor="defaultTimezone">Organization timezone</Label>
+        <Label
+          htmlFor="defaultTimezone"
+          info={
+            <>
+              Used for organization-wide timestamps and as the default when you
+              create a property. Properties retain their own timezone for
+              calendars, stays, and operations.
+            </>
+          }
+        >
+          Organization timezone
+        </Label>
         <TimezonePicker
           id="defaultTimezone"
           name="defaultTimezone"
@@ -46,11 +57,6 @@ export function RegionForm({ defaultTimezone }: { defaultTimezone: string }) {
             setDirty(timezone !== savedTimezone);
           }}
         />
-        <p className="mt-2 text-sm leading-relaxed text-ink/60">
-          Used for organization-wide timestamps and as the default when you
-          create a property. Properties retain their own timezone for calendars,
-          stays, and operations.
-        </p>
       </div>
       <SettingsSaveBar
         visible={saveBarVisible}

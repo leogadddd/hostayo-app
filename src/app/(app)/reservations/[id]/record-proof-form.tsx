@@ -86,7 +86,17 @@ export function RecordProofForm({
           </Select>
         </div>
         <div>
-          <Label htmlFor="proof-reference">Reference</Label>
+          <Label
+            htmlFor="proof-reference"
+            info={
+              <>
+                Verify the money arrived in your account. A guest-submitted
+                reference is not a verified payment.
+              </>
+            }
+          >
+            Reference
+          </Label>
           <Input
             id="proof-reference"
             name="reference"
@@ -95,10 +105,6 @@ export function RecordProofForm({
           />
         </div>
       </div>
-      <p className="text-xs text-ink/55">
-        Verify the money arrived in your account. A guest-submitted reference is
-        not a verified payment.
-      </p>
       <FieldError message={state.error} />
       <Button type="submit" variant="clay" disabled={pending}>
         {pending ? "Recording…" : "Record against this reference"}

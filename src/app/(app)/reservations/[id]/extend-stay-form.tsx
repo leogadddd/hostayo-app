@@ -73,7 +73,15 @@ export function ExtendStayForm({
       </div>
 
       <div>
-        <Label htmlFor="extend-hours">
+        <Label
+          htmlFor="extend-hours"
+          info={
+            <>
+              This sends a request. The check-out time and charges change only
+              once someone approves it.
+            </>
+          }
+        >
           Extra hours the guest is asking for
         </Label>
         <input type="hidden" name="hours" value={hours} />
@@ -138,10 +146,6 @@ export function ExtendStayForm({
         />
       </div>
 
-      <p className="text-xs text-ink/55">
-        This sends a request. The check-out time and charges change only once
-        someone approves it.
-      </p>
       <FieldError message={state.error} />
       <Button
         type="submit"
