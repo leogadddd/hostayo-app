@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useCallback, useRef, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { Clock, LogIn, LogOut, Users, Wallet } from "lucide-react";
 import type { UnitStatus } from "@/lib/db/schema";
 import { UNIT_STATUSES } from "@/lib/db/schema";
@@ -13,21 +13,9 @@ import { useActionFeedback } from "@/hooks/use-action-feedback";
 import { useSaveAndReturn } from "@/hooks/use-save-and-return";
 import type { InventoryFormState } from "./actions";
 import { AmenityPicker, type AmenityOption } from "./amenity-picker";
-import {
-  FormAside,
-  FormLayout,
-  FormSection,
-  PesoInput,
-  PhotoField,
-  useFormValues,
-} from "./form-kit";
-import {
-  DayRatesFields,
-  LateCheckoutFields,
-  ReservationFeeFields,
-  StayTimesFields,
-  type ReservationFeeChoice,
-} from "./unit-pricing-fields";
+import { FormAside, FormLayout, FormSection, useFormValues } from "./form-kit";
+import { StayTimesFields } from "./unit-pricing-fields";
+import type { ReservationFeeChoice } from "./pricing-form";
 import { stayLengthHours, stayLengthLabel } from "@/lib/stay-times";
 import {
   dayRateSummary,
@@ -49,9 +37,9 @@ export interface UnitFormValues {
   nightlyRate: string;
   cleaningFee: string;
   securityDeposit: string;
-  reservationFeeType: ReservationFeeChoice;
+  reservationFeeType?: ReservationFeeChoice;
   /** Pesos for a fixed fee, a percent for a percentage. */
-  reservationFeeAmount: string;
+  reservationFeeAmount?: string;
   /** Late check-out: whether it's offered, the hour cap, and pesos per hour ("" = automatic). */
   extensionsEnabled?: boolean;
   maxExtensionHours?: string;
@@ -94,7 +82,7 @@ export function UnitForm({
     state: InventoryFormState,
     formData: FormData,
   ) => Promise<InventoryFormState>;
-  destination: string;
+  destination: string | ((result: InventoryFormState) => string);
   successMessage: string;
   values: UnitFormValues;
   editing: boolean;
@@ -112,36 +100,36 @@ export function UnitForm({
   useActionFeedback(state);
   const formRef = useRef<HTMLFormElement>(null);
   const { values: live, read } = useFormValues(formRef);
-  const [photo, setPhoto] = useState<string | null>(values.imageUrl ?? null);
-  const onPreview = useCallback((src: string | null) => setPhoto(src), []);
+  // The cover is managed on the Photos page; the preview just shows it.
+  const photo = values.imageUrl ?? null;
   const [status, setStatus] = useState<UnitStatus>(values.status);
 
   const name = live.name?.trim() || values.name || "New unit";
   const capacity = live.capacity || String(values.capacity);
   const bedrooms = live.bedrooms || String(values.bedrooms);
   const bathrooms = live.bathrooms || String(values.bathrooms);
-  const rate = pesosLabel(live.nightlyRate ?? values.nightlyRate);
-  const cleaning = pesosLabel(live.cleaningFee ?? values.cleaningFee);
+  // Pricing is saved on its own page, so the preview shows what's saved.
+  const rate = pesosLabel(values.nightlyRate);
+  const cleaning = pesosLabel(values.cleaningFee);
   const checkIn = live.checkInTime || values.checkInTime;
   const checkOut = live.checkOutTime || values.checkOutTime;
-  const liveDayRates: DayRates = {};
+  const savedDayRates: DayRates = {};
   for (const { key } of WEEKDAYS) {
-    const typed = live[`dayRate-${key}`];
+    const typed = values.dayRates?.[key];
     if (!typed?.trim()) continue;
     try {
-      liveDayRates[key] = pesosToCentavos(typed);
+      savedDayRates[key] = pesosToCentavos(typed);
     } catch (error) {
       if (!(error instanceof MoneyParseError)) throw error;
     }
   }
   let regularCents = 0;
   try {
-    regularCents =
-      pesosToCentavos(live.nightlyRate ?? values.nightlyRate ?? "") || 0;
+    regularCents = pesosToCentavos(values.nightlyRate ?? "") || 0;
   } catch (error) {
     if (!(error instanceof MoneyParseError)) throw error;
   }
-  const dayRateLines = dayRateSummary(regularCents, liveDayRates, formatPHP);
+  const dayRateLines = dayRateSummary(regularCents, savedDayRates, formatPHP);
 
   return (
     <form
@@ -233,13 +221,6 @@ export function UnitForm({
                 placeholder="e.g. Unit 12B"
               />
             </div>
-            <div>
-              <p className="mb-1.5 text-sm font-medium text-ink">Cover photo</p>
-              <PhotoField
-                currentSrc={values.imageUrl ?? null}
-                onPreview={onPreview}
-              />
-            </div>
           </div>
         </FormSection>
 
@@ -275,7 +256,6 @@ export function UnitForm({
                   {UNIT_STATUS_LABELS[value]}
                 </label>
               ))}
-                step={1}
             </div>
             <p className="mt-3 text-sm text-ink/60">
               {UNIT_STATUS_DESCRIPTIONS[status]}
@@ -287,7 +267,6 @@ export function UnitForm({
           title="Space"
           description="How many people it sleeps and its rooms."
         >
-                step={1}
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
               <Label htmlFor="unit-capacity">Guests</Label>
@@ -296,6 +275,7 @@ export function UnitForm({
                 name="capacity"
                 min={1}
                 max={50}
+                step={1}
                 defaultValue={values.capacity}
                 required
               />
@@ -307,6 +287,7 @@ export function UnitForm({
                 name="bedrooms"
                 min={0}
                 max={20}
+                step={1}
                 defaultValue={values.bedrooms}
                 required
               />
@@ -323,66 +304,6 @@ export function UnitForm({
                 required
               />
             </div>
-          </div>
-        </FormSection>
-
-        <FormSection
-          title="Pricing"
-          description="Defaults for new reservations. Each booking's charges can still be adjusted."
-        >
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div>
-              <Label htmlFor="unit-rate">Nightly rate</Label>
-              <PesoInput
-                id="unit-rate"
-                name="nightlyRate"
-                defaultValue={values.nightlyRate}
-                placeholder="5,500"
-              />
-            </div>
-            <div>
-              <Label htmlFor="unit-cleaning">
-                Cleaning fee{" "}
-                <span className="font-normal text-ink/45">(optional)</span>
-              </Label>
-              <PesoInput
-                id="unit-cleaning"
-                name="cleaningFee"
-                defaultValue={values.cleaningFee}
-                placeholder="500"
-              />
-            </div>
-            <div>
-              <Label htmlFor="unit-deposit">
-                Deposit{" "}
-                <span className="font-normal text-ink/45">(refundable)</span>
-              </Label>
-              <PesoInput
-                id="unit-deposit"
-                name="securityDeposit"
-                defaultValue={values.securityDeposit}
-                placeholder="2,000"
-              />
-            </div>
-          </div>
-          <div className="mt-4">
-            <DayRatesFields
-              defaults={values.dayRates ?? {}}
-              regularRate={live.nightlyRate ?? values.nightlyRate}
-            />
-          </div>
-          <div className="mt-4">
-            <ReservationFeeFields
-              defaultType={values.reservationFeeType}
-              defaultAmount={values.reservationFeeAmount}
-            />
-          </div>
-          <div className="mt-4">
-            <LateCheckoutFields
-              defaultEnabled={values.extensionsEnabled ?? false}
-              defaultMaxHours={values.maxExtensionHours ?? "4"}
-              defaultRate={values.extensionHourlyRate ?? ""}
-            />
           </div>
         </FormSection>
 

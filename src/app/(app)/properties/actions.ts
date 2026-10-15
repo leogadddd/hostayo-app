@@ -21,6 +21,7 @@ import {
   getUnitOrThrow,
   updateProperty,
   updateUnit,
+  updateUnitPricing,
 } from "@/server/inventory/service";
 import {
   createAmenity,
@@ -293,12 +294,9 @@ export async function deletePropertyAction(
   return { success: true };
 }
 
-function unitDataFromForm(formData: FormData) {
+/** What the Pricing page submits. Pricing is saved apart from the unit's details. */
+function unitPricingFromForm(formData: FormData) {
   return {
-    name: readString(formData, "name"),
-    capacity: Number(readString(formData, "capacity")),
-    bedrooms: Number(readString(formData, "bedrooms")),
-    bathrooms: Number(readString(formData, "bathrooms")),
     defaultNightlyRateCents: readOptionalPesos(formData, "nightlyRate") ?? 0,
     dayRates: readDayRates(formData),
     cleaningFeeCents: readOptionalPesos(formData, "cleaningFee"),
@@ -310,6 +308,15 @@ function unitDataFromForm(formData: FormData) {
       formData,
       "extensionHourlyRate",
     ),
+  };
+}
+
+function unitDataFromForm(formData: FormData) {
+  return {
+    name: readString(formData, "name"),
+    capacity: Number(readString(formData, "capacity")),
+    bedrooms: Number(readString(formData, "bedrooms")),
+    bathrooms: Number(readString(formData, "bathrooms")),
     checkInTime: readString(formData, "checkInTime") || "15:00",
     checkOutTime: readString(formData, "checkOutTime") || "11:00",
     status: readString(formData, "status") as
@@ -332,15 +339,19 @@ export async function createUnitAction(
 ): Promise<InventoryFormState> {
   const membership = await requireMembership();
   assertCan(membership, "properties.create");
+  let unit;
   try {
-    await saveWithPhoto(membership.organizationId, formData, (imageUrl) =>
-      createUnit({
-        organizationId: membership.organizationId,
-        actorUserId: membership.userId,
-        propertyId,
-        data: { ...unitDataFromForm(formData), imageUrl },
-        amenityIds: readAmenityIds(formData),
-      }),
+    unit = await saveWithPhoto(
+      membership.organizationId,
+      formData,
+      (imageUrl) =>
+        createUnit({
+          organizationId: membership.organizationId,
+          actorUserId: membership.userId,
+          propertyId,
+          data: { ...unitDataFromForm(formData), imageUrl },
+          amenityIds: readAmenityIds(formData),
+        }),
     );
   } catch (error) {
     return toFormError(error);
@@ -348,7 +359,7 @@ export async function createUnitAction(
   revalidatePath(`/properties/${propertyId}`);
   revalidatePath("/calendar");
   revalidatePath("/h/[host]/[unit]", "page");
-  return { success: true };
+  return { success: true, id: unit.id };
 }
 
 export async function updateUnitAction(
@@ -503,4 +514,35 @@ export async function createAmenityAction(
   } catch (error) {
     return toFormError(error);
   }
+}
+
+export async function updateUnitPricingAction(
+  propertyId: string,
+  unitId: string,
+  _prev: InventoryFormState,
+  formData: FormData,
+): Promise<InventoryFormState> {
+  const membership = await requireMembership();
+  assertCan(membership, "properties.update");
+  try {
+    // The property first, so a foreign property never leads to a unit write.
+    const unit = await getUnitOrThrow(membership.organizationId, unitId);
+    if (unit.propertyId !== propertyId) {
+      throw new InventoryError("Unit not found.");
+    }
+    await updateUnitPricing({
+      organizationId: membership.organizationId,
+      actorUserId: membership.userId,
+      unitId,
+      data: unitPricingFromForm(formData),
+    });
+  } catch (error) {
+    return toFormError(error);
+  }
+  revalidatePath(`/properties/${propertyId}`);
+  revalidatePath(`/properties/${propertyId}/units/${unitId}`);
+  revalidatePath("/calendar");
+  revalidatePath("/reservations/new");
+  revalidatePath("/h/[host]/[unit]", "page");
+  return { success: true, id: unitId };
 }

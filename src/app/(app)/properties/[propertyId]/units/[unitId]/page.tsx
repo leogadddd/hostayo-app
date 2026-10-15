@@ -176,6 +176,13 @@ export default async function UnitDetailPage({
                   Edit
                 </Link>
                 <Link
+                  href={`${unitHref}/pricing`}
+                  className={buttonClassName("outline", "md")}
+                >
+                  <Wallet className="h-4 w-4" aria-hidden />
+                  Pricing
+                </Link>
+                <Link
                   href={calendarHref}
                   className={buttonClassName("ghost", "md")}
                 >

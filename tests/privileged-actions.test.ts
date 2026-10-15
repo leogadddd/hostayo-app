@@ -72,7 +72,7 @@ vi.mock("@/server/expenses/service", () => ({
 vi.mock("@/server/inventory/service", () => ({
   createProperty: vi.fn(),
   updateProperty: vi.fn(),
-  createUnit: vi.fn(),
+  createUnit: vi.fn(async () => ({ id: "unit-new" })),
   updateUnit: vi.fn(),
   deleteProperty: vi.fn(),
   deleteUnit: vi.fn(),

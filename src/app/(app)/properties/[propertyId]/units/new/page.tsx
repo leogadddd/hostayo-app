@@ -4,6 +4,7 @@ import { requirePermission } from "@/lib/auth/session";
 import { getPropertyOrThrow } from "@/server/inventory/service";
 import { InventoryError } from "@/server/inventory/validation";
 import { listAmenities } from "@/server/inventory/amenities";
+import { CreateSteps, UNIT_STEPS } from "../../../create-steps";
 import { PageHeading } from "@/components/app/page-heading";
 import { PermissionDenied } from "@/components/app/permission-denied";
 import { UnitCreateForm } from "../../../unit-create-form";
@@ -34,6 +35,7 @@ export default async function NewUnitPage({
         backHref={`/properties/${property.id}`}
         backLabel={property.name}
       />
+      <CreateSteps current={1} steps={UNIT_STEPS} />
       <UnitCreateForm
         propertyId={property.id}
         propertyName={property.name}

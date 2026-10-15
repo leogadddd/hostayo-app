@@ -77,6 +77,47 @@ export const propertyInputSchema = z.object({
 // Input callers may omit this field; Zod supplies the two-hour default.
 export type PropertyInput = z.input<typeof propertyInputSchema>;
 
+/** The reservation fee rule shared by the full unit schema and the pricing schema. */
+function refineReservationFee(
+  value: {
+    reservationFeeType?: (typeof RESERVATION_FEE_TYPES)[number] | null;
+    reservationFeeAmount?: number | null;
+  },
+  ctx: z.RefinementCtx,
+) {
+  if (value.reservationFeeType === undefined) return;
+  const amount = value.reservationFeeAmount ?? null;
+  if (value.reservationFeeType === null) {
+    if (amount !== null)
+      ctx.addIssue({
+        code: "custom",
+        message: "Choose how the reservation fee is set.",
+        path: ["reservationFeeType"],
+      });
+    return;
+  }
+  if (
+    value.reservationFeeType === "fixed" &&
+    (amount === null || amount <= 0)
+  ) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Enter the reservation fee amount.",
+      path: ["reservationFeeAmount"],
+    });
+  }
+  if (
+    value.reservationFeeType === "percent" &&
+    (amount === null || amount < 1 || amount > 10_000)
+  ) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Use a percentage between 0.01% and 100%.",
+      path: ["reservationFeeAmount"],
+    });
+  }
+}
+
 export const unitInputSchema = z
   .object({
     name: z
@@ -98,16 +139,19 @@ export const unitInputSchema = z
       .number()
       .min(0.5, "Bathrooms must be at least 0.5.")
       .max(20, "Bathrooms must be 20 or fewer."),
-    defaultNightlyRateCents: centavosField("Nightly rate"),
-    // Optional so a partial update (e.g. a status change) keeps the stored rates.
+    // Pricing lives on its own page, so these are optional here: leaving them
+    // out keeps the stored values (and a new unit starts at the column defaults).
+    defaultNightlyRateCents: centavosField("Nightly rate").optional(),
     dayRates: z
       .partialRecord(
         z.enum(["0", "1", "2", "3", "4", "5", "6"]),
         centavosField("Day rate"),
       )
       .optional(),
-    cleaningFeeCents: centavosField("Cleaning fee").nullable(),
-    securityDepositCents: centavosField("Security deposit").nullable(),
+    cleaningFeeCents: centavosField("Cleaning fee").nullable().optional(),
+    securityDepositCents: centavosField("Security deposit")
+      .nullable()
+      .optional(),
     // Optional so a partial update keeps the stored fee; null clears it.
     reservationFeeType: z.enum(RESERVATION_FEE_TYPES).nullable().optional(),
     reservationFeeAmount: z.number().int().nullable().optional(),
@@ -122,18 +166,12 @@ export const unitInputSchema = z
     extensionHourlyRateCents: centavosField("Late check-out rate")
       .nullable()
       .optional(),
-    checkInTime: z
-      .string()
-      .default("15:00")
-      .refine(isValidHmTime, {
-        message: "Use a 24-hour arrival time like 15:00.",
-      }),
-    checkOutTime: z
-      .string()
-      .default("11:00")
-      .refine(isValidHmTime, {
-        message: "Use a 24-hour departure time like 11:00.",
-      }),
+    checkInTime: z.string().default("15:00").refine(isValidHmTime, {
+      message: "Use a 24-hour arrival time like 15:00.",
+    }),
+    checkOutTime: z.string().default("11:00").refine(isValidHmTime, {
+      message: "Use a 24-hour departure time like 11:00.",
+    }),
     status: z.enum(UNIT_STATUSES),
     imageUrl: z.string().max(7_000_000, "The image is too large.").optional(),
     // Omitted preserves the unit's setting; [] deliberately hides all channels.
@@ -142,41 +180,36 @@ export const unitInputSchema = z
       .max(10)
       .optional(),
   })
-  .superRefine((value, ctx) => {
-    if (value.reservationFeeType === undefined) return;
-    const amount = value.reservationFeeAmount ?? null;
-    if (value.reservationFeeType === null) {
-      if (amount !== null)
-        ctx.addIssue({
-          code: "custom",
-          message: "Choose how the reservation fee is set.",
-          path: ["reservationFeeType"],
-        });
-      return;
-    }
-    if (
-      value.reservationFeeType === "fixed" &&
-      (amount === null || amount <= 0)
-    ) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Enter the reservation fee amount.",
-        path: ["reservationFeeAmount"],
-      });
-    }
-    if (
-      value.reservationFeeType === "percent" &&
-      (amount === null || amount < 1 || amount > 10_000)
-    ) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Use a percentage between 0.01% and 100%.",
-        path: ["reservationFeeAmount"],
-      });
-    }
-  });
+  .superRefine(refineReservationFee);
 
 export type UnitInput = z.infer<typeof unitInputSchema>;
+
+
+/** Everything a unit charges, edited on its own Pricing page. */
+export const unitPricingSchema = z
+  .object({
+    defaultNightlyRateCents: centavosField("Nightly rate"),
+    dayRates: z
+      .partialRecord(
+        z.enum(["0", "1", "2", "3", "4", "5", "6"]),
+        centavosField("Day rate"),
+      )
+      .default({}),
+    cleaningFeeCents: centavosField("Cleaning fee").nullable(),
+    securityDepositCents: centavosField("Security deposit").nullable(),
+    reservationFeeType: z.enum(RESERVATION_FEE_TYPES).nullable(),
+    reservationFeeAmount: z.number().int().nullable(),
+    extensionsEnabled: z.boolean(),
+    maxExtensionHours: z
+      .number()
+      .int("Use whole hours for the late check-out limit.")
+      .min(1, "Allow at least 1 late check-out hour.")
+      .max(12, "Allow at most 12 late check-out hours."),
+    extensionHourlyRateCents: centavosField("Late check-out rate").nullable(),
+  })
+  .superRefine(refineReservationFee);
+
+export type UnitPricingInput = z.input<typeof unitPricingSchema>;
 
 export const unitBlockInputSchema = z
   .object({

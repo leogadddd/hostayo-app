@@ -63,6 +63,7 @@ export function FormAside({
   submitLabel,
   pendingLabel,
   cancelHref,
+  cancelLabel = "Cancel",
   note,
 }: {
   preview: ReactNode;
@@ -71,6 +72,7 @@ export function FormAside({
   submitLabel: string;
   pendingLabel: string;
   cancelHref: string;
+  cancelLabel?: string;
   note?: string;
 }) {
   return (
@@ -91,7 +93,7 @@ export function FormAside({
           href={cancelHref}
           className={buttonClassName("ghost", "md", "w-full")}
         >
-          Cancel
+          {cancelLabel}
         </Link>
         {note ? (
           <p className="text-center text-xs text-ink/50">{note}</p>

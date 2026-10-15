@@ -23,7 +23,11 @@ export function UnitCreateForm({
   return (
     <UnitForm
       action={createUnitAction.bind(null, propertyId)}
-      destination={propertyHref}
+      destination={(result) =>
+        result.id
+          ? `/properties/${propertyId}/units/${result.id}/pricing?new=1`
+          : propertyHref
+      }
       successMessage="Unit created."
       cancelHref={propertyHref}
       propertyName={propertyName}

@@ -15,9 +15,11 @@ import {
   propertyInputSchema,
   unitBlockInputSchema,
   unitInputSchema,
+  unitPricingSchema,
   type PropertyInput,
   type UnitBlockInput,
   type UnitInput,
+  type UnitPricingInput,
 } from "./validation";
 import { replacePropertyAmenities, replaceUnitAmenities } from "./amenities";
 
@@ -398,6 +400,40 @@ export async function updateUnit(input: {
         input.unitId,
         input.amenityIds,
       );
+  });
+}
+
+/** Update only what a unit charges: rates, fees, down payment and late check-out. */
+export async function updateUnitPricing(input: {
+  organizationId: string;
+  actorUserId: string;
+  unitId: string;
+  data: UnitPricingInput;
+}) {
+  const data = unitPricingSchema.parse(input.data);
+  await getUnitOrThrow(input.organizationId, input.unitId);
+  await db.transaction(async (tx) => {
+    await tx
+      .update(units)
+      .set({ ...data, updatedAt: new Date() })
+      .where(
+        and(
+          eq(units.id, input.unitId),
+          eq(units.organizationId, input.organizationId),
+          isNull(units.deletedAt),
+        ),
+      );
+    await recordAudit(tx, {
+      organizationId: input.organizationId,
+      actorUserId: input.actorUserId,
+      entity: "unit",
+      entityId: input.unitId,
+      action: "unit.pricing_updated",
+      metadata: {
+        nightlyRateCents: data.defaultNightlyRateCents,
+        dayRateCount: Object.keys(data.dayRates).length,
+      },
+    });
   });
 }
 
