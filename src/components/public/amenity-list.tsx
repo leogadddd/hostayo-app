@@ -6,21 +6,19 @@ import { amenityIcon } from "@/app/(app)/properties/amenity-icons";
 import type { PublicAmenity } from "@/lib/public-demo";
 import { cn } from "@/lib/utils";
 
-const PREVIEW_COUNT = 6;
+const PREVIEW_COUNT = 8;
 
-function Grid({ items }: { items: PublicAmenity[] }) {
+function Chips({ items }: { items: PublicAmenity[] }) {
   return (
-    <ul className="grid gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
+    <ul className="flex flex-wrap gap-2">
       {items.map((amenity) => {
         const Icon = amenityIcon(amenity.icon);
         return (
           <li
             key={amenity.name}
-            className="flex items-center gap-3 text-sm text-ink/80"
+            className="flex items-center gap-1.5 rounded-lg bg-pine-mist px-3 py-1.5 text-sm font-medium text-ink/80"
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-pine-mist text-pine">
-              <Icon className="h-4 w-4" aria-hidden />
-            </span>
+            <Icon className="h-4 w-4 shrink-0 text-pine" aria-hidden />
             {amenity.name}
           </li>
         );
@@ -30,8 +28,8 @@ function Grid({ items }: { items: PublicAmenity[] }) {
 }
 
 /**
- * A unit's amenities: the first few, and a button that reveals the full
- * list, grouped into what the unit has and what the property offers.
+ * A unit's amenities as chips: the first few, and a button that reveals the
+ * full list, grouped into what the unit has and what the property offers.
  */
 export function AmenityList({
   unitAmenities,
@@ -56,7 +54,7 @@ export function AmenityList({
       <div id={panelId}>
         {open || !collapsible ? (
           <>
-            {unitAmenities.length ? <Grid items={unitAmenities} /> : null}
+            {unitAmenities.length ? <Chips items={unitAmenities} /> : null}
             {propertyAmenities.length ? (
               <>
                 <h3
@@ -67,12 +65,12 @@ export function AmenityList({
                 >
                   Around {propertyName}
                 </h3>
-                <Grid items={propertyAmenities} />
+                <Chips items={propertyAmenities} />
               </>
             ) : null}
           </>
         ) : (
-          <Grid items={preview} />
+          <Chips items={preview} />
         )}
       </div>
       {collapsible ? (
