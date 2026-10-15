@@ -4,6 +4,7 @@
 
 import { useRef, useState } from "react";
 import { CaretLeft, CaretRight } from "@/components/ui/icons";
+import { usePhotoViewer } from "@/components/ui/photo-viewer";
 import { cn } from "@/lib/utils";
 
 /**
@@ -19,6 +20,14 @@ export function PhotoCarousel({
 }) {
   const scroller = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
+  const viewer = usePhotoViewer(
+    photos.map((src, i) => ({
+      id: src,
+      src,
+      alt: i === 0 ? `${alt} cover photo` : `${alt} photo ${i + 1}`,
+    })),
+    alt,
+  );
 
   const goTo = (next: number) => {
     const element = scroller.current;
@@ -43,13 +52,20 @@ export function PhotoCarousel({
           className="flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {photos.map((src, i) => (
-            <img
+            <button
               key={src}
-              src={src}
-              alt={i === 0 ? `${alt} cover photo` : `${alt} photo ${i + 1}`}
-              loading={i === 0 ? "eager" : "lazy"}
-              className="aspect-[4/3] w-full shrink-0 snap-center object-cover sm:aspect-[3/2]"
-            />
+              type="button"
+              onClick={() => viewer.open(i)}
+              aria-label={`Open photo ${i + 1} of ${photos.length} larger`}
+              className="w-full shrink-0 cursor-zoom-in snap-center"
+            >
+              <img
+                src={src}
+                alt={i === 0 ? `${alt} cover photo` : `${alt} photo ${i + 1}`}
+                loading={i === 0 ? "eager" : "lazy"}
+                className="aspect-[4/3] w-full object-cover sm:aspect-[3/2]"
+              />
+            </button>
           ))}
         </div>
         {photos.length > 1 ? (
@@ -99,6 +115,7 @@ export function PhotoCarousel({
           ))}
         </div>
       ) : null}
+      {viewer.element}
     </div>
   );
 }
