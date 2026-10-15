@@ -29,7 +29,7 @@ export default async function EditGuestPage({
   }
 
   return (
-    <div className="min-w-0 overflow-hidden">
+    <div className="min-w-0 overflow-x-clip">
       <PageHeading
         title="Edit guest"
         description={`${guest.name} · Changes show on all of this guest's reservations.`}

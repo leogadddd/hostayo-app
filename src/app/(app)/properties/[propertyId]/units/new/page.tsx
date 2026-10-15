@@ -28,7 +28,7 @@ export default async function NewUnitPage({
     throw error;
   }
   return (
-    <div className="min-w-0 overflow-hidden">
+    <div className="min-w-0 overflow-x-clip">
       <PageHeading
         title="Add unit"
         description={`A room, studio or villa in ${property.name} that guests book on its own.`}

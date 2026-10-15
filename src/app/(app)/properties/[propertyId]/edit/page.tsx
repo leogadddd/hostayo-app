@@ -38,7 +38,7 @@ export default async function EditPropertyPage({
   ]);
 
   return (
-    <div className="min-w-0 overflow-hidden">
+    <div className="min-w-0 overflow-x-clip">
       <PageHeading
         title="Edit property"
         description={`${property.name} · Changes apply to new bookings; existing stays keep their times.`}

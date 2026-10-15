@@ -20,7 +20,7 @@ export default async function NewPropertyPage() {
   });
 
   return (
-    <div className="min-w-0 overflow-hidden">
+    <div className="min-w-0 overflow-x-clip">
       <PageHeading
         title="Add property"
         description="A building or place where guests stay. You'll add the units they book next."

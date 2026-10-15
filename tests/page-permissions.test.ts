@@ -110,6 +110,9 @@ vi.mock("@/server/reports/service", () => ({
   getReport: vi.fn(),
   ReportError: class extends Error {},
 }));
+vi.mock("@/server/pricing/service", () => ({
+  listPricingRules: vi.fn(async () => []),
+}));
 vi.mock("@/server/reservations/platforms", () => ({
   listPlatforms: vi.fn(async () => []),
 }));
@@ -441,6 +444,7 @@ describe("new reservation financial boundary", () => {
         checkInTime: "15:00",
         checkOutTime: "11:00",
         nightlyRateCents: null,
+        pricingRules: [],
         dayRates: null,
         cleaningFeeCents: null,
         securityDepositCents: null,

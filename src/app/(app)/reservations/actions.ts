@@ -31,6 +31,8 @@ import {
 import { getUnitOrThrow } from "@/server/inventory/service";
 import { InventoryError } from "@/server/inventory/validation";
 import { buildDefaultCharges } from "@/lib/charges";
+import { unitRateResolver } from "@/lib/pricing-rules";
+import { listPricingRules } from "@/server/pricing/service";
 import { nightsBetween } from "@/lib/dates";
 import { MoneyParseError, pesosToCentavos } from "@/lib/money";
 import type { ChargeLineInput } from "@/server/reservations/validation";
@@ -138,6 +140,12 @@ export async function createReservationAction(
       charges = buildDefaultCharges({
         nightlyRateCents: unit.defaultNightlyRateCents,
         dayRates: unit.dayRates,
+        rateFor: unitRateResolver(
+          unit,
+          await listPricingRules(membership.organizationId, {
+            activeOnly: true,
+          }),
+        ),
         checkIn: details.checkIn,
         cleaningFeeCents: unit.cleaningFeeCents,
         securityDepositCents: unit.securityDepositCents,
@@ -299,18 +307,16 @@ export async function updateReservationAction(
         occupantNames: formData
           .getAll("occupantName")
           .map((value) => String(value).trim()),
-        charges: formData
-          .getAll("chargeType")
-          .map((type, index) => ({
-            type: String(type) as ChargeLineInput["type"],
-            description: String(
-              formData.getAll("chargeDescription")[index] ?? "",
-            ).trim(),
-            quantity: Number(formData.getAll("chargeQuantity")[index] ?? 0),
-            unitAmountCents: pesosToCentavos(
-              String(formData.getAll("chargeAmountPesos")[index] ?? ""),
-            ),
-          })),
+        charges: formData.getAll("chargeType").map((type, index) => ({
+          type: String(type) as ChargeLineInput["type"],
+          description: String(
+            formData.getAll("chargeDescription")[index] ?? "",
+          ).trim(),
+          quantity: Number(formData.getAll("chargeQuantity")[index] ?? 0),
+          unitAmountCents: pesosToCentavos(
+            String(formData.getAll("chargeAmountPesos")[index] ?? ""),
+          ),
+        })),
       },
     });
   } catch (error) {

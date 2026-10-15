@@ -267,6 +267,13 @@
       "when": 1791983825180,
       "tag": "20261014131705_platform_booking_code",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1792031598668,
+      "tag": "20261015023318_add_pricing_rules",
+      "breakpoints": true
     }
   ]
 }

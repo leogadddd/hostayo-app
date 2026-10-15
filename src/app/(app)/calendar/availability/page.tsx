@@ -1,4 +1,6 @@
 import { accommodationTotal } from "@/lib/rates";
+import { unitRateResolver } from "@/lib/pricing-rules";
+import { listPricingRules } from "@/server/pricing/service";
 import { unitOrPropertyPhotoSrc } from "@/lib/photos";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -79,6 +81,9 @@ export default async function AvailabilityPage({
       new Map(properties.map((property) => [property.id, property.timezone])),
       search,
     );
+    const pricingRules = showRates
+      ? await listPricingRules(membership.organizationId, { activeOnly: true })
+      : [];
     const cards = candidates
       .filter((unit) => freeIds.has(unit.id))
       .map((unit) => {
@@ -99,6 +104,7 @@ export default async function AvailabilityPage({
               nights: search.nights,
               baseCents: unit.defaultNightlyRateCents,
               dayRates: unit.dayRates,
+              rateFor: unitRateResolver(unit, pricingRules),
             }) + (unit.cleaningFeeCents ?? 0),
         };
       });

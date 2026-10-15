@@ -9,6 +9,7 @@ import {
   Calendar,
   ClipboardList,
   Receipt,
+  Tag,
   BarChart3,
   Settings,
   Users,
@@ -65,6 +66,12 @@ const NAV_ITEMS: {
     label: "Tasks",
     icon: ClipboardList,
     anyOf: ["tasks.view"],
+  },
+  {
+    href: "/pricing",
+    label: "Pricing",
+    icon: Tag,
+    anyOf: ["pricing.view"],
   },
   {
     href: "/expenses",

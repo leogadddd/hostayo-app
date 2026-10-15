@@ -41,7 +41,7 @@ export default async function EditUnitPage({
   ]);
 
   return (
-    <div className="min-w-0 overflow-hidden">
+    <div className="min-w-0 overflow-x-clip">
       <PageHeading
         title="Edit unit"
         description={`${unit.name} · ${property.name}`}

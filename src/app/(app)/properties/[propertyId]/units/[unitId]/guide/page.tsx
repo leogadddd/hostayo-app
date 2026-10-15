@@ -37,7 +37,7 @@ export default async function UnitGuidePage({
   const photosHref = `${unitHref}/photos?new=1`;
 
   return (
-    <div className="min-w-0 overflow-hidden">
+    <div className="min-w-0 overflow-x-clip">
       <PageHeading
         title={justCreated ? "Write the guest guide" : "Guest guide"}
         description={

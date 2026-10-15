@@ -41,7 +41,7 @@ export default async function UnitPhotosPage({
   const unitHref = `/properties/${property.id}/units/${unit.id}`;
 
   return (
-    <div className="min-w-0 overflow-hidden">
+    <div className="min-w-0 overflow-x-clip">
       <PageHeading
         title={justCreated ? "Add photos" : "Photos"}
         description={

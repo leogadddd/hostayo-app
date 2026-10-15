@@ -83,7 +83,7 @@ export default async function ReservationConfirmationPage({
   const shortRef = reservation.id.slice(0, 8).toUpperCase();
 
   return (
-    <div className="min-w-0 overflow-hidden">
+    <div className="min-w-0 overflow-x-clip">
       <section
         className={cn(
           "rounded-2xl border p-6 sm:p-8",

@@ -71,11 +71,15 @@ export function accommodationLines(input: {
   nights: number;
   baseCents: number;
   dayRates?: DayRates | null;
+  /** Prices a night by its date, e.g. with pricing rules; overrides the rates above. */
+  rateFor?: (date: string) => number;
 }): AccommodationLine[] {
   const groups = new Map<number, { nights: number; days: Set<Weekday> }>();
   for (let i = 0; i < input.nights; i++) {
     const date = addDaysLocal(input.checkIn, i);
-    const cents = nightlyRateFor(date, input.baseCents, input.dayRates);
+    const cents =
+      input.rateFor?.(date) ??
+      nightlyRateFor(date, input.baseCents, input.dayRates);
     const group = groups.get(cents) ?? { nights: 0, days: new Set<Weekday>() };
     group.nights++;
     group.days.add(weekdayOf(date));

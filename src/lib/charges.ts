@@ -36,6 +36,7 @@ export function buildDefaultCharges(input: {
   nights: number;
   checkIn?: string;
   dayRates?: DayRates | null;
+  rateFor?: (date: string) => number;
 }): ChargeLineValues[] {
   const lines: ChargeLineValues[] = input.checkIn
     ? accommodationLines({
@@ -43,6 +44,7 @@ export function buildDefaultCharges(input: {
         nights: input.nights,
         baseCents: input.nightlyRateCents,
         dayRates: input.dayRates,
+        rateFor: input.rateFor,
       }).map((line) => ({ type: "accommodation" as const, ...line }))
     : [
         {

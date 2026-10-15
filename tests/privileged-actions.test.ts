@@ -82,6 +82,9 @@ vi.mock("@/server/inventory/service", () => ({
   getUnitOrThrow: vi.fn(),
   getPropertyOrThrow: vi.fn(),
 }));
+vi.mock("@/server/pricing/service", () => ({
+  listPricingRules: vi.fn(async () => []),
+}));
 vi.mock("@/server/reservations/service", () => ({
   createHold: vi.fn(),
   createConfirmed: vi.fn(),

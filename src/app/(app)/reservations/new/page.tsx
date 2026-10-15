@@ -4,6 +4,7 @@ import { can } from "@/lib/permissions";
 import { PermissionDenied } from "@/components/app/permission-denied";
 import { addDaysLocal, isLocalDate, todayInTimeZone } from "@/lib/dates";
 import { listOrgUnits, listProperties } from "@/server/inventory/service";
+import { listPricingRules } from "@/server/pricing/service";
 import { listGuests } from "@/server/reservations/service";
 import { listPlatforms } from "@/server/reservations/platforms";
 import { PageHeading } from "@/components/app/page-heading";
@@ -27,12 +28,17 @@ export default async function NewReservationPage({
   if (!membership) return <PermissionDenied />;
   const params = await searchParams;
 
-  const [units, properties, guestRows, platforms] = await Promise.all([
-    listOrgUnits(membership.organizationId),
-    listProperties(membership.organizationId),
-    listGuests(membership.organizationId),
-    listPlatforms(membership.organizationId),
-  ]);
+  const [units, properties, guestRows, platforms, pricingRules] =
+    await Promise.all([
+      listOrgUnits(membership.organizationId),
+      listProperties(membership.organizationId),
+      listGuests(membership.organizationId),
+      listPlatforms(membership.organizationId),
+      // Only people who set prices get the rules.
+      can(membership, "payments.create")
+        ? listPricingRules(membership.organizationId, { activeOnly: true })
+        : [],
+    ]);
 
   const timezone = properties[0]?.timezone ?? "Asia/Manila";
   const today = todayInTimeZone(timezone);
@@ -59,7 +65,7 @@ export default async function NewReservationPage({
     : "/reservations";
 
   return (
-    <div className="min-w-0 overflow-hidden">
+    <div className="min-w-0 overflow-x-clip">
       <PageHeading
         title="New reservation"
         backHref={backHref}
@@ -74,6 +80,7 @@ export default async function NewReservationPage({
           toUnitOption(unit, propertyById.get(unit.propertyId), {
             multipleProperties: properties.length > 1,
             showRates: canSetCharges,
+            pricingRules,
           }),
         )}
         canCreateGuest={can(membership, "guests.create")}

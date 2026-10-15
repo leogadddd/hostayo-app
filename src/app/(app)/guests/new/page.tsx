@@ -11,7 +11,7 @@ export default async function NewGuestPage() {
   if (!membership) return <PermissionDenied />;
 
   return (
-    <div className="min-w-0 overflow-hidden">
+    <div className="min-w-0 overflow-x-clip">
       <PageHeading
         title="Add guest"
         description="Save a guest's details once and pick them on every booking after."

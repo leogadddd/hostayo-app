@@ -135,6 +135,16 @@ export const PERMISSION_AREAS = [
     actions: { view: "See the audit log" },
   },
   {
+    area: "pricing",
+    label: "Pricing rules",
+    actions: {
+      view: "See pricing rules and their price preview",
+      create: "Add pricing rules",
+      update: "Edit, activate and deactivate pricing rules",
+      delete: "Remove pricing rules",
+    },
+  },
+  {
     area: "platforms",
     label: "Booking platforms",
     actions: {

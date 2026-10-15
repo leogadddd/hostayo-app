@@ -39,7 +39,7 @@ export default async function UnitPricingPage({
   const nextHref = `${unitHref}/guide?new=1`;
 
   return (
-    <div className="min-w-0 overflow-hidden">
+    <div className="min-w-0 overflow-x-clip">
       <PageHeading
         title={justCreated ? "Set your pricing" : "Pricing"}
         description={

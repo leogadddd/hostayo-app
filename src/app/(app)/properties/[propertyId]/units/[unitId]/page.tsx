@@ -121,7 +121,7 @@ export default async function UnitDetailPage({
         : "No upcoming stays";
 
   return (
-    <div className="min-w-0 overflow-hidden">
+    <div className="min-w-0 overflow-x-clip">
       <Link
         href={`/properties/${property.id}`}
         className="mb-4 inline-flex items-center gap-2 text-sm text-pine/70 hover:text-clay"

@@ -11,6 +11,7 @@ import {
 import { listGuests } from "@/server/reservations/service";
 import { listPlatforms } from "@/server/reservations/platforms";
 import { listOrgUnits, listProperties } from "@/server/inventory/service";
+import { listPricingRules } from "@/server/pricing/service";
 import { getReservationLedger } from "@/server/payments/service";
 import { ReservationForm } from "../../new/reservation-form";
 import { toUnitOption } from "../../new/unit-options";
@@ -57,20 +58,22 @@ export default async function EditReservationPage({
     );
   }
 
-  const [guests, units, properties, ledger, platforms] = await Promise.all([
-    listGuests(membership.organizationId),
-    listOrgUnits(membership.organizationId),
-    listProperties(membership.organizationId),
-    getReservationLedger(membership.organizationId, id),
-    listPlatforms(membership.organizationId, { includeInactive: true }),
-  ]);
+  const [guests, units, properties, ledger, platforms, pricingRules] =
+    await Promise.all([
+      listGuests(membership.organizationId),
+      listOrgUnits(membership.organizationId),
+      listProperties(membership.organizationId),
+      getReservationLedger(membership.organizationId, id),
+      listPlatforms(membership.organizationId, { includeInactive: true }),
+      listPricingRules(membership.organizationId, { activeOnly: true }),
+    ]);
   const propertyById = new Map(
     properties.map((property) => [property.id, property]),
   );
   const { reservation, guest, unit } = detail;
 
   return (
-    <div className="min-w-0 overflow-hidden">
+    <div className="min-w-0 overflow-x-clip">
       <PageHeading
         title="Edit reservation"
         description={`${guest.name} · #${reservation.id.slice(0, 8).toUpperCase()}. Payment history stays as an immutable ledger.`}
@@ -90,6 +93,7 @@ export default async function EditReservationPage({
             toUnitOption(candidate, propertyById.get(candidate.propertyId), {
               multipleProperties: properties.length > 1,
               showRates: true,
+              pricingRules,
             }),
           )}
         // A retired platform stays selectable on the reservations that use it.
