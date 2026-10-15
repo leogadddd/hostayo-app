@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/icons";
 import { Badge } from "@/components/ui/badge";
 import { buttonClassName } from "@/components/ui/button";
-import { amenityIcon } from "@/app/(app)/properties/amenity-icons";
+import { AmenityList } from "@/components/public/amenity-list";
 import { UnitAvailability } from "@/components/public/unit-availability";
 import { clockLabel } from "@/components/public/format";
 import { ChannelList } from "@/components/public/contact-channel-list";
@@ -27,7 +27,7 @@ import {
 import { nextOpenDate } from "@/lib/public-availability";
 import { formatPHP } from "@/lib/money";
 import { JsonLd } from "@/components/json-ld";
-import { getPublicUnit, todayISO, type PublicAmenity } from "@/lib/public-demo";
+import { getPublicUnit, todayISO } from "@/lib/public-demo";
 import { absoluteUrl, APP_URL } from "@/lib/site";
 
 type Params = { host: string; unit: string };
@@ -61,27 +61,6 @@ export async function generateMetadata({
         },
       }
     : { title: "Unit not found" };
-}
-
-function AmenityGrid({ items }: { items: PublicAmenity[] }) {
-  return (
-    <ul className="grid gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
-      {items.map((amenity) => {
-        const Icon = amenityIcon(amenity.icon);
-        return (
-          <li
-            key={amenity.name}
-            className="flex items-center gap-3 text-sm text-ink/80"
-          >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-pine-mist text-pine">
-              <Icon className="h-4 w-4" aria-hidden />
-            </span>
-            {amenity.name}
-          </li>
-        );
-      })}
-    </ul>
-  );
 }
 
 /** A block under the hero: a big heading, a line of help, then the content. */
@@ -367,17 +346,11 @@ export default async function UnitPage({
 
           {unit.unitAmenities.length || unit.propertyAmenities.length ? (
             <Block id="amenities" title="What is included">
-              {unit.unitAmenities.length ? (
-                <AmenityGrid items={unit.unitAmenities} />
-              ) : null}
-              {unit.propertyAmenities.length ? (
-                <>
-                  <h3 className="mb-3 mt-8 font-display text-xl text-pine">
-                    Around {unit.propertyName}
-                  </h3>
-                  <AmenityGrid items={unit.propertyAmenities} />
-                </>
-              ) : null}
+              <AmenityList
+                unitAmenities={unit.unitAmenities}
+                propertyAmenities={unit.propertyAmenities}
+                propertyName={unit.propertyName}
+              />
             </Block>
           ) : null}
 
