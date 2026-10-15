@@ -256,110 +256,156 @@ export default async function UnitPage({
         </section>
 
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-          {photos.length ? (
-            <Block id="photos" title="Photos">
-              <div className="max-w-4xl">
-                <PhotoCarousel photos={photos} alt={unit.name} />
-              </div>
-            </Block>
-          ) : null}
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
+            <div className="min-w-0">
+              {photos.length ? (
+                <Block id="photos" title="Photos">
+                  <div>
+                    <PhotoCarousel photos={photos} alt={unit.name} />
+                  </div>
+                </Block>
+              ) : null}
 
-          <Block id="details" title="Details">
-            <ul className="flex flex-wrap gap-2 text-sm font-medium text-ink/80">
-              <li className="flex items-center gap-1.5 rounded-lg bg-pine-mist px-3 py-1.5">
-                <Users className="h-4 w-4 text-pine" aria-hidden />
-                Sleeps {unit.capacity}
-              </li>
-              <li className="flex items-center gap-1.5 rounded-lg bg-pine-mist px-3 py-1.5">
-                <BedDouble className="h-4 w-4 text-pine" aria-hidden />
-                {unit.bedrooms} {unit.bedrooms === 1 ? "bedroom" : "bedrooms"}
-              </li>
-              <li className="flex items-center gap-1.5 rounded-lg bg-pine-mist px-3 py-1.5">
-                <Bath className="h-4 w-4 text-pine" aria-hidden />
-                {unit.bathrooms} {unit.bathrooms === 1 ? "bath" : "baths"}
-              </li>
-            </ul>
-            {unit.description ? (
-              <p className="mt-5 max-w-2xl whitespace-pre-line leading-relaxed text-ink/75">
-                {unit.description}
-              </p>
-            ) : null}
-            <dl className="mt-6 grid max-w-md grid-cols-2 gap-3">
-              <div className="flex items-center gap-3 rounded-xl border border-pine/12 bg-linen px-4 py-3">
-                <LogIn className="h-5 w-5 text-moss" aria-hidden />
-                <div>
-                  <dt className="text-xs text-ink/55">Check-in</dt>
-                  <dd className="font-medium text-pine">
-                    {clockLabel(unit.checkInTime)}
-                  </dd>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 rounded-xl border border-pine/12 bg-linen px-4 py-3">
-                <LogOut className="h-5 w-5 text-clay" aria-hidden />
-                <div>
-                  <dt className="text-xs text-ink/55">Check-out</dt>
-                  <dd className="font-medium text-pine">
-                    {clockLabel(unit.checkOutTime)}
-                  </dd>
-                </div>
-              </div>
-            </dl>
-            {unit.reservationFeeLabel ? (
-              <p className="mt-4 flex max-w-2xl gap-2 text-sm text-ink/65">
-                <Clock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-                {unit.reservationFeeLabel}
-              </p>
-            ) : null}
-          </Block>
-
-          <Block
-            id="calendar"
-            title="Free dates"
-            intro="Choose your check-in and check-out. The squares show the next 14 nights: light is free, grey is booked."
-          >
-            <div className="mb-6 max-w-xl">
-              <AvailabilityStrip booked={unit.booked} today={today} />
-            </div>
-            <div className="max-w-3xl">
-              <UnitAvailability
-                today={today}
-                booked={unit.booked}
-                nightlyRateCents={unit.nightlyRateCents}
-                dayRates={unit.dayRates}
-                cleaningFeeCents={unit.cleaningFeeCents}
-                channels={unitChannels}
-                hostName={host.displayName}
-                unitName={unit.name}
-                initialRange={initialRange}
-              />
-            </div>
-          </Block>
-
-          {unit.unitAmenities.length || unit.propertyAmenities.length ? (
-            <Block id="amenities" title="What is included">
-              <AmenityList
-                unitAmenities={unit.unitAmenities}
-                propertyAmenities={unit.propertyAmenities}
-                propertyName={unit.propertyName}
-              />
-            </Block>
-          ) : null}
-
-          {unit.guestHouseRules.length ? (
-            <Block id="rules" title="House rules">
-              <ul className="max-w-2xl space-y-2.5">
-                {unit.guestHouseRules.map((rule) => (
-                  <li key={rule} className="flex gap-3 text-ink/75">
-                    <span
-                      aria-hidden
-                      className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-clay"
-                    />
-                    {rule}
+              <Block id="details" title="Details">
+                <ul className="flex flex-wrap gap-2 text-sm font-medium text-ink/80">
+                  <li className="flex items-center gap-1.5 rounded-lg bg-pine-mist px-3 py-1.5">
+                    <Users className="h-4 w-4 text-pine" aria-hidden />
+                    Sleeps {unit.capacity}
                   </li>
-                ))}
-              </ul>
-            </Block>
-          ) : null}
+                  <li className="flex items-center gap-1.5 rounded-lg bg-pine-mist px-3 py-1.5">
+                    <BedDouble className="h-4 w-4 text-pine" aria-hidden />
+                    {unit.bedrooms}{" "}
+                    {unit.bedrooms === 1 ? "bedroom" : "bedrooms"}
+                  </li>
+                  <li className="flex items-center gap-1.5 rounded-lg bg-pine-mist px-3 py-1.5">
+                    <Bath className="h-4 w-4 text-pine" aria-hidden />
+                    {unit.bathrooms} {unit.bathrooms === 1 ? "bath" : "baths"}
+                  </li>
+                </ul>
+                {unit.description ? (
+                  <p className="mt-5 max-w-2xl whitespace-pre-line leading-relaxed text-ink/75">
+                    {unit.description}
+                  </p>
+                ) : null}
+                <dl className="mt-6 grid max-w-md grid-cols-2 gap-3">
+                  <div className="flex items-center gap-3 rounded-xl border border-pine/12 bg-linen px-4 py-3">
+                    <LogIn className="h-5 w-5 text-moss" aria-hidden />
+                    <div>
+                      <dt className="text-xs text-ink/55">Check-in</dt>
+                      <dd className="font-medium text-pine">
+                        {clockLabel(unit.checkInTime)}
+                      </dd>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 rounded-xl border border-pine/12 bg-linen px-4 py-3">
+                    <LogOut className="h-5 w-5 text-clay" aria-hidden />
+                    <div>
+                      <dt className="text-xs text-ink/55">Check-out</dt>
+                      <dd className="font-medium text-pine">
+                        {clockLabel(unit.checkOutTime)}
+                      </dd>
+                    </div>
+                  </div>
+                </dl>
+                {unit.reservationFeeLabel ? (
+                  <p className="mt-4 flex max-w-2xl gap-2 text-sm text-ink/65">
+                    <Clock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                    {unit.reservationFeeLabel}
+                  </p>
+                ) : null}
+              </Block>
+
+              <Block
+                id="calendar"
+                title="Free dates"
+                intro="Choose your check-in and check-out. The squares show the next 14 nights: light is free, grey is booked."
+              >
+                <div className="mb-6 max-w-xl">
+                  <AvailabilityStrip booked={unit.booked} today={today} />
+                </div>
+                <div className="max-w-3xl">
+                  <UnitAvailability
+                    today={today}
+                    booked={unit.booked}
+                    nightlyRateCents={unit.nightlyRateCents}
+                    dayRates={unit.dayRates}
+                    cleaningFeeCents={unit.cleaningFeeCents}
+                    channels={unitChannels}
+                    hostName={host.displayName}
+                    unitName={unit.name}
+                    initialRange={initialRange}
+                  />
+                </div>
+              </Block>
+
+              {unit.unitAmenities.length || unit.propertyAmenities.length ? (
+                <Block id="amenities" title="What is included">
+                  <AmenityList
+                    unitAmenities={unit.unitAmenities}
+                    propertyAmenities={unit.propertyAmenities}
+                    propertyName={unit.propertyName}
+                  />
+                </Block>
+              ) : null}
+
+              {unit.guestHouseRules.length ? (
+                <Block id="rules" title="House rules">
+                  <ul className="max-w-2xl space-y-2.5">
+                    {unit.guestHouseRules.map((rule) => (
+                      <li key={rule} className="flex gap-3 text-ink/75">
+                        <span
+                          aria-hidden
+                          className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-clay"
+                        />
+                        {rule}
+                      </li>
+                    ))}
+                  </ul>
+                </Block>
+              ) : null}
+            </div>
+            <aside
+              className="hidden lg:block lg:sticky lg:top-6"
+              aria-label="Book this unit"
+            >
+              <div className="rounded-3xl border border-pine/12 bg-surface p-6 shadow-[0_10px_30px_rgba(32,58,53,0.10)]">
+                <p className="text-sm text-ink/55">From</p>
+                <p className="mt-0.5">
+                  <span className="font-display text-4xl text-pine">
+                    {formatPHP(unit.nightlyRateCents)}
+                  </span>{" "}
+                  <span className="text-ink/55">/ night</span>
+                </p>
+                <div className="mt-3">
+                  <Badge tone={openNow ? "sage" : "clay"}>
+                    {openNow
+                      ? "Open tonight"
+                      : open
+                        ? `Next open ${shortDate(open)}`
+                        : "Fully booked"}
+                  </Badge>
+                </div>
+                <div className="mt-4">
+                  <AvailabilityStrip booked={unit.booked} today={today} />
+                </div>
+                <a
+                  href="#calendar"
+                  className={buttonClassName("clay", "lg", "mt-5 w-full")}
+                >
+                  Pick your dates
+                </a>
+                <p className="mt-3 text-center text-xs text-ink/55">
+                  Your stay and payment are arranged directly with the host.
+                </p>
+                <div className="mt-5 border-t border-pine/10 pt-5">
+                  <p className="mb-3 text-sm font-medium text-pine">
+                    Questions? Message {host.displayName}
+                  </p>
+                  <ChannelList channels={unitChannels} compact />
+                </div>
+              </div>
+            </aside>
+          </div>
 
           <section
             aria-labelledby="how-heading"
