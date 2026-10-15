@@ -21,7 +21,7 @@ const montserrat = Montserrat({
   display: "swap",
 });
 
-const TITLE = "Hostayo — a calmer way to run your stays";
+const TITLE = "Hostayo | A calmer way to run your stays";
 const DESCRIPTION =
   "Bookings, payments, turnovers and expenses for short-stay hosts in the Philippines.";
 
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   applicationName: "Hostayo",
   title: {
     default: TITLE,
-    template: "%s · Hostayo",
+    template: "%s | Hostayo",
   },
   description: DESCRIPTION,
   // Private by default: the workspace must never be indexed. Public pages
