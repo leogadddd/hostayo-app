@@ -32,6 +32,7 @@ export interface PlatformFormValues {
   color: string;
   websiteUrl: string;
   downPaymentApplies: boolean;
+  hasBookingCode: boolean;
   logoUrl: string | null;
 }
 
@@ -47,6 +48,23 @@ const DOWN_PAYMENT_OPTIONS = [
     label: "Doesn't apply",
     description:
       "Never require a down payment for bookings from this platform.",
+    icon: X,
+  },
+] as const;
+
+const BOOKING_CODE_OPTIONS = [
+  {
+    value: "true",
+    label: "Has a booking code",
+    description:
+      "Ask for its confirmation code when recording a booking, like Airbnb's.",
+    icon: Check,
+  },
+  {
+    value: "false",
+    label: "No booking code",
+    description:
+      "Facebook, Messenger, Instagram and direct bookings don't have one.",
     icon: X,
   },
 ] as const;
@@ -77,6 +95,9 @@ export function PlatformForm({
   const [downPaymentApplies, setDownPaymentApplies] = useState<
     "true" | "false"
   >(values.downPaymentApplies ? "true" : "false");
+  const [hasBookingCode, setHasBookingCode] = useState<"true" | "false">(
+    values.hasBookingCode ? "true" : "false",
+  );
 
   return (
     <form action={formAction} className="space-y-5">
@@ -120,6 +141,22 @@ export function PlatformForm({
             />
           </div>
         </div>
+      </div>
+
+      <div>
+        <p
+          id="platform-booking-code"
+          className="mb-1.5 text-sm font-medium text-ink"
+        >
+          Do bookings from this platform come with a booking code?
+        </p>
+        <input type="hidden" name="hasBookingCode" value={hasBookingCode} />
+        <ChoiceCards
+          aria-labelledby="platform-booking-code"
+          value={hasBookingCode}
+          onChange={setHasBookingCode}
+          options={BOOKING_CODE_OPTIONS}
+        />
       </div>
 
       <div>

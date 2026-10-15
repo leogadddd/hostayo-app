@@ -8,6 +8,8 @@ export interface DefaultPlatform {
   color: string;
   /** Whether the unit's down payment applies to bookings from this platform. */
   downPaymentApplies: boolean;
+  /** Whether its bookings come with a confirmation code to record. */
+  hasBookingCode: boolean;
 }
 
 /**
@@ -21,6 +23,7 @@ export const DEFAULT_PLATFORMS: readonly DefaultPlatform[] = [
     logoUrl: "/platforms/direct.svg",
     websiteUrl: null,
     color: "#2F5D50",
+    hasBookingCode: false,
     downPaymentApplies: true,
   },
   {
@@ -29,6 +32,7 @@ export const DEFAULT_PLATFORMS: readonly DefaultPlatform[] = [
     logoUrl: "/platforms/airbnb.svg",
     websiteUrl: "https://www.airbnb.com",
     color: "#FF5A5F",
+    hasBookingCode: true,
     downPaymentApplies: false,
   },
   {
@@ -37,6 +41,7 @@ export const DEFAULT_PLATFORMS: readonly DefaultPlatform[] = [
     logoUrl: "/platforms/booking-com.svg",
     websiteUrl: "https://www.booking.com",
     color: "#003580",
+    hasBookingCode: true,
     downPaymentApplies: false,
   },
   {
@@ -45,6 +50,7 @@ export const DEFAULT_PLATFORMS: readonly DefaultPlatform[] = [
     logoUrl: "/platforms/agoda.svg",
     websiteUrl: "https://www.agoda.com",
     color: "#5C2D91",
+    hasBookingCode: true,
     downPaymentApplies: false,
   },
   {
@@ -53,6 +59,7 @@ export const DEFAULT_PLATFORMS: readonly DefaultPlatform[] = [
     logoUrl: "/platforms/expedia.svg",
     websiteUrl: "https://www.expedia.com",
     color: "#FDB913",
+    hasBookingCode: true,
     downPaymentApplies: false,
   },
   {
@@ -61,6 +68,7 @@ export const DEFAULT_PLATFORMS: readonly DefaultPlatform[] = [
     logoUrl: "/platforms/facebook.svg",
     websiteUrl: "https://www.facebook.com",
     color: "#1877F2",
+    hasBookingCode: false,
     downPaymentApplies: true,
   },
   {
@@ -69,6 +77,7 @@ export const DEFAULT_PLATFORMS: readonly DefaultPlatform[] = [
     logoUrl: "/platforms/messenger.svg",
     websiteUrl: "https://www.messenger.com",
     color: "#0A7CFF",
+    hasBookingCode: false,
     downPaymentApplies: true,
   },
   {
@@ -77,6 +86,7 @@ export const DEFAULT_PLATFORMS: readonly DefaultPlatform[] = [
     logoUrl: "/platforms/instagram.svg",
     websiteUrl: "https://www.instagram.com",
     color: "#E1306C",
+    hasBookingCode: false,
     downPaymentApplies: true,
   },
   {
@@ -85,6 +95,7 @@ export const DEFAULT_PLATFORMS: readonly DefaultPlatform[] = [
     logoUrl: "/platforms/walk-in.svg",
     websiteUrl: null,
     color: "#8A6F4D",
+    hasBookingCode: false,
     downPaymentApplies: true,
   },
   {
@@ -93,13 +104,7 @@ export const DEFAULT_PLATFORMS: readonly DefaultPlatform[] = [
     logoUrl: "/platforms/referral.svg",
     websiteUrl: null,
     color: "#6B7F3A",
+    hasBookingCode: false,
     downPaymentApplies: true,
   },
-];
-
-/** The organization's own channels: no outside confirmation code to record. */
-export const PLATFORMS_WITHOUT_REFERENCE: readonly string[] = [
-  "direct",
-  "walk_in",
-  "referral",
 ];

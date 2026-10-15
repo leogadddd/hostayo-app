@@ -22,6 +22,8 @@ export interface PlatformOption {
   color: string | null;
   /** Whether the unit's down payment applies to its bookings. */
   downPaymentApplies: boolean;
+  /** Whether its bookings have a confirmation code to record. */
+  hasBookingCode: boolean;
   isActive: boolean;
 }
 
@@ -59,6 +61,7 @@ export async function listPlatforms(
       logoUrl: bookingPlatforms.logoUrl,
       color: bookingPlatforms.color,
       downPaymentApplies: bookingPlatforms.downPaymentApplies,
+      hasBookingCode: bookingPlatforms.hasBookingCode,
       isActive: bookingPlatforms.isActive,
     })
     .from(bookingPlatforms)
@@ -130,6 +133,7 @@ export async function listManagedPlatforms(
       color: bookingPlatforms.color,
       websiteUrl: bookingPlatforms.websiteUrl,
       downPaymentApplies: bookingPlatforms.downPaymentApplies,
+      hasBookingCode: bookingPlatforms.hasBookingCode,
       isActive: bookingPlatforms.isActive,
       reservationCount: sql<number>`coalesce(${usage.total}, 0)::int`,
     })
@@ -175,6 +179,7 @@ export const platformInputSchema = z.object({
     "Use a full web address, like https://www.airbnb.com.",
   ),
   downPaymentApplies: z.boolean(),
+  hasBookingCode: z.boolean().default(true),
 });
 
 export type PlatformInput = z.input<typeof platformInputSchema>;

@@ -77,7 +77,6 @@ import {
   PlatformLogo,
   type PlatformDisplay,
 } from "@/components/app/platform-badge";
-import { PLATFORMS_WITHOUT_REFERENCE } from "@/lib/platforms";
 import {
   describeReservationFee,
   reservationFeeCents,
@@ -273,6 +272,7 @@ export function ReservationForm({
     key: string | null;
     downPaymentApplies: boolean;
   })[];
+    hasBookingCode: boolean;
   defaultCheckIn: string;
   defaultCheckOut: string;
   requestedUnitId?: string;
@@ -328,9 +328,9 @@ export function ReservationForm({
   const selectedPlatform = platforms.find(
     (platform) => platform.id === platformId,
   );
-  const takesReference =
-    !selectedPlatform?.key ||
-    !PLATFORMS_WITHOUT_REFERENCE.includes(selectedPlatform.key);
+  // Only platforms that issue a booking code ask for it (Airbnb does;
+  // Facebook, Messenger and Instagram don't). Set per platform in Settings.
+  const takesReference = selectedPlatform?.hasBookingCode ?? true;
   // Editing lets the owner correct the existing guest's contact details too.
   const contactOf = (id: string) => {
     const guest = guests.find((candidate) => candidate.id === id);
@@ -996,13 +996,8 @@ export function ReservationForm({
                               checked={selected}
                               onChange={() => {
                                 setPlatformId(platform.id);
-                                // Own channels have no outside booking code to keep.
-                                if (
-                                  platform.key &&
-                                  PLATFORMS_WITHOUT_REFERENCE.includes(
-                                    platform.key,
-                                  )
-                                )
+                                // No booking code on this platform, so none to keep.
+                                if (!platform.hasBookingCode)
                                   setPlatformReference("");
                               }}
                               className="sr-only"

@@ -123,6 +123,9 @@ export const bookingPlatforms = pgTable(
     color: text("color"),
     // Whether the unit's down payment applies to bookings from this platform.
     downPaymentApplies: boolean("down_payment_applies").notNull().default(true),
+    // Whether bookings from this platform have a confirmation code worth
+    // recording (Airbnb does; Facebook, Messenger and Instagram don't).
+    hasBookingCode: boolean("has_booking_code").notNull().default(true),
     isActive: boolean("is_active").notNull().default(true),
     position: integer("position").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true })

@@ -176,3 +176,50 @@ describe("L1 operators", () => {
     expect(await searchOrganizations("l1-search-100%x")).toEqual([]);
   });
 });
+
+describe("platform booking codes", () => {
+  it("asks for a code only where the platform issues one, and lets owners change it", async () => {
+    const { org, owner } = await createTestOrg("platform-booking-code");
+    const byKey = new Map(
+      (await listPlatforms(org.id)).map((platform) => [platform.key, platform]),
+    );
+    for (const key of ["airbnb", "booking_com", "agoda", "expedia"]) {
+      expect(byKey.get(key)?.hasBookingCode, key).toBe(true);
+    }
+    for (const key of [
+      "direct",
+      "facebook",
+      "messenger",
+      "instagram",
+      "walk_in",
+      "referral",
+    ]) {
+      expect(byKey.get(key)?.hasBookingCode, key).toBe(false);
+    }
+
+    const args = { organizationId: org.id, actorUserId: owner.id };
+    // A custom platform asks for a code unless told otherwise.
+    const tiktok = await createPlatform({ ...args, data: CUSTOM });
+    expect(tiktok.hasBookingCode).toBe(true);
+    const messenger = byKey.get("messenger")!;
+    await updatePlatform({
+      ...args,
+      platformId: tiktok.id,
+      data: { ...CUSTOM, hasBookingCode: false },
+    });
+    await updatePlatform({
+      ...args,
+      platformId: messenger.id,
+      data: {
+        name: messenger.name,
+        downPaymentApplies: true,
+        hasBookingCode: true,
+      },
+    });
+    const after = new Map(
+      (await listPlatforms(org.id)).map((platform) => [platform.id, platform]),
+    );
+    expect(after.get(tiktok.id)?.hasBookingCode).toBe(false);
+    expect(after.get(messenger.id)?.hasBookingCode).toBe(true);
+  });
+});

@@ -62,6 +62,7 @@ export async function PlatformsSection({
           <TableHeader>
             <TableRow>
               <TableHead>Platform</TableHead>
+              <TableHead>Booking code</TableHead>
               <TableHead>Down payment</TableHead>
               <TableHead className="text-right">Used</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -81,6 +82,13 @@ export async function PlatformsSection({
                     </span>
                     {platform.key === null ? <Badge>Custom</Badge> : null}
                   </span>
+                </TableCell>
+                <TableCell>
+                  {platform.hasBookingCode ? (
+                    <Badge tone="sage">Asked for</Badge>
+                  ) : (
+                    <Badge tone="neutral">None</Badge>
+                  )}
                 </TableCell>
                 <TableCell>
                   {platform.downPaymentApplies ? (

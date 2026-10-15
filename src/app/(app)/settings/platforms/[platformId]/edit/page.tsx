@@ -41,6 +41,7 @@ export default async function EditPlatformPage({
               color: platform.color ?? "",
               websiteUrl: platform.websiteUrl ?? "",
               downPaymentApplies: platform.downPaymentApplies,
+              hasBookingCode: platform.hasBookingCode,
               logoUrl: platform.logoUrl,
             }}
           />

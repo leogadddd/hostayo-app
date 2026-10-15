@@ -38,6 +38,7 @@ function platformFromForm(formData: FormData): PlatformInput {
     color: read("color"),
     websiteUrl: read("websiteUrl"),
     downPaymentApplies: read("downPaymentApplies") === "true",
+    hasBookingCode: read("hasBookingCode") === "true",
   };
 }
 

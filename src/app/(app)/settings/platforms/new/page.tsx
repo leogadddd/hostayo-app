@@ -30,6 +30,7 @@ export default async function NewPlatformPage() {
               color: "",
               websiteUrl: "",
               downPaymentApplies: true,
+              hasBookingCode: true,
               logoUrl: null,
             }}
           />
