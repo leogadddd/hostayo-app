@@ -17,7 +17,7 @@ import { amenityIcon } from "@/app/(app)/properties/amenity-icons";
 import { UnitAvailability } from "@/components/public/unit-availability";
 import { clockLabel } from "@/components/public/format";
 import { ChannelList } from "@/components/public/contact-channel-list";
-import { PhotoGrid } from "@/components/public/photo-grid";
+import { PhotoCarousel } from "@/components/public/photo-carousel";
 import {
   AvailabilityStrip,
   HeroChannels,
@@ -62,8 +62,6 @@ export async function generateMetadata({
       }
     : { title: "Unit not found" };
 }
-
-const WEEKDAY = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function AmenityGrid({ items }: { items: PublicAmenity[] }) {
   return (
@@ -138,7 +136,6 @@ export default async function UnitPage({
   const { host, unit } = found;
   const today = todayISO();
   const hostHref = `/h/${encodeURIComponent(host.slug)}`;
-  const weekendRates = Object.entries(unit.dayRates);
   const query = await searchParams;
   const initialRange =
     query.checkIn && query.checkOut && query.checkOut > query.checkIn
@@ -280,13 +277,11 @@ export default async function UnitPage({
         </section>
 
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-          {photos.length > 1 ? (
-            <Block
-              id="photos"
-              title="Photos"
-              intro={`${photos.length} photos of ${unit.name}.`}
-            >
-              <PhotoGrid photos={photos} alt={unit.name} />
+          {photos.length ? (
+            <Block id="photos" title="Photos">
+              <div className="max-w-4xl">
+                <PhotoCarousel photos={photos} alt={unit.name} />
+              </div>
             </Block>
           ) : null}
 
@@ -298,7 +293,7 @@ export default async function UnitPage({
             <div className="mb-6 max-w-xl">
               <AvailabilityStrip booked={unit.booked} today={today} />
             </div>
-            <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] lg:items-start">
+            <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-start">
               <UnitAvailability
                 today={today}
                 booked={unit.booked}
@@ -310,81 +305,64 @@ export default async function UnitPage({
                 unitName={unit.name}
                 initialRange={initialRange}
               />
-              <div className="rounded-2xl border border-pine/12 bg-surface p-5 sm:p-6">
-                <h3 className="mb-3 font-display text-xl text-pine">Rates</h3>
-                <dl className="divide-y divide-pine/10 text-sm">
-                  <div className="flex justify-between gap-4 py-2.5">
-                    <dt className="text-ink/65">Per night</dt>
-                    <dd className="font-semibold text-pine">
-                      {formatPHP(unit.nightlyRateCents)}
-                    </dd>
+              <section
+                aria-labelledby="details-heading"
+                className="rounded-2xl border border-pine/12 bg-surface p-5 sm:p-6"
+              >
+                <h3
+                  id="details-heading"
+                  className="font-display text-2xl text-pine"
+                >
+                  Details
+                </h3>
+                <ul className="mt-4 flex flex-wrap gap-2 text-sm font-medium text-ink/80">
+                  <li className="flex items-center gap-1.5 rounded-lg bg-pine-mist px-3 py-1.5">
+                    <Users className="h-4 w-4 text-pine" aria-hidden />
+                    Sleeps {unit.capacity}
+                  </li>
+                  <li className="flex items-center gap-1.5 rounded-lg bg-pine-mist px-3 py-1.5">
+                    <BedDouble className="h-4 w-4 text-pine" aria-hidden />
+                    {unit.bedrooms}{" "}
+                    {unit.bedrooms === 1 ? "bedroom" : "bedrooms"}
+                  </li>
+                  <li className="flex items-center gap-1.5 rounded-lg bg-pine-mist px-3 py-1.5">
+                    <Bath className="h-4 w-4 text-pine" aria-hidden />
+                    {unit.bathrooms} {unit.bathrooms === 1 ? "bath" : "baths"}
+                  </li>
+                </ul>
+                {unit.description ? (
+                  <p className="mt-4 leading-relaxed text-ink/75">
+                    {unit.description}
+                  </p>
+                ) : null}
+                <dl className="mt-5 grid grid-cols-2 gap-3">
+                  <div className="flex items-center gap-3 rounded-xl border border-pine/12 bg-linen px-4 py-3">
+                    <LogIn className="h-5 w-5 text-moss" aria-hidden />
+                    <div>
+                      <dt className="text-xs text-ink/55">Check-in</dt>
+                      <dd className="font-medium text-pine">
+                        {clockLabel(unit.checkInTime)}
+                      </dd>
+                    </div>
                   </div>
-                  {weekendRates.map(([day, cents]) => (
-                    <div
-                      key={day}
-                      className="flex justify-between gap-4 py-2.5"
-                    >
-                      <dt className="text-ink/65">
-                        {WEEKDAY[Number(day)]} night
-                      </dt>
-                      <dd className="font-semibold text-pine">
-                        {formatPHP(cents)}
+                  <div className="flex items-center gap-3 rounded-xl border border-pine/12 bg-linen px-4 py-3">
+                    <LogOut className="h-5 w-5 text-clay" aria-hidden />
+                    <div>
+                      <dt className="text-xs text-ink/55">Check-out</dt>
+                      <dd className="font-medium text-pine">
+                        {clockLabel(unit.checkOutTime)}
                       </dd>
                     </div>
-                  ))}
-                  {unit.cleaningFeeCents ? (
-                    <div className="flex justify-between gap-4 py-2.5">
-                      <dt className="text-ink/65">Cleaning fee</dt>
-                      <dd className="font-semibold text-pine">
-                        {formatPHP(unit.cleaningFeeCents)}
-                      </dd>
-                    </div>
-                  ) : null}
-                  {unit.securityDepositCents ? (
-                    <div className="flex justify-between gap-4 py-2.5">
-                      <dt className="text-ink/65">Refundable deposit</dt>
-                      <dd className="font-semibold text-pine">
-                        {formatPHP(unit.securityDepositCents)}
-                      </dd>
-                    </div>
-                  ) : null}
-                  {unit.reservationFeeLabel ? (
-                    <div className="flex gap-2 py-2.5 text-ink/65">
-                      <Clock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-                      <dd>{unit.reservationFeeLabel}</dd>
-                    </div>
-                  ) : null}
+                  </div>
                 </dl>
-              </div>
+                {unit.reservationFeeLabel ? (
+                  <p className="mt-4 flex gap-2 text-sm text-ink/65">
+                    <Clock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                    {unit.reservationFeeLabel}
+                  </p>
+                ) : null}
+              </section>
             </div>
-          </Block>
-
-          <Block id="about" title="About this unit">
-            {unit.description ? (
-              <p className="max-w-2xl leading-relaxed text-ink/75">
-                {unit.description}
-              </p>
-            ) : null}
-            <dl className="mt-6 grid max-w-md grid-cols-2 gap-3">
-              <div className="flex items-center gap-3 rounded-xl border border-pine/12 bg-linen px-4 py-3">
-                <LogIn className="h-5 w-5 text-moss" aria-hidden />
-                <div>
-                  <dt className="text-xs text-ink/55">Check-in</dt>
-                  <dd className="font-medium text-pine">
-                    {clockLabel(unit.checkInTime)}
-                  </dd>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 rounded-xl border border-pine/12 bg-linen px-4 py-3">
-                <LogOut className="h-5 w-5 text-clay" aria-hidden />
-                <div>
-                  <dt className="text-xs text-ink/55">Check-out</dt>
-                  <dd className="font-medium text-pine">
-                    {clockLabel(unit.checkOutTime)}
-                  </dd>
-                </div>
-              </div>
-            </dl>
           </Block>
 
           {unit.unitAmenities.length || unit.propertyAmenities.length ? (
