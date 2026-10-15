@@ -49,6 +49,7 @@ import type { DayRates } from "@/lib/rates";
 import { addDaysLocal, nightsBetween } from "@/lib/dates";
 import { centavosToPesosInput, formatPHP, pesosToCentavos } from "@/lib/money";
 import { cn } from "@/lib/utils";
+import { TabBar } from "@/components/ui/tab-bar";
 import { Button, buttonClassName } from "@/components/ui/button";
 import { FieldError, Input, Label, Select } from "@/components/ui/input";
 import { SelectMenu, type SelectMenuOption } from "@/components/ui/select-menu";
@@ -271,8 +272,8 @@ export function ReservationForm({
     id: string;
     key: string | null;
     downPaymentApplies: boolean;
-  })[];
     hasBookingCode: boolean;
+  })[];
   defaultCheckIn: string;
   defaultCheckOut: string;
   requestedUnitId?: string;
@@ -528,9 +529,14 @@ export function ReservationForm({
               : null,
     review: null,
   };
-  const steps: StepId[] = canSetCharges
-    ? ["stay", "guests", "charges", "review"]
-    : ["stay", "guests", "review"];
+  // Editing has no review step: every part is open as a tab, and Save is always at hand.
+  const steps: StepId[] = edit
+    ? canSetCharges
+      ? ["stay", "guests", "charges"]
+      : ["stay", "guests"]
+    : canSetCharges
+      ? ["stay", "guests", "charges", "review"]
+      : ["stay", "guests", "review"];
   const firstBlocked = steps.findIndex((step) => stepIssues[step] !== null);
   const requested = steps.indexOf(
     (searchParams.get("step") ?? "stay") as StepId,
@@ -539,7 +545,8 @@ export function ReservationForm({
     0,
     Math.min(
       requested === -1 ? 0 : requested,
-      firstBlocked === -1 ? steps.length - 1 : firstBlocked,
+      // Creating goes one step at a time; editing can open any tab.
+      edit || firstBlocked === -1 ? steps.length - 1 : firstBlocked,
     ),
   );
   const step = steps[stepIndex]!;
@@ -700,15 +707,20 @@ export function ReservationForm({
 
   return (
     <div className="min-w-0 space-y-6">
-      {/* The steps sit above both columns (at the form's width) so the form and the summary card start level. */}
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] 2xl:grid-cols-[minmax(0,1fr)_26rem]">
-        <Stepper
-          steps={steps}
-          current={stepIndex}
-          firstBlocked={firstBlocked}
-          onJump={goTo}
-        />
-      </div>
+      <TabBar
+        label="Reservation steps"
+        current={step}
+        items={steps.map((id, index) => ({
+          key: id,
+          label: STEP_LABELS[id],
+          // Checks and the lock on later steps belong to creating a booking.
+          done: !edit && index < stepIndex,
+          disabled: !edit && firstBlocked !== -1 && index > firstBlocked,
+          onSelect: () => {
+            if (id !== step) goTo(id);
+          },
+        }))}
+      />
 
       <div className="grid min-w-0 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] 2xl:grid-cols-[minmax(0,1fr)_26rem]">
         <div className="min-w-0">
@@ -1718,71 +1730,77 @@ export function ReservationForm({
             ) : null}
 
             <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-pine/10 pt-5">
-              {stepIndex === 0 ? (
-                <Link
-                  href={
-                    edit
-                      ? `/reservations/${edit.reservationId}`
-                      : "/reservations"
-                  }
-                  className={buttonClassName("ghost", "md")}
-                >
-                  Cancel
-                </Link>
+              {edit ? (
+                <>
+                  <Link
+                    href={`/reservations/${edit.reservationId}`}
+                    className={buttonClassName("ghost", "md")}
+                  >
+                    Cancel
+                  </Link>
+                  <SaveNowButton
+                    pending={pending}
+                    blocked={firstBlocked !== -1}
+                    onSave={saveNow}
+                  />
+                </>
               ) : (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => goTo(steps[stepIndex - 1]!, true)}
-                >
-                  <ArrowLeft className="h-4 w-4" aria-hidden />
-                  Back
-                </Button>
-              )}
-              {step === "review" ? (
-                <Button
-                  type="button"
-                  variant="clay"
-                  size="lg"
-                  onClick={submit}
-                  disabled={pending}
-                >
-                  {pending ? (
-                    <LoaderCircle
-                      className="h-4 w-4 animate-spin"
-                      aria-hidden
-                    />
+                <>
+                  {stepIndex === 0 ? (
+                    <Link
+                      href="/reservations"
+                      className={buttonClassName("ghost", "md")}
+                    >
+                      Cancel
+                    </Link>
                   ) : (
-                    <Check className="h-4 w-4" aria-hidden />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => goTo(steps[stepIndex - 1]!, true)}
+                    >
+                      <ArrowLeft className="h-4 w-4" aria-hidden />
+                      Back
+                    </Button>
                   )}
-                  {pending
-                    ? "Saving…"
-                    : edit
-                      ? "Save changes"
-                      : submitMode === "hold"
-                        ? "Place hold"
-                        : "Confirm booking"}
-                </Button>
-              ) : (
-                <div className="flex flex-wrap items-center gap-3">
-                  {edit ? (
-                    <SaveNowButton
-                      pending={pending}
-                      blocked={firstBlocked !== -1}
-                      onSave={saveNow}
-                    />
-                  ) : null}
-                  <Button type="button" variant="clay" size="lg" onClick={next}>
-                    Continue to{" "}
-                    {STEP_LABELS[steps[stepIndex + 1]!].toLowerCase()}
-                    <ArrowRight className="h-4 w-4" aria-hidden />
-                  </Button>
-                </div>
+                  {step === "review" ? (
+                    <Button
+                      type="button"
+                      variant="clay"
+                      size="lg"
+                      onClick={submit}
+                      disabled={pending}
+                    >
+                      {pending ? (
+                        <LoaderCircle
+                          className="h-4 w-4 animate-spin"
+                          aria-hidden
+                        />
+                      ) : (
+                        <Check className="h-4 w-4" aria-hidden />
+                      )}
+                      {pending
+                        ? "Saving…"
+                        : submitMode === "hold"
+                          ? "Place hold"
+                          : "Confirm booking"}
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="clay"
+                      size="lg"
+                      onClick={next}
+                    >
+                      Continue to{" "}
+                      {STEP_LABELS[steps[stepIndex + 1]!].toLowerCase()}
+                      <ArrowRight className="h-4 w-4" aria-hidden />
+                    </Button>
+                  )}
+                </>
               )}
             </div>
-            {edit && step !== "review" ? (
-              <FieldError message={reviewError ?? state.error} />
-            ) : null}
+            {edit ? <FieldError message={reviewError ?? state.error} /> : null}
           </section>
         </div>
 
@@ -1801,97 +1819,9 @@ export function ReservationForm({
             alreadyPaid={edit?.paid}
             showPricing={canSetCharges}
           />
-          {edit ? (
-            <div className="mt-4 rounded-2xl border border-pine/10 bg-surface p-4 shadow-[0_1px_2px_rgba(32,58,53,0.06)]">
-              <SaveNowButton
-                pending={pending}
-                blocked={firstBlocked !== -1}
-                onSave={saveNow}
-                wide
-              />
-              <p className="mt-2 text-xs text-ink/55">
-                {firstBlocked !== -1
-                  ? `Fix ${STEP_LABELS[steps[firstBlocked]!].toLowerCase()} before saving.`
-                  : "Saves your changes without going through every step."}
-              </p>
-            </div>
-          ) : null}
         </aside>
       </div>
     </div>
-  );
-}
-
-function Stepper({
-  steps,
-  current,
-  firstBlocked,
-  onJump,
-}: {
-  steps: StepId[];
-  current: number;
-  firstBlocked: number;
-  onJump: (step: StepId) => void;
-}) {
-  return (
-    <ol
-      className="flex items-center gap-1.5 sm:gap-2"
-      aria-label="Reservation steps"
-    >
-      {steps.map((step, index) => {
-        const done = index < current;
-        const reachable = firstBlocked === -1 || index <= firstBlocked;
-        return (
-          <li
-            key={step}
-            className={cn(
-              "flex min-w-0 items-center",
-              index === current ? "flex-1" : "shrink-0 sm:flex-1",
-            )}
-          >
-            <button
-              type="button"
-              onClick={() => onJump(step)}
-              disabled={!reachable || index === current}
-              aria-current={index === current ? "step" : undefined}
-              className={cn(
-                "flex min-w-0 flex-1 items-center gap-2.5 rounded-xl border px-2.5 py-2.5 text-left text-sm transition-colors sm:px-3",
-                index === current
-                  ? "border-clay bg-surface font-medium text-pine shadow-[0_1px_2px_rgba(32,58,53,0.06)]"
-                  : done
-                    ? "border-pine/10 bg-surface text-pine hover:border-pine/30"
-                    : "border-transparent text-ink/45",
-              )}
-            >
-              <span
-                className={cn(
-                  "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-medium",
-                  index === current
-                    ? "bg-clay text-white"
-                    : done
-                      ? "bg-sage/60 text-pine"
-                      : "bg-pine/10 text-ink/50",
-                )}
-              >
-                {done ? (
-                  <Check className="h-3.5 w-3.5" aria-hidden />
-                ) : (
-                  index + 1
-                )}
-              </span>
-              <span
-                className={cn(
-                  "truncate",
-                  index !== current && "sr-only sm:not-sr-only",
-                )}
-              >
-                {STEP_LABELS[step]}
-              </span>
-            </button>
-          </li>
-        );
-      })}
-    </ol>
   );
 }
 
@@ -2035,22 +1965,20 @@ function SaveNowButton({
   pending,
   blocked,
   onSave,
-  wide,
 }: {
   pending: boolean;
   blocked: boolean;
   onSave: () => void;
-  wide?: boolean;
 }) {
   return (
     <Button
       type="button"
-      variant={wide ? "clay" : "outline"}
+      variant="clay"
       size="lg"
       onClick={onSave}
       disabled={pending}
       aria-disabled={blocked}
-      className={cn(wide && "w-full", blocked && "opacity-60")}
+      className={cn(blocked && "opacity-60")}
     >
       {pending ? (
         <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden />
