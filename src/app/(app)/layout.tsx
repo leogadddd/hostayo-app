@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { getDatabaseLabel } from "@/lib/database-label";
 import {
   isL1,
@@ -7,6 +8,8 @@ import {
 } from "@/lib/auth/session";
 import { resolvePermissions } from "@/lib/permissions";
 import { AppHeader, AppSidebar } from "@/components/app/sidebar";
+import { parseOpenGroups, SIDEBAR_GROUPS_COOKIE } from "@/lib/sidebar-groups";
+import { countUnreadEarlyAccessRequests } from "@/server/early-access/service";
 import { getOrganizationLogoUrl } from "@/server/orgs/service";
 
 export default async function AppLayout({
@@ -71,6 +74,10 @@ export default async function AppLayout({
     l1,
     permissions: membership.permissions ?? resolvePermissions(membership.role),
     databaseLabel: getDatabaseLabel(),
+    openGroups: parseOpenGroups(
+      (await cookies()).get(SIDEBAR_GROUPS_COOKIE)?.value,
+    ),
+    earlyAccessUnread: l1 ? await countUnreadEarlyAccessRequests() : 0,
   };
   return (
     <div className="flex h-dvh overflow-hidden bg-paper">

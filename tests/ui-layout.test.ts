@@ -29,6 +29,9 @@ import {
 } from "@/lib/auth/session";
 import { getOrganizationLogoUrl } from "@/server/orgs/service";
 
+vi.mock("next/headers", () => ({
+  cookies: vi.fn(async () => ({ get: () => undefined })),
+}));
 vi.mock("next/navigation", () => ({
   usePathname: vi.fn(),
   useRouter: vi.fn(),

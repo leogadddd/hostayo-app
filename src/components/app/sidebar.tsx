@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -20,8 +20,14 @@ import {
   LayoutDashboard,
   House,
   Inbox,
+  Calculator,
+  CalendarRange,
+  Landmark,
+  MessageSquareText,
+  Percent,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SIDEBAR_GROUPS_COOKIE } from "@/lib/sidebar-groups";
 import { APP_VERSION } from "@/lib/app-version";
 import { can, type Permission, type RoleKey } from "@/lib/permissions";
 import { Logo, LogoMark } from "@/components/logo";
@@ -33,89 +39,193 @@ import {
   type OrganizationOption,
 } from "@/components/app/organization-selector";
 
-/** Each item shows when the member holds any of `anyOf`; items without it show to everyone. */
-const NAV_ITEMS: {
+interface NavLink {
   href: string;
   label: string;
   icon: typeof LayoutDashboard;
+  /** The item shows when the member holds any of these; without it, it shows to everyone. */
   anyOf?: readonly Permission[];
+  /** Active only on this exact path, not on pages beneath it. */
+  exact?: boolean;
+}
+
+/** A labelled, collapsible section of links. */
+interface NavGroup {
+  id: string;
+  label: string;
+  items: readonly NavLink[];
+  defaultOpen?: boolean;
   /** Shown to L1 operators only. */
   l1Only?: boolean;
-}[] = [
+}
+
+type NavEntry = NavLink | NavGroup;
+
+const NAV: readonly NavEntry[] = [
   { href: "/dashboard", label: "Dashboard", icon: House },
   {
-    href: "/calendar",
-    label: "Calendar",
-    icon: Calendar,
-    anyOf: ["reservations.view"],
+    id: "bookings",
+    label: "Bookings",
+    defaultOpen: true,
+    items: [
+      {
+        href: "/calendar",
+        label: "Calendar",
+        icon: Calendar,
+        anyOf: ["reservations.view"],
+      },
+      {
+        href: "/reservations",
+        label: "Reservations",
+        icon: BookOpen,
+        anyOf: ["reservations.view"],
+      },
+      { href: "/guests", label: "Guests", icon: Users, anyOf: ["guests.view"] },
+    ],
   },
   {
-    href: "/reservations",
-    label: "Reservations",
-    icon: BookOpen,
-    anyOf: ["reservations.view"],
+    id: "property",
+    label: "Property",
+    defaultOpen: true,
+    items: [
+      {
+        href: "/properties",
+        label: "Properties",
+        icon: Building2,
+        anyOf: ["properties.view"],
+      },
+      {
+        href: "/tasks",
+        label: "Tasks",
+        icon: ClipboardList,
+        anyOf: ["tasks.view"],
+      },
+    ],
   },
   {
-    href: "/properties",
-    label: "Properties",
-    icon: Building2,
-    anyOf: ["properties.view"],
+    id: "money",
+    label: "Money",
+    defaultOpen: true,
+    items: [
+      {
+        href: "/pricing",
+        label: "Pricing",
+        icon: Tag,
+        anyOf: ["pricing.view"],
+      },
+      {
+        href: "/expenses",
+        label: "Expenses",
+        icon: Receipt,
+        anyOf: ["expenses.view"],
+      },
+      {
+        href: "/reports",
+        label: "Reports",
+        icon: BarChart3,
+        anyOf: ["reports.view"],
+      },
+    ],
   },
-  { href: "/guests", label: "Guests", icon: Users, anyOf: ["guests.view"] },
   {
-    href: "/tasks",
-    label: "Tasks",
-    icon: ClipboardList,
-    anyOf: ["tasks.view"],
-  },
-  {
-    href: "/pricing",
-    label: "Pricing",
-    icon: Tag,
-    anyOf: ["pricing.view"],
-  },
-  {
-    href: "/tools",
+    id: "tools",
     label: "Tools",
-    icon: Wrench,
-    anyOf: ["pricing.view"],
+    items: [
+      {
+        href: "/tools",
+        label: "All tools",
+        icon: Wrench,
+        anyOf: ["pricing.view"],
+        exact: true,
+      },
+      {
+        href: "/tools/pricing-calculator",
+        label: "Rate calculator",
+        icon: Calculator,
+        anyOf: ["pricing.view"],
+      },
+      {
+        href: "/tools/property-breakeven",
+        label: "Property break-even",
+        icon: Building2,
+        anyOf: ["pricing.view"],
+      },
+      {
+        href: "/tools/platform-fees",
+        label: "Platform fees",
+        icon: Percent,
+        anyOf: ["pricing.view"],
+      },
+      {
+        href: "/tools/guest-quote",
+        label: "Guest quote",
+        icon: MessageSquareText,
+        anyOf: ["pricing.view"],
+      },
+      {
+        href: "/tools/seasonal-planner",
+        label: "Seasonal planner",
+        icon: CalendarRange,
+        anyOf: ["pricing.view"],
+      },
+      {
+        href: "/tools/investment-payback",
+        label: "Investment payback",
+        icon: Landmark,
+        anyOf: ["pricing.view"],
+      },
+    ],
   },
+  { href: "/settings/general", label: "Settings", icon: Settings },
   {
-    href: "/expenses",
-    label: "Expenses",
-    icon: Receipt,
-    anyOf: ["expenses.view"],
-  },
-  {
-    href: "/reports",
-    label: "Reports",
-    icon: BarChart3,
-    anyOf: ["reports.view"],
-  },
-  {
-    href: "/settings/general",
-    label: "Settings",
-    icon: Settings,
-  },
-  {
-    href: "/early-access",
-    label: "Early access",
-    icon: Inbox,
+    id: "l1",
+    label: "L1 operator",
     l1Only: true,
+    items: [{ href: "/early-access", label: "Early access", icon: Inbox }],
   },
 ];
 
-function navItemVisible(
-  item: (typeof NAV_ITEMS)[number],
+function isGroup(entry: NavEntry): entry is NavGroup {
+  return "items" in entry;
+}
+
+function linkVisible(
+  item: NavLink,
   role: RoleKey,
   permissions?: readonly Permission[],
-  l1?: boolean,
 ) {
-  if (item.l1Only) return Boolean(l1);
   return (
     !item.anyOf ||
     item.anyOf.some((permission) => can({ role, permissions }, permission))
   );
+}
+
+function linkActive(item: NavLink, pathname: string) {
+  if (item.href === "/settings/general")
+    return pathname.startsWith("/settings");
+  if (item.exact) return pathname === item.href;
+  return pathname === item.href || pathname.startsWith(`${item.href}/`);
+}
+
+const GROUPS_CHANGED = "hostayo:sidebar-groups";
+
+/** Set once a group is toggled in this tab, so the desktop sidebar and the mobile drawer agree. */
+const NO_GROUPS: Record<string, boolean> = {};
+
+let toggled: Record<string, boolean> | null = null;
+
+function subscribeToGroups(callback: () => void) {
+  window.addEventListener(GROUPS_CHANGED, callback);
+  return () => window.removeEventListener(GROUPS_CHANGED, callback);
+}
+
+function saveGroups(groups: Record<string, boolean>) {
+  toggled = groups;
+  const value = Object.entries(groups)
+    .map(([id, open]) => `${id}:${open ? 1 : 0}`)
+    .join(",");
+  document.cookie = `${SIDEBAR_GROUPS_COOKIE}=${value}; path=/; max-age=31536000; samesite=lax`;
+  window.dispatchEvent(new Event(GROUPS_CHANGED));
 }
 
 type SidebarProps = {
@@ -138,53 +248,154 @@ type SidebarProps = {
   organizationImage?: string | null;
   organizations?: OrganizationOption[];
   organizationSlug?: string;
+  /** Early-access requests nobody has read yet; shown on the L1 folder. L1 operators only. */
+  earlyAccessUnread?: number;
+  /** Groups the member opened or closed, from the cookie the server read. */
+  openGroups?: Record<string, boolean>;
 };
+
+function NavItem({
+  item,
+  pathname,
+  onNavigate,
+  badge,
+}: {
+  item: NavLink;
+  pathname: string;
+  onNavigate?: () => void;
+  badge?: number;
+}) {
+  const active = linkActive(item, pathname);
+  const Icon = item.icon;
+  return (
+    <Link
+      href={item.href}
+      onClick={onNavigate}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "flex items-center gap-3 rounded-lg border-l-2 px-4 py-3 text-sm font-medium transition-colors",
+        active
+          ? "border-[#d58d74] bg-sage/20 text-white dark:border-[#c4674d]"
+          : "border-transparent text-paper/80 hover:bg-paper/10 hover:text-white",
+      )}
+    >
+      <Icon
+        className="h-5 w-5 shrink-0 dark:text-moss"
+        strokeWidth={1.6}
+        aria-hidden
+      />
+      <span className="min-w-0 flex-1 truncate">{item.label}</span>
+      {badge ? (
+        <span className="rounded-full bg-clay px-2 py-0.5 text-xs font-semibold text-white">
+          {badge}
+        </span>
+      ) : null}
+    </Link>
+  );
+}
 
 function Navigation({
   role,
   permissions,
   l1,
+  earlyAccessUnread,
+  openGroups,
   onNavigate,
 }: {
   role: SidebarProps["role"];
   permissions: SidebarProps["permissions"];
   l1?: boolean;
+  earlyAccessUnread?: number;
+  openGroups: Record<string, boolean>;
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
+  // Which groups the member opened or closed; the rest use their default.
+  const open = useSyncExternalStore(
+    subscribeToGroups,
+    () => toggled ?? openGroups,
+    () => openGroups,
+  );
+  const toggle = (id: string, next: boolean) =>
+    saveGroups({ ...open, [id]: next });
+
   return (
     <nav
       aria-label="Primary"
       className="min-h-0 flex-1 select-none space-y-1 overflow-y-auto px-3 py-3"
     >
-      {NAV_ITEMS.filter((item) =>
-        navItemVisible(item, role, permissions, l1),
-      ).map(({ href, label, icon: Icon }) => {
-        const active =
-          href === "/settings/general"
-            ? pathname.startsWith("/settings") &&
-              !pathname.startsWith("/properties")
-            : pathname === href || pathname.startsWith(`${href}/`);
+      {NAV.map((entry) => {
+        if (!isGroup(entry)) {
+          return linkVisible(entry, role, permissions) ? (
+            <NavItem
+              key={entry.href}
+              item={entry}
+              pathname={pathname}
+              onNavigate={onNavigate}
+            />
+          ) : null;
+        }
+        if (entry.l1Only && !l1) return null;
+        const items = entry.items.filter((item) =>
+          linkVisible(item, role, permissions),
+        );
+        if (items.length === 0) return null;
+        const hasActive = items.some((item) => linkActive(item, pathname));
+        // The group holding the current page is open unless the member closed it.
+        const expanded = open[entry.id] ?? (entry.defaultOpen || hasActive);
+        const unread = entry.l1Only ? (earlyAccessUnread ?? 0) : 0;
+        const panelId = `nav-group-${entry.id}`;
         return (
-          <Link
-            key={href}
-            href={href}
-            onClick={onNavigate}
-            aria-current={active ? "page" : undefined}
+          <div
+            key={entry.id}
             className={cn(
-              "flex items-center gap-3 rounded-lg border-l-2 px-4 py-3 text-sm font-medium transition-colors",
-              active
-                ? "border-[#d58d74] bg-sage/20 text-white dark:border-[#c4674d]"
-                : "border-transparent text-paper/80 hover:bg-paper/10 hover:text-white",
+              "pt-2",
+              entry.l1Only && "mt-2 border-t border-paper/10 pt-3",
             )}
           >
-            <Icon
-              className="h-5 w-5 shrink-0 dark:text-moss"
-              strokeWidth={1.6}
-              aria-hidden
-            />
-            {label}
-          </Link>
+            <button
+              type="button"
+              aria-expanded={expanded}
+              aria-controls={panelId}
+              onClick={() => toggle(entry.id, !expanded)}
+              className="flex w-full items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wider text-paper/50 transition-colors hover:text-paper/80"
+            >
+              <span className="flex-1 text-left">{entry.label}</span>
+              {!expanded && unread > 0 ? (
+                <span className="rounded-full bg-clay px-2 py-0.5 text-[11px] font-semibold normal-case tracking-normal text-white">
+                  {unread}
+                </span>
+              ) : null}
+              {!expanded && hasActive ? (
+                <span
+                  aria-hidden
+                  className="h-1.5 w-1.5 rounded-full bg-[#d58d74]"
+                />
+              ) : null}
+              <ChevronRight
+                className={cn(
+                  "h-4 w-4 shrink-0 transition-transform",
+                  expanded && "rotate-90",
+                )}
+                aria-hidden
+              />
+            </button>
+            {expanded ? (
+              <div id={panelId} className="mt-0.5 space-y-1">
+                {items.map((item) => (
+                  <NavItem
+                    key={item.href}
+                    item={item}
+                    pathname={pathname}
+                    onNavigate={onNavigate}
+                    badge={
+                      item.href === "/early-access" ? earlyAccessUnread : 0
+                    }
+                  />
+                ))}
+              </div>
+            ) : null}
+          </div>
         );
       })}
     </nav>
@@ -211,6 +422,8 @@ export function AppSidebar(props: SidebarProps) {
         role={props.role}
         permissions={props.permissions}
         l1={props.l1}
+        earlyAccessUnread={props.earlyAccessUnread}
+        openGroups={props.openGroups ?? NO_GROUPS}
       />
       <p className="px-6 py-5 text-xs font-medium tracking-wide text-paper/45">
         {props.databaseLabel && (
@@ -395,6 +608,8 @@ export function AppHeader({
             role={props.role}
             permissions={props.permissions}
             l1={props.l1}
+            earlyAccessUnread={props.earlyAccessUnread}
+            openGroups={props.openGroups ?? NO_GROUPS}
             onNavigate={() => mobileNav.current?.close()}
           />
           <p className="px-6 py-5 text-xs font-medium tracking-wide text-paper/45">
