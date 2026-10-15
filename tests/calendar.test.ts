@@ -15,6 +15,8 @@ import {
   layoutDayBars,
   layoutMonthEvents,
   layoutTimelineBars,
+  layoutTimelineRange,
+  timelineWindow,
   MIN_BAR_WIDTH,
   monthGridRange,
   type BarInterval,
@@ -874,7 +876,11 @@ describe("calendar page data boundaries", () => {
       ["unit-a", true],
       ["unit-b", false],
     ]);
-    expect(timeline.nextHref).toBe("/calendar?month=2026-11&view=timeline");
+    // The timeline scrolls through months, so it loads a window around this one.
+    expect(timeline.month).toBe("2026-10");
+    expect(timeline.rangeStart).toBe("2026-06-01");
+    expect(timeline.rangeEnd).toBe("2027-03-01");
+    expect(timeline.unitId).toBeNull();
     expect(propsFor(tree, UnitFilter).hrefFor("unit-b")).toBe(
       "/calendar?month=2026-10&unit=unit-b&view=timeline",
     );
@@ -1006,5 +1012,60 @@ describe("layoutDayBars", () => {
     // Both start on the 14th and end on the 15th at 11:00; the day shows 09:00
     // to midnight and 10:00 to midnight, so they overlap.
     expect(rows[0]!.laneCount).toBe(2);
+  });
+});
+
+describe("scrolling timeline window", () => {
+  it("loads whole months on each side of the centred month", () => {
+    expect(timelineWindow("2026-10", 4)).toEqual({
+      start: "2026-06-01",
+      end: "2027-03-01",
+    });
+    // Across a year boundary.
+    expect(timelineWindow("2026-01", 1)).toEqual({
+      start: "2025-12-01",
+      end: "2026-03-01",
+    });
+  });
+
+  it("lays out stays across month boundaries as one run of days", () => {
+    const { days, rows } = layoutTimelineRange(
+      "2026-09-01",
+      "2026-12-01",
+      ["u1"],
+      [
+        {
+          id: "long",
+          unitId: "u1",
+          startDate: "2026-10-28",
+          endDate: "2026-11-03",
+          timed: true,
+          startTime: "15:00",
+          endTime: "11:00",
+        },
+      ],
+    );
+    expect(days).toHaveLength(30 + 31 + 30);
+    const bar = rows[0]!.bars[0]!;
+    // Starts on 28 Oct at 15:00, ends on 3 Nov at 11:00, with no cut at 31 Oct.
+    expect(bar.start).toBeCloseTo(days.indexOf("2026-10-28") + 15 / 24);
+    expect(bar.end).toBeCloseTo(days.indexOf("2026-11-03") + 11 / 24);
+    expect(bar.continuesBefore).toBe(false);
+    expect(bar.continuesAfter).toBe(false);
+    // layoutTimelineBars is the one-month case of the same layout.
+    const month = layoutTimelineBars(
+      "2026-10",
+      ["u1"],
+      [
+        {
+          id: "long",
+          unitId: "u1",
+          startDate: "2026-10-28",
+          endDate: "2026-11-03",
+        },
+      ],
+    );
+    expect(month.days).toHaveLength(31);
+    expect(month.rows[0]!.bars[0]!.continuesAfter).toBe(true);
   });
 });

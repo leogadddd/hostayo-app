@@ -10,6 +10,7 @@ import { PermissionDenied } from "@/components/app/permission-denied";
 import {
   calendarEventsForUnit,
   monthGridRange,
+  timelineWindow,
   type CalendarEvent,
 } from "@/lib/calendar";
 import {
@@ -180,7 +181,9 @@ export default async function CalendarPage({
       : isValidMonth(params.month ?? "")
         ? params.month!
         : today.slice(0, 7);
-  const gridRange = monthGridRange(month);
+  // The timeline scrolls through several months, so it loads a wider window.
+  const gridRange =
+    view === "timeline" ? timelineWindow(month) : monthGridRange(month);
   const [segmentsByUnit, activity, taskRows] = await Promise.all([
     // Include the preceding night so time-bound turnovers on the first grid date are retained.
     getOccupancySegments(
@@ -588,7 +591,6 @@ export default async function CalendarPage({
               month={month}
               today={today}
               timeZone={timezone}
-              monthLabel={monthLabel}
               units={visibleUnits.map((unit) => ({
                 id: unit.id,
                 name: unit.name,
@@ -597,9 +599,9 @@ export default async function CalendarPage({
                 bookable: unit.status === "active",
               }))}
               events={displayEvents}
-              previousHref={calendarHref({ month: shiftMonth(month, -1) })}
-              nextHref={calendarHref({ month: shiftMonth(month, 1) })}
-              todayHref={calendarHref({ month: today.slice(0, 7) })}
+              rangeStart={gridRange.start}
+              rangeEnd={gridRange.end}
+              unitId={selectedUnit?.id ?? null}
               viewSwitcher={viewSwitcher}
             />
           ) : visibleUnits.length ? (

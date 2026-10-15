@@ -1,4 +1,9 @@
-import { addDaysLocal, listNights, monthNightRange } from "@/lib/dates";
+import {
+  addDaysLocal,
+  listNights,
+  monthNightRange,
+  shiftMonth,
+} from "@/lib/dates";
 import type { OccupancySegment } from "@/server/inventory/availability";
 
 export interface CalendarInterval {
@@ -297,6 +302,20 @@ export function layoutTimelineBars<T extends BarInterval & { unitId: string }>(
   events: readonly T[],
 ) {
   const range = monthNightRange(month);
+  return layoutTimelineRange(range.start, range.end, unitIds, events);
+}
+
+/**
+ * The same layout across any run of days (`end` is exclusive), for a timeline
+ * that scrolls through several months at once.
+ */
+export function layoutTimelineRange<T extends BarInterval & { unitId: string }>(
+  start: string,
+  end: string,
+  unitIds: readonly string[],
+  events: readonly T[],
+) {
+  const range = { start, end };
   const days = listNights(range.start, range.end);
   const total = days.length;
   const rows = unitIds.map((unitId) => {
@@ -437,4 +456,18 @@ export function layoutDayBars<
     return { unitId, bars, laneCount: laneEnds.length };
   });
   return { rows };
+}
+
+/** Months the scrolling timeline loads on each side of the one it's centred on. */
+export const TIMELINE_MONTHS_EACH_SIDE = 4;
+
+/** The days a scrolling timeline loads around a month: [start, end), whole months. */
+export function timelineWindow(
+  month: string,
+  monthsEachSide = TIMELINE_MONTHS_EACH_SIDE,
+) {
+  return {
+    start: `${shiftMonth(month, -monthsEachSide)}-01`,
+    end: `${shiftMonth(month, monthsEachSide + 1)}-01`,
+  };
 }
