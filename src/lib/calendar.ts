@@ -188,7 +188,7 @@ function daysFrom(from: string, to: string): number {
   );
 }
 
-function dayFraction(time: string | undefined): number {
+export function dayFraction(time: string | undefined): number {
   const match = time ? /^(\d{2}):(\d{2})/.exec(time) : null;
   return match
     ? Math.min(1, (Number(match[1]) * 60 + Number(match[2])) / 1440)
@@ -351,4 +351,90 @@ export function layoutTimelineBars<T extends BarInterval & { unitId: string }>(
     return { unitId, bars, laneCount: laneEnds.length };
   });
   return { days, rows };
+}
+
+export interface DayBar<T extends BarInterval> {
+  event: T;
+  start: number; // Fraction of the day from midnight, 0–1.
+  end: number;
+  lane: number;
+  continuesBefore: boolean;
+  continuesAfter: boolean;
+  /** The cleaning window after this stay's check-out, drawn on its own. */
+  turnover: boolean;
+}
+
+// A same-hour stay or cleaning window still shows as a sliver.
+const MIN_DAY_WIDTH = 1 / 48;
+
+/**
+ * One day, hour by hour: a row per unit with each stay clipped to the day at
+ * its check-in and check-out times, whole-day blocks across the full width,
+ * and the turnover window after a check-out. Overlaps stack in lanes.
+ */
+export function layoutDayBars<
+  T extends BarInterval & {
+    unitId: string;
+    turnover?: { startTime: string; endTime: string };
+  },
+>(date: string, unitIds: readonly string[], events: readonly T[]) {
+  const nextDate = addDaysLocal(date, 1);
+  const rows = unitIds.map((unitId) => {
+    const pieces: Omit<DayBar<T>, "lane">[] = [];
+    for (const event of events) {
+      if (event.unitId !== unitId) continue;
+      if (event.timed) {
+        if (event.startDate > date || event.endDate < date) continue;
+        const start = event.startDate < date ? 0 : dayFraction(event.startTime);
+        const end = event.endDate > date ? 1 : dayFraction(event.endTime);
+        pieces.push({
+          event,
+          start,
+          end: Math.max(end, start + MIN_DAY_WIDTH),
+          continuesBefore: event.startDate < date,
+          continuesAfter: event.endDate > date,
+          turnover: false,
+        });
+        if (event.turnover && event.endDate === date) {
+          const from = dayFraction(event.turnover.startTime);
+          pieces.push({
+            event,
+            start: from,
+            end: Math.max(
+              dayFraction(event.turnover.endTime),
+              from + MIN_DAY_WIDTH,
+            ),
+            continuesBefore: false,
+            continuesAfter: false,
+            turnover: true,
+          });
+        }
+      } else if (date >= event.startDate && date < event.endDate) {
+        pieces.push({
+          event,
+          start: 0,
+          end: 1,
+          continuesBefore: event.startDate < date,
+          continuesAfter: event.endDate > nextDate,
+          turnover: false,
+        });
+      }
+    }
+    pieces.sort(
+      (a, b) =>
+        a.start - b.start ||
+        b.end - a.end ||
+        Number(a.turnover) - Number(b.turnover) ||
+        a.event.id.localeCompare(b.event.id),
+    );
+    const laneEnds: number[] = [];
+    const bars: DayBar<T>[] = pieces.map((piece) => {
+      let lane = laneEnds.findIndex((end) => end <= piece.start);
+      if (lane === -1) lane = laneEnds.length;
+      laneEnds[lane] = piece.end;
+      return { ...piece, lane };
+    });
+    return { unitId, bars, laneCount: laneEnds.length };
+  });
+  return { rows };
 }

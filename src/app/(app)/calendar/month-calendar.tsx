@@ -15,6 +15,7 @@ import {
   type EventQuickViewData,
 } from "./event-quick-view";
 import { PlatformLogo } from "@/components/app/platform-badge";
+import { NowLine } from "./now-line";
 
 export interface DisplayCalendarEvent extends CalendarEvent, BarInterval {
   unitLabel: string;
@@ -52,6 +53,7 @@ const pct = (days: number) => `${(days / 7) * 100}%`;
 export function MonthCalendar({
   month,
   today,
+  timeZone,
   monthLabel,
   events,
   previousHref,
@@ -64,6 +66,8 @@ export function MonthCalendar({
 }: {
   month: string;
   today: string;
+  /** The property's time zone, for the line at the current time. */
+  timeZone: string;
   monthLabel: string;
   events: DisplayCalendarEvent[];
   previousHref: string;
@@ -178,6 +182,9 @@ export function MonthCalendar({
                       />
                     ))}
                   </div>
+                  {week.days.includes(today) ? (
+                    <NowLine timeZone={timeZone} days={week.days} />
+                  ) : null}
                   <div className="relative grid grid-cols-7">
                     {week.days.map((day) => {
                       const label = FULL_DATE_LABEL.format(

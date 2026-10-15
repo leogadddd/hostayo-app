@@ -8,6 +8,7 @@ import { CalendarSelection } from "./calendar-selection";
 import { EventTrigger, QuickViewProvider } from "./event-quick-view";
 import type { DisplayCalendarEvent } from "./month-calendar";
 import { PlatformLogo } from "@/components/app/platform-badge";
+import { NowLine } from "./now-line";
 
 export interface TimelineUnit {
   id: string;
@@ -40,6 +41,7 @@ const MIN_HEIGHT = 37 + 6 * 103;
 export function TimelineCalendar({
   month,
   today,
+  timeZone,
   monthLabel,
   units,
   events,
@@ -50,6 +52,8 @@ export function TimelineCalendar({
 }: {
   month: string;
   today: string;
+  /** The property's time zone, for the line at the current time. */
+  timeZone: string;
   monthLabel: string;
   units: TimelineUnit[];
   events: DisplayCalendarEvent[];
@@ -172,123 +176,134 @@ export function TimelineCalendar({
                 })}
               </div>
             </div>
-            {rows.map((row) => {
-              const unit = unitById.get(row.unitId)!;
-              return (
-                <section
-                  key={row.unitId}
-                  aria-label={unit.name}
-                  className="flex border-b border-pine/15"
-                >
-                  <div
-                    className="sticky left-0 z-30 flex shrink-0 flex-col justify-center border-r border-pine/15 bg-linen px-3 py-2"
-                    style={{ width: UNIT_COLUMN }}
+            <div className="relative flex flex-1 flex-col">
+              {rows.map((row) => {
+                const unit = unitById.get(row.unitId)!;
+                return (
+                  <section
+                    key={row.unitId}
+                    aria-label={unit.name}
+                    className="flex border-b border-pine/15"
                   >
-                    <span className="truncate text-sm font-medium text-pine">
-                      {unit.name}
-                    </span>
-                    {unit.propertyName ? (
-                      <span className="truncate text-xs text-ink/55">
-                        {unit.propertyName}
+                    <div
+                      className="sticky left-0 z-30 flex shrink-0 flex-col justify-center border-r border-pine/15 bg-linen px-3 py-2"
+                      style={{ width: UNIT_COLUMN }}
+                    >
+                      <span className="truncate text-sm font-medium text-pine">
+                        {unit.name}
                       </span>
-                    ) : null}
-                    {!unit.bookable ? (
-                      <span className="mt-0.5 w-fit rounded bg-amber-100 px-1 text-[11px] font-medium text-amber-900">
-                        Not bookable
-                      </span>
-                    ) : null}
-                  </div>
-                  <div
-                    className="relative flex-1 py-1.5"
-                    style={{
-                      height: Math.max(row.laneCount, 1) * LANE_HEIGHT + 12,
-                    }}
-                  >
-                    {dayColumns("absolute inset-0")}
-                    <div className="absolute inset-x-0 inset-y-1.5">
-                      {unit.bookable ? (
-                        <CalendarSelection days={days} unitId={unit.id} />
+                      {unit.propertyName ? (
+                        <span className="truncate text-xs text-ink/55">
+                          {unit.propertyName}
+                        </span>
                       ) : null}
-                      {row.bars.map(
-                        ({
-                          event,
-                          start,
-                          end,
-                          lane,
-                          continuesBefore,
-                          continuesAfter,
-                        }) => {
-                          const { className, style } = barStyle(event);
-                          const showMarker = event.turnover && !continuesAfter;
-                          return (
-                            <div
-                              key={event.id}
-                              className="absolute flex"
-                              style={
-                                {
-                                  left: pct(start),
-                                  width: pct(end - start),
-                                  top: lane * LANE_HEIGHT,
-                                  height: LANE_HEIGHT - 4,
-                                } as CSSProperties
-                              }
-                            >
-                              <EventTrigger
-                                quickView={event.quickView}
-                                href={event.href}
-                                aria-label={`${event.accessibleLabel}${continuesBefore ? "; continued from previous month" : ""}${continuesAfter ? "; continues next month" : ""}`}
-                                title={event.accessibleLabel}
-                                className={`z-10 flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden px-2.5 text-[13px] leading-none transition-[filter] hover:brightness-95 focus-visible:z-20 ${className} ${continuesBefore ? "rounded-l-none border-l-0" : "ml-0.5 rounded-l-full"} ${continuesAfter ? "rounded-r-none border-r-0" : "mr-0.5 rounded-r-full"} ${showMarker ? "pr-4" : ""}`}
-                                style={style}
+                      {!unit.bookable ? (
+                        <span className="mt-0.5 w-fit rounded bg-amber-100 px-1 text-[11px] font-medium text-amber-900">
+                          Not bookable
+                        </span>
+                      ) : null}
+                    </div>
+                    <div
+                      className="relative flex-1 py-1.5"
+                      style={{
+                        height: Math.max(row.laneCount, 1) * LANE_HEIGHT + 12,
+                      }}
+                    >
+                      {dayColumns("absolute inset-0")}
+                      <div className="absolute inset-x-0 inset-y-1.5">
+                        {unit.bookable ? (
+                          <CalendarSelection days={days} unitId={unit.id} />
+                        ) : null}
+                        {row.bars.map(
+                          ({
+                            event,
+                            start,
+                            end,
+                            lane,
+                            continuesBefore,
+                            continuesAfter,
+                          }) => {
+                            const { className, style } = barStyle(event);
+                            const showMarker =
+                              event.turnover && !continuesAfter;
+                            return (
+                              <div
+                                key={event.id}
+                                className="absolute flex"
+                                style={
+                                  {
+                                    left: pct(start),
+                                    width: pct(end - start),
+                                    top: lane * LANE_HEIGHT,
+                                    height: LANE_HEIGHT - 4,
+                                  } as CSSProperties
+                                }
                               >
-                                {event.kind === "block" ? (
-                                  <Wrench
-                                    className="h-3.5 w-3.5 shrink-0"
+                                <EventTrigger
+                                  quickView={event.quickView}
+                                  href={event.href}
+                                  aria-label={`${event.accessibleLabel}${continuesBefore ? "; continued from previous month" : ""}${continuesAfter ? "; continues next month" : ""}`}
+                                  title={event.accessibleLabel}
+                                  className={`z-10 flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden px-2.5 text-[13px] leading-none transition-[filter] hover:brightness-95 focus-visible:z-20 ${className} ${continuesBefore ? "rounded-l-none border-l-0" : "ml-0.5 rounded-l-full"} ${continuesAfter ? "rounded-r-none border-r-0" : "mr-0.5 rounded-r-full"} ${showMarker ? "pr-4" : ""}`}
+                                  style={style}
+                                >
+                                  {event.kind === "block" ? (
+                                    <Wrench
+                                      className="h-3.5 w-3.5 shrink-0"
+                                      aria-hidden
+                                    />
+                                  ) : null}
+                                  {/* Short bars keep their room for the guest's name. */}
+                                  {event.platform && end - start >= 3 ? (
+                                    <PlatformLogo
+                                      platform={event.platform}
+                                      className="h-3.5 w-3.5 rounded-[3px]"
+                                    />
+                                  ) : null}
+                                  <span className="truncate font-semibold">
+                                    {event.kind === "block"
+                                      ? (event.description ?? event.title)
+                                      : event.title}
+                                  </span>
+                                  {event.timeLabel && end - start >= 3 ? (
+                                    <span className="shrink-0 tabular-nums opacity-70">
+                                      {event.timeLabel}
+                                    </span>
+                                  ) : null}
+                                </EventTrigger>
+                                {showMarker ? (
+                                  <span
                                     aria-hidden
-                                  />
-                                ) : null}
-                                {/* Short bars keep their room for the guest's name. */}
-                                {event.platform && end - start >= 3 ? (
-                                  <PlatformLogo
-                                    platform={event.platform}
-                                    className="h-3.5 w-3.5 rounded-[3px]"
-                                  />
-                                ) : null}
-                                <span className="truncate font-semibold">
-                                  {event.kind === "block"
-                                    ? (event.description ?? event.title)
-                                    : event.title}
-                                </span>
-                                {event.timeLabel && end - start >= 3 ? (
-                                  <span className="shrink-0 tabular-nums opacity-70">
-                                    {event.timeLabel}
+                                    className="pointer-events-none absolute right-0 top-1/2 z-20 inline-flex h-6 w-6 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border border-clay/50 bg-clay-mist text-clay-deep shadow-sm"
+                                    title={`Turnover ${event.turnover!.startTime}–${event.turnover!.endTime}`}
+                                  >
+                                    <BrushCleaning className="h-3.5 w-3.5" />
                                   </span>
                                 ) : null}
-                              </EventTrigger>
-                              {showMarker ? (
-                                <span
-                                  aria-hidden
-                                  className="pointer-events-none absolute right-0 top-1/2 z-20 inline-flex h-6 w-6 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border border-clay/50 bg-clay-mist text-clay-deep shadow-sm"
-                                  title={`Turnover ${event.turnover!.startTime}–${event.turnover!.endTime}`}
-                                >
-                                  <BrushCleaning className="h-3.5 w-3.5" />
-                                </span>
-                              ) : null}
-                            </div>
-                          );
-                        },
-                      )}
+                              </div>
+                            );
+                          },
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </section>
-              );
-            })}
-            <div aria-hidden="true" className="flex flex-1">
+                  </section>
+                );
+              })}
+              <div aria-hidden="true" className="flex flex-1">
+                <div
+                  className="sticky left-0 z-30 shrink-0 border-r border-pine/15 bg-linen"
+                  style={{ width: UNIT_COLUMN }}
+                />
+                {dayColumns("flex-1")}
+              </div>
+              {/* The line at the current time, across every unit's row. */}
               <div
-                className="sticky left-0 z-30 shrink-0 border-r border-pine/15 bg-linen"
-                style={{ width: UNIT_COLUMN }}
-              />
-              {dayColumns("flex-1")}
+                aria-hidden
+                className="pointer-events-none absolute inset-y-0 right-0"
+                style={{ left: UNIT_COLUMN }}
+              >
+                <NowLine timeZone={timeZone} days={days} showLabel />
+              </div>
             </div>
           </div>
         </div>

@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { CalendarDays, ChartGantt } from "lucide-react";
+import { CalendarClock, CalendarDays, ChartGantt } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export const CALENDAR_VIEWS = ["month", "timeline"] as const;
+export const CALENDAR_VIEWS = ["month", "timeline", "day"] as const;
 export type CalendarView = (typeof CALENDAR_VIEWS)[number];
 
 export function isCalendarView(
@@ -18,6 +18,7 @@ const OPTIONS: {
 }[] = [
   { view: "month", label: "Month", icon: CalendarDays },
   { view: "timeline", label: "Timeline", icon: ChartGantt },
+  { view: "day", label: "Day", icon: CalendarClock },
 ];
 
 /** Plain links, so the chosen view lives in the URL and survives a refresh. */

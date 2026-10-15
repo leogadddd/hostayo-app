@@ -14,6 +14,7 @@ import {
 } from "@/lib/calendar";
 import {
   addDaysLocal,
+  isLocalDate,
   isValidMonth,
   nightsBetween,
   shiftMonth,
@@ -33,6 +34,7 @@ import { PageHeading } from "@/components/app/page-heading";
 import { buttonClassName } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MonthCalendar, type DisplayCalendarEvent } from "./month-calendar";
+import { DayTimeline } from "./day-timeline";
 import { TimelineCalendar } from "./timeline-calendar";
 import { TodayPanel } from "./today-panel";
 import { UnitFilter } from "./unit-filter";
@@ -72,7 +74,12 @@ function compactTimeLabel(time: string) {
 export default async function CalendarPage({
   searchParams,
 }: {
-  searchParams: Promise<{ month?: string; unit?: string; view?: string }>;
+  searchParams: Promise<{
+    month?: string;
+    unit?: string;
+    view?: string;
+    date?: string;
+  }>;
 }) {
   const membership = await requirePermission("reservations.view");
   if (!membership) return <PermissionDenied />;
@@ -96,10 +103,7 @@ export default async function CalendarPage({
       <div className="mx-auto min-w-0 max-w-[1600px] overflow-hidden">
         <PageHeading title="Calendar">
           {canAddProperty ? (
-            <Link
-              href="/properties"
-              className={buttonClassName("clay", "md")}
-            >
+            <Link href="/properties" className={buttonClassName("clay", "md")}>
               <Plus className="h-4 w-4" aria-hidden />
               Add property
             </Link>
@@ -115,6 +119,7 @@ export default async function CalendarPage({
             <MonthCalendar
               month={month}
               today={today}
+              timeZone={timezone}
               monthLabel={MONTH_LABEL.format(new Date(`${month}-01T00:00:00Z`))}
               events={[]}
               previousHref={monthHref(shiftMonth(month, -1))}
@@ -163,9 +168,18 @@ export default async function CalendarPage({
   const multipleTimezones =
     new Set(visibleUnits.map((unit) => propertyForUnit(unit.id).timezone))
       .size > 1;
-  const month = isValidMonth(params.month ?? "")
-    ? params.month!
-    : today.slice(0, 7);
+  const view: CalendarView = isCalendarView(params.view)
+    ? params.view
+    : "month";
+  // The day view shows one date; the month around it supplies the events.
+  const selectedDate =
+    params.date && isLocalDate(params.date) ? params.date : today;
+  const month =
+    view === "day"
+      ? selectedDate.slice(0, 7)
+      : isValidMonth(params.month ?? "")
+        ? params.month!
+        : today.slice(0, 7);
   const gridRange = monthGridRange(month);
   const [segmentsByUnit, activity, taskRows] = await Promise.all([
     // Include the preceding night so time-bound turnovers on the first grid date are retained.
@@ -443,20 +457,33 @@ export default async function CalendarPage({
     ];
   });
 
-  const view: CalendarView = isCalendarView(params.view)
-    ? params.view
-    : "month";
-  // Month, unit, and view all live in the URL so a refresh keeps them.
+  // Month, date, unit, and view all live in the URL so a refresh keeps them.
   const calendarHref = ({
     month: targetMonth = month,
     unitId = selectedUnit?.id ?? null,
     view: targetView = view,
-  }: { month?: string; unitId?: string | null; view?: CalendarView } = {}) =>
-    `/calendar?${new URLSearchParams({
-      month: targetMonth,
+    date: targetDate,
+  }: {
+    month?: string;
+    unitId?: string | null;
+    view?: CalendarView;
+    date?: string;
+  } = {}) => {
+    // Switching to the day view lands on today when it's in this month.
+    const day =
+      targetDate ??
+      (view === "day"
+        ? selectedDate
+        : today.startsWith(targetMonth)
+          ? today
+          : `${targetMonth}-01`);
+    return `/calendar?${new URLSearchParams({
+      month: targetView === "day" ? day.slice(0, 7) : targetMonth,
       ...(unitId ? { unit: unitId } : {}),
       ...(targetView !== "month" ? { view: targetView } : {}),
+      ...(targetView === "day" ? { date: day } : {}),
     })}`;
+  };
   const viewSwitcher = (
     <ViewSwitcher
       view={view}
@@ -532,10 +559,35 @@ export default async function CalendarPage({
 
       <div className="grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_19rem] 2xl:grid-cols-[minmax(0,1fr)_21rem]">
         <div className="min-w-0">
-          {visibleUnits.length && view === "timeline" ? (
+          {visibleUnits.length && view === "day" ? (
+            <DayTimeline
+              date={selectedDate}
+              today={today}
+              timeZone={timezone}
+              units={visibleUnits.map((unit) => ({
+                id: unit.id,
+                name: unit.name,
+                propertyName:
+                  properties.length > 1 ? propertyForUnit(unit.id).name : null,
+                bookable: unit.status === "active",
+              }))}
+              events={displayEvents}
+              previousHref={calendarHref({
+                view: "day",
+                date: addDaysLocal(selectedDate, -1),
+              })}
+              nextHref={calendarHref({
+                view: "day",
+                date: addDaysLocal(selectedDate, 1),
+              })}
+              todayHref={calendarHref({ view: "day", date: today })}
+              viewSwitcher={viewSwitcher}
+            />
+          ) : visibleUnits.length && view === "timeline" ? (
             <TimelineCalendar
               month={month}
               today={today}
+              timeZone={timezone}
               monthLabel={monthLabel}
               units={visibleUnits.map((unit) => ({
                 id: unit.id,
@@ -554,6 +606,7 @@ export default async function CalendarPage({
             <MonthCalendar
               month={month}
               today={today}
+              timeZone={timezone}
               monthLabel={monthLabel}
               events={displayEvents}
               previousHref={calendarHref({ month: shiftMonth(month, -1) })}
@@ -571,7 +624,7 @@ export default async function CalendarPage({
           ) : (
             <EmptyState
               art="calendar"
-          title="No units to show"
+              title="No units to show"
               description="Add a unit to your property to see stays and availability here."
               action={
                 can(membership, "properties.create") ? (

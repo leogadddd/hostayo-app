@@ -12,6 +12,7 @@ import {
 import {
   calendarEventsForUnit,
   layoutMonthBars,
+  layoutDayBars,
   layoutMonthEvents,
   layoutTimelineBars,
   MIN_BAR_WIDTH,
@@ -905,5 +906,105 @@ describe("calendar page data boundaries", () => {
     expect(html).toContain("Santos");
     expect(html).toContain("Not bookable");
     expect(html).toContain('aria-current="page"');
+  });
+});
+
+describe("layoutDayBars", () => {
+  const stay = (
+    id: string,
+    startDate: string,
+    endDate: string,
+    startTime = "15:00",
+    endTime = "11:00",
+    extra: Record<string, unknown> = {},
+  ) => ({
+    id,
+    unitId: "u1",
+    startDate,
+    endDate,
+    timed: true,
+    startTime,
+    endTime,
+    ...extra,
+  });
+
+  it("clips a stay to the day and draws the cleaning window after check-out", () => {
+    const { rows } = layoutDayBars(
+      "2026-10-14",
+      ["u1"],
+      [
+        // Checks out on the 14th at 11:00 with a turnover until 13:00.
+        stay("out", "2026-10-12", "2026-10-14", "15:00", "11:00", {
+          turnover: { startTime: "11:00", endTime: "13:00" },
+        }),
+        // Checks in on the 14th at 15:00.
+        stay("in", "2026-10-14", "2026-10-16"),
+      ],
+    );
+    const bars = rows[0]!.bars;
+    const out = bars.find((b) => b.event.id === "out" && !b.turnover)!;
+    expect(out.start).toBe(0);
+    expect(out.end).toBeCloseTo(11 / 24);
+    expect(out.continuesBefore).toBe(true);
+    expect(out.continuesAfter).toBe(false);
+    const clean = bars.find((b) => b.turnover)!;
+    expect(clean.start).toBeCloseTo(11 / 24);
+    expect(clean.end).toBeCloseTo(13 / 24);
+    const arriving = bars.find((b) => b.event.id === "in")!;
+    expect(arriving.start).toBeCloseTo(15 / 24);
+    expect(arriving.end).toBe(1);
+    expect(arriving.continuesAfter).toBe(true);
+    // Check-out, turnover and the next check-in never overlap, so one lane.
+    expect(rows[0]!.laneCount).toBe(1);
+  });
+
+  it("spans a stay that covers the whole day and skips stays outside it", () => {
+    const { rows } = layoutDayBars(
+      "2026-10-14",
+      ["u1", "u2"],
+      [
+        stay("long", "2026-10-12", "2026-10-17"),
+        stay("later", "2026-10-15", "2026-10-17"),
+        stay("earlier", "2026-10-10", "2026-10-13"),
+        { ...stay("other", "2026-10-12", "2026-10-17"), unitId: "u2" },
+      ],
+    );
+    expect(rows[0]!.bars.map((b) => b.event.id)).toEqual(["long"]);
+    expect(rows[0]!.bars[0]).toMatchObject({
+      start: 0,
+      end: 1,
+      continuesBefore: true,
+      continuesAfter: true,
+    });
+    expect(rows[1]!.bars.map((b) => b.event.id)).toEqual(["other"]);
+  });
+
+  it("covers the full day for a block whose end date is exclusive", () => {
+    const block = {
+      id: "b",
+      unitId: "u1",
+      startDate: "2026-10-14",
+      endDate: "2026-10-15",
+    };
+    expect(
+      layoutDayBars("2026-10-14", ["u1"], [block]).rows[0]!.bars,
+    ).toHaveLength(1);
+    expect(
+      layoutDayBars("2026-10-15", ["u1"], [block]).rows[0]!.bars,
+    ).toHaveLength(0);
+  });
+
+  it("stacks overlapping pieces in lanes", () => {
+    const { rows } = layoutDayBars(
+      "2026-10-14",
+      ["u1"],
+      [
+        stay("a", "2026-10-14", "2026-10-15", "09:00", "11:00"),
+        stay("b", "2026-10-14", "2026-10-15", "10:00", "11:00"),
+      ],
+    );
+    // Both start on the 14th and end on the 15th at 11:00; the day shows 09:00
+    // to midnight and 10:00 to midnight, so they overlap.
+    expect(rows[0]!.laneCount).toBe(2);
   });
 });
