@@ -353,6 +353,7 @@ function unitDataFromForm(formData: FormData) {
     capacity: Number(readString(formData, "capacity")),
     bedrooms: Number(readString(formData, "bedrooms")),
     bathrooms: Number(readString(formData, "bathrooms")),
+    description: readString(formData, "description"),
     checkInTime: readString(formData, "checkInTime") || "15:00",
     checkOutTime: readString(formData, "checkOutTime") || "11:00",
     status: readString(formData, "status") as

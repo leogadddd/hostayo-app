@@ -81,6 +81,7 @@ export default async function EditUnitPage({
           extensionHourlyRate: centavosToPesosInput(
             unit.extensionHourlyRateCents,
           ),
+          description: unit.description ?? "",
           checkInTime: unit.checkInTime,
           checkOutTime: unit.checkOutTime,
           status: unit.status,

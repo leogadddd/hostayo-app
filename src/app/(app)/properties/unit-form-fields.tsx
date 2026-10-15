@@ -13,7 +13,7 @@ import { UNIT_STATUSES } from "@/lib/db/schema";
 import { UNIT_STATUS_DESCRIPTIONS, UNIT_STATUS_LABELS } from "@/lib/labels";
 import { formatPHP, MoneyParseError, pesosToCentavos } from "@/lib/money";
 import { cn } from "@/lib/utils";
-import { Input, Label } from "@/components/ui/input";
+import { Input, Label, Textarea } from "@/components/ui/input";
 import { NumberStepper } from "@/components/ui/number-stepper";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
 import { useSaveAndReturn } from "@/hooks/use-save-and-return";
@@ -36,6 +36,8 @@ import { channelName, type ContactChannel } from "@/lib/contact-channels";
 
 export interface UnitFormValues {
   name: string;
+  /** What guests read under Details on the public unit page. */
+  description?: string;
   capacity: number;
   bedrooms: number;
   bathrooms: number;
@@ -225,6 +227,22 @@ export function UnitForm({
                 minLength={2}
                 maxLength={80}
                 placeholder="e.g. Unit 12B"
+              />
+            </div>
+            <div>
+              <Label
+                htmlFor="unit-description"
+                info="Guests read this under Details on the unit's public page: the view, the layout, what makes it a good stay."
+              >
+                Description
+              </Label>
+              <Textarea
+                id="unit-description"
+                name="description"
+                defaultValue={values.description ?? ""}
+                rows={5}
+                maxLength={2000}
+                placeholder="e.g. A bright studio on the 14th floor with a view of the pool."
               />
             </div>
           </div>

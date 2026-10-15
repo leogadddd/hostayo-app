@@ -264,6 +264,54 @@ export default async function UnitPage({
             </Block>
           ) : null}
 
+          <Block id="details" title="Details">
+            <ul className="flex flex-wrap gap-2 text-sm font-medium text-ink/80">
+              <li className="flex items-center gap-1.5 rounded-lg bg-pine-mist px-3 py-1.5">
+                <Users className="h-4 w-4 text-pine" aria-hidden />
+                Sleeps {unit.capacity}
+              </li>
+              <li className="flex items-center gap-1.5 rounded-lg bg-pine-mist px-3 py-1.5">
+                <BedDouble className="h-4 w-4 text-pine" aria-hidden />
+                {unit.bedrooms} {unit.bedrooms === 1 ? "bedroom" : "bedrooms"}
+              </li>
+              <li className="flex items-center gap-1.5 rounded-lg bg-pine-mist px-3 py-1.5">
+                <Bath className="h-4 w-4 text-pine" aria-hidden />
+                {unit.bathrooms} {unit.bathrooms === 1 ? "bath" : "baths"}
+              </li>
+            </ul>
+            {unit.description ? (
+              <p className="mt-5 max-w-2xl whitespace-pre-line leading-relaxed text-ink/75">
+                {unit.description}
+              </p>
+            ) : null}
+            <dl className="mt-6 grid max-w-md grid-cols-2 gap-3">
+              <div className="flex items-center gap-3 rounded-xl border border-pine/12 bg-linen px-4 py-3">
+                <LogIn className="h-5 w-5 text-moss" aria-hidden />
+                <div>
+                  <dt className="text-xs text-ink/55">Check-in</dt>
+                  <dd className="font-medium text-pine">
+                    {clockLabel(unit.checkInTime)}
+                  </dd>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 rounded-xl border border-pine/12 bg-linen px-4 py-3">
+                <LogOut className="h-5 w-5 text-clay" aria-hidden />
+                <div>
+                  <dt className="text-xs text-ink/55">Check-out</dt>
+                  <dd className="font-medium text-pine">
+                    {clockLabel(unit.checkOutTime)}
+                  </dd>
+                </div>
+              </div>
+            </dl>
+            {unit.reservationFeeLabel ? (
+              <p className="mt-4 flex max-w-2xl gap-2 text-sm text-ink/65">
+                <Clock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                {unit.reservationFeeLabel}
+              </p>
+            ) : null}
+          </Block>
+
           <Block
             id="calendar"
             title="Free dates"
@@ -272,7 +320,7 @@ export default async function UnitPage({
             <div className="mb-6 max-w-xl">
               <AvailabilityStrip booked={unit.booked} today={today} />
             </div>
-            <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-start">
+            <div className="max-w-3xl">
               <UnitAvailability
                 today={today}
                 booked={unit.booked}
@@ -284,63 +332,6 @@ export default async function UnitPage({
                 unitName={unit.name}
                 initialRange={initialRange}
               />
-              <section
-                aria-labelledby="details-heading"
-                className="rounded-2xl border border-pine/12 bg-surface p-5 sm:p-6"
-              >
-                <h3
-                  id="details-heading"
-                  className="font-display text-2xl text-pine"
-                >
-                  Details
-                </h3>
-                <ul className="mt-4 flex flex-wrap gap-2 text-sm font-medium text-ink/80">
-                  <li className="flex items-center gap-1.5 rounded-lg bg-pine-mist px-3 py-1.5">
-                    <Users className="h-4 w-4 text-pine" aria-hidden />
-                    Sleeps {unit.capacity}
-                  </li>
-                  <li className="flex items-center gap-1.5 rounded-lg bg-pine-mist px-3 py-1.5">
-                    <BedDouble className="h-4 w-4 text-pine" aria-hidden />
-                    {unit.bedrooms}{" "}
-                    {unit.bedrooms === 1 ? "bedroom" : "bedrooms"}
-                  </li>
-                  <li className="flex items-center gap-1.5 rounded-lg bg-pine-mist px-3 py-1.5">
-                    <Bath className="h-4 w-4 text-pine" aria-hidden />
-                    {unit.bathrooms} {unit.bathrooms === 1 ? "bath" : "baths"}
-                  </li>
-                </ul>
-                {unit.description ? (
-                  <p className="mt-4 leading-relaxed text-ink/75">
-                    {unit.description}
-                  </p>
-                ) : null}
-                <dl className="mt-5 grid grid-cols-2 gap-3">
-                  <div className="flex items-center gap-3 rounded-xl border border-pine/12 bg-linen px-4 py-3">
-                    <LogIn className="h-5 w-5 text-moss" aria-hidden />
-                    <div>
-                      <dt className="text-xs text-ink/55">Check-in</dt>
-                      <dd className="font-medium text-pine">
-                        {clockLabel(unit.checkInTime)}
-                      </dd>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 rounded-xl border border-pine/12 bg-linen px-4 py-3">
-                    <LogOut className="h-5 w-5 text-clay" aria-hidden />
-                    <div>
-                      <dt className="text-xs text-ink/55">Check-out</dt>
-                      <dd className="font-medium text-pine">
-                        {clockLabel(unit.checkOutTime)}
-                      </dd>
-                    </div>
-                  </div>
-                </dl>
-                {unit.reservationFeeLabel ? (
-                  <p className="mt-4 flex gap-2 text-sm text-ink/65">
-                    <Clock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-                    {unit.reservationFeeLabel}
-                  </p>
-                ) : null}
-              </section>
             </div>
           </Block>
 

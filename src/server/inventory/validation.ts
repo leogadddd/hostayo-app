@@ -185,6 +185,14 @@ export const unitInputSchema = z
       message: "Use a 24-hour departure time like 11:00.",
     }),
     status: z.enum(UNIT_STATUSES),
+    // Shown under Details on the public unit page. Omitted keeps the stored
+    // text; blank clears it. Also editable on the Guest guide page.
+    description: z
+      .string()
+      .trim()
+      .max(2000, "The description must be 2,000 characters or fewer.")
+      .transform((value) => value || null)
+      .optional(),
     imageUrl: z.string().max(7_000_000, "The image is too large.").optional(),
     // Omitted preserves the unit's setting; [] deliberately hides all channels.
     contactChannelIds: z
