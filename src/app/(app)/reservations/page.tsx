@@ -253,6 +253,7 @@ export default async function ReservationsPage({
       {reservations.length === 0 ? (
         <EmptyState
           className="mt-8"
+          art="reservations"
           title="No reservations found"
           description={
             filtered

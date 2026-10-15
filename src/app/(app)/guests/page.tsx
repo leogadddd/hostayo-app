@@ -257,6 +257,7 @@ export default async function GuestsPage({
       {guests.length === 0 ? (
         <EmptyState
           className="mt-8"
+          art="guests"
           title={filtered ? "No guests match" : "No guests yet"}
           description={
             filtered

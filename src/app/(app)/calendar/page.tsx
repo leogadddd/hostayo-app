@@ -83,27 +83,59 @@ export default async function CalendarPage({
   ]);
 
   if (properties.length === 0) {
+    // Nothing to book yet: show the empty calendar so the page already looks
+    // like the tool, with the one useful action in the header.
+    const timezone = "Asia/Manila";
+    const today = todayInTimeZone(timezone);
+    const month = isValidMonth(params.month ?? "")
+      ? params.month!
+      : today.slice(0, 7);
+    const monthHref = (target: string) => `/calendar?month=${target}`;
+    const canAddProperty = can(membership, "properties.create");
     return (
-      <div className="mx-auto max-w-5xl">
-        <PageHeading title="Calendar" />
-        <EmptyState
-          title="No properties yet"
-          description={
-            can(membership, "properties.create")
-              ? "Add a property and its first unit to start planning your stays."
-              : "Ask an owner or admin to add a property and its first unit."
-          }
-          action={
-            can(membership, "properties.create") ? (
-              <Link
-                href="/properties"
-                className={buttonClassName("clay", "md")}
-              >
-                Add your first property
-              </Link>
-            ) : undefined
-          }
-        />
+      <div className="mx-auto min-w-0 max-w-[1600px] overflow-hidden">
+        <PageHeading title="Calendar">
+          {canAddProperty ? (
+            <Link
+              href="/properties"
+              className={buttonClassName("clay", "md")}
+            >
+              <Plus className="h-4 w-4" aria-hidden />
+              Add property
+            </Link>
+          ) : null}
+        </PageHeading>
+        {!canAddProperty ? (
+          <p className="mb-4 text-sm text-pine/70">
+            Ask an owner or admin to add a property and its first unit.
+          </p>
+        ) : null}
+        <div className="grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_19rem] 2xl:grid-cols-[minmax(0,1fr)_21rem]">
+          <div className="min-w-0">
+            <MonthCalendar
+              month={month}
+              today={today}
+              monthLabel={MONTH_LABEL.format(new Date(`${month}-01T00:00:00Z`))}
+              events={[]}
+              previousHref={monthHref(shiftMonth(month, -1))}
+              nextHref={monthHref(shiftMonth(month, 1))}
+              todayHref={monthHref(today.slice(0, 7))}
+              newReservationHref={null}
+              showUnit={false}
+              viewSwitcher={null}
+            />
+          </div>
+          <TodayPanel
+            today={today}
+            timezone={timezone}
+            multipleTimezones={false}
+            scopeLabel="All units"
+            arrivals={[]}
+            departures={[]}
+            activeHolds={[]}
+            openTasks={[]}
+          />
+        </div>
       </div>
     );
   }
@@ -538,7 +570,8 @@ export default async function CalendarPage({
             />
           ) : (
             <EmptyState
-              title="No units to show"
+              art="calendar"
+          title="No units to show"
               description="Add a unit to your property to see stays and availability here."
               action={
                 can(membership, "properties.create") ? (

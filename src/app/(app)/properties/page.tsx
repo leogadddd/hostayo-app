@@ -84,6 +84,7 @@ export default async function PropertiesPage() {
 
       {properties.length === 0 ? (
         <EmptyState
+          art="house"
           title="No properties yet"
           description="Add your first property, then the units guests can book."
           action={

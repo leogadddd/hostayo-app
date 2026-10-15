@@ -241,6 +241,7 @@ export default async function ExpensesPage({
       <div className="mt-6">
         {expenses.length === 0 ? (
           <EmptyState
+            art="money"
             title={
               hasFilters ? "No expenses match those filters" : "No expenses yet"
             }

@@ -29,6 +29,7 @@ import {
 import { InventoryError } from "@/server/inventory/validation";
 import { listPropertyAmenities } from "@/server/inventory/amenities";
 import { buttonClassName } from "@/components/ui/button";
+import { EmptyArt } from "@/components/ui/empty-art";
 import { SharePublicLink } from "@/components/app/share-public-link";
 import { TableActionsMenu } from "@/components/ui/table-actions-menu";
 import { deleteUnitAction } from "../actions";
@@ -288,6 +289,7 @@ export default async function PropertyDetailPage({
               </ul>
             ) : (
               <div className="border-t border-pine/8 px-5 py-10 text-center sm:px-6">
+                <EmptyArt name="units" className="mb-4 w-48 sm:w-56" />
                 <p className="font-medium text-pine">No units yet</p>
                 <p className="mt-1 text-sm text-ink/55">
                   Add a room, studio or villa that guests can book.

@@ -512,6 +512,7 @@ export default async function DashboardPage() {
 
       {units.length === 0 ? (
         <EmptyState
+          art="dashboard"
           title="Your operations dashboard is ready"
           description={
             can(membership, "properties.create")

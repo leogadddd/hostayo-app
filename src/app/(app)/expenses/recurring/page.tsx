@@ -97,6 +97,7 @@ export default async function RecurringExpensesPage({
 
       {bills.length === 0 ? (
         <EmptyState
+          art="money"
           title="No recurring bills yet"
           description="Add Netflix, condo dues, internet or any bill you pay regularly. You’ll get a reminder to confirm each one when it’s due."
         />

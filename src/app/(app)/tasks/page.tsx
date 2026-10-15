@@ -166,6 +166,7 @@ export default async function TasksPage({
       {tasks.length === 0 ? (
         <EmptyState
           className="mt-8"
+          art="tasks"
           title={filtered ? "No tasks match" : "No turnover tasks yet"}
           description={
             filtered

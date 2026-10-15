@@ -149,6 +149,7 @@ export default async function AvailabilityPage({
         </AvailabilityCheckForm>
       ) : (
         <EmptyState
+          art="calendar"
           title="No units to check"
           description={
             can(membership, "properties.create")

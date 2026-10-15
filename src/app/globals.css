@@ -365,3 +365,15 @@
   background: #ffffff !important;
   color: #203a35 !important;
 }
+
+/* Empty-state illustration: the builder taps the wall. */
+@keyframes empty-art-hammer {
+  0%, 100% { transform: rotate(-14deg); }
+  50% { transform: rotate(8deg); }
+}
+.empty-art-hammer {
+  animation: empty-art-hammer 1.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .empty-art-hammer { animation: none; }
+}
