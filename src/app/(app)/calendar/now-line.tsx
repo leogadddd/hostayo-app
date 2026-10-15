@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 /** The current date and minutes since midnight in a time zone. */
-function nowIn(timeZone: string) {
+export function nowIn(timeZone: string) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone,
     year: "numeric",
@@ -21,11 +21,29 @@ function nowIn(timeZone: string) {
   };
 }
 
-const TIME_LABEL = (minutes: number) => {
+export const TIME_LABEL = (minutes: number) => {
   const hour = Math.floor(minutes / 60);
   const minute = String(minutes % 60).padStart(2, "0");
   return `${hour % 12 || 12}:${minute} ${hour < 12 ? "AM" : "PM"}`;
 };
+
+/**
+ * The current date and minutes since midnight in a time zone, refreshed every
+ * 30 seconds. It's null until mounted so the server and first client render
+ * agree.
+ */
+export function useNow(timeZone: string) {
+  const [now, setNow] = useState<{ date: string; minutes: number } | null>(
+    null,
+  );
+  useEffect(() => {
+    const tick = () => setNow(nowIn(timeZone));
+    tick();
+    const timer = setInterval(tick, 30_000);
+    return () => clearInterval(timer);
+  }, [timeZone]);
+  return now;
+}
 
 /**
  * A vertical line at the current time, across whatever it's placed in (a
@@ -47,19 +65,9 @@ export function NowLine({
   /** Scroll the horizontal scroller so the line is in view, once. */
   scrollIntoView?: boolean;
 }) {
-  const [now, setNow] = useState<{ date: string; minutes: number } | null>(
-    null,
-  );
+  const now = useNow(timeZone);
   const ref = useRef<HTMLDivElement>(null);
   const scrolled = useRef(false);
-
-  useEffect(() => {
-    // Set after mount, so the server and first client render agree.
-    const tick = () => setNow(nowIn(timeZone));
-    tick();
-    const timer = setInterval(tick, 30_000);
-    return () => clearInterval(timer);
-  }, [timeZone]);
 
   useEffect(() => {
     if (!now || !scrollIntoView || scrolled.current || !ref.current) return;
