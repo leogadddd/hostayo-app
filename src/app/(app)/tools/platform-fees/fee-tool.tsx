@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PlatformLogo } from "@/components/app/platform-badge";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Input } from "@/components/ui/input";
 import { Card, CardBody } from "@/components/ui/card";
@@ -96,8 +97,9 @@ export function FeeTool() {
                   <div key={platform.name}>
                     <label
                       htmlFor={`fee-${index}`}
-                      className="mb-1.5 block text-sm font-medium text-ink"
+                      className="mb-1.5 flex items-center gap-2 text-sm font-medium text-ink"
                     >
+                      <PlatformLogo platform={platform} className="h-5 w-5" />
                       {platform.name}
                     </label>
                     <div className="relative">
@@ -140,11 +142,15 @@ export function FeeTool() {
                 </p>
               </div>
               <ul className="divide-y divide-pine/10 border-y border-pine/10">
-                {rows.map((row) => (
+                {rows.map((row, index) => (
                   <li key={row.name} className="py-2.5">
-                    <div className="flex items-baseline justify-between gap-3">
-                      <span className="text-sm font-medium text-ink">
-                        {row.name}
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="flex min-w-0 items-center gap-2 text-sm font-medium text-ink">
+                        <PlatformLogo
+                          platform={DEFAULT_PLATFORMS[index]!}
+                          className="h-6 w-6"
+                        />
+                        <span className="truncate">{row.name}</span>
                       </span>
                       <span className="font-semibold tabular-nums text-pine">
                         {pesos(row.youKeep)}

@@ -35,7 +35,7 @@ export const MIN_HOUR_HEIGHT = 24;
 export const MAX_HOUR_HEIGHT = 160;
 
 const GUTTER = 64;
-const COLUMN_MIN = 168;
+const COLUMN_WIDTH = 260;
 const HEADER_HEIGHT = 56;
 const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
 
@@ -330,7 +330,7 @@ export function DayTimeline({
   const atMin = hourHeight <= MIN_HOUR_HEIGHT + 0.01;
   const atMax = hourHeight >= MAX_HOUR_HEIGHT - 0.01;
   const grid: CSSProperties = {
-    gridTemplateColumns: `repeat(${Math.max(rows.length, 1)}, minmax(${COLUMN_MIN}px, 1fr))`,
+    gridTemplateColumns: `repeat(${Math.max(rows.length, 1)}, ${COLUMN_WIDTH}px)`,
   };
   const rules: CSSProperties = {
     backgroundImage:
@@ -440,7 +440,7 @@ export function DayTimeline({
           }}
           className="relative max-h-[calc(100dvh-22rem)] min-h-[24rem] touch-pan-x touch-pan-y select-none overflow-auto overscroll-contain focus-visible:-outline-offset-2"
         >
-          <div style={{ minWidth: GUTTER + rows.length * COLUMN_MIN }}>
+          <div style={{ minWidth: GUTTER + rows.length * COLUMN_WIDTH }}>
             <div
               className="sticky top-0 z-30 flex border-b border-pine/15 bg-linen"
               style={{ height: HEADER_HEIGHT }}
@@ -449,7 +449,7 @@ export function DayTimeline({
                 className="sticky left-0 z-10 shrink-0 border-r border-pine/15 bg-linen"
                 style={{ width: GUTTER }}
               />
-              <div className="grid flex-1" style={grid}>
+              <div className="grid shrink-0" style={grid}>
                 {rows.map((row) => {
                   const unit = unitById.get(row.unitId)!;
                   return (
@@ -498,7 +498,7 @@ export function DayTimeline({
                 ) : null}
               </div>
               <div
-                className="relative grid flex-1"
+                className="relative grid shrink-0"
                 style={{ ...grid, ...rules }}
               >
                 {/* Quiet hours: before 7 AM and from 9 PM. */}

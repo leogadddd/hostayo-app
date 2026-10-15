@@ -93,14 +93,42 @@ export interface PlatformScenario {
   name: string;
   /** What the host pays, as a percent of what the guest pays. */
   feePercent: number;
+  /** Served from `public/platforms`. */
+  logoUrl: string;
+  color: string;
 }
 
 export const DEFAULT_PLATFORMS: PlatformScenario[] = [
-  { name: "Airbnb", feePercent: 3 },
-  { name: "Booking.com", feePercent: 15 },
-  { name: "Agoda", feePercent: 18 },
-  { name: "Direct (card or e-wallet)", feePercent: 2.5 },
-  { name: "Direct (bank transfer)", feePercent: 0 },
+  {
+    name: "Airbnb",
+    feePercent: 3,
+    logoUrl: "/platforms/airbnb.svg",
+    color: "#FF5A5F",
+  },
+  {
+    name: "Booking.com",
+    feePercent: 15,
+    logoUrl: "/platforms/booking-com.svg",
+    color: "#003580",
+  },
+  {
+    name: "Agoda",
+    feePercent: 18,
+    logoUrl: "/platforms/agoda.svg",
+    color: "#5C2D91",
+  },
+  {
+    name: "Direct (card or e-wallet)",
+    feePercent: 2.5,
+    logoUrl: "/platforms/direct.svg",
+    color: "#2F5D50",
+  },
+  {
+    name: "Direct (bank transfer)",
+    feePercent: 0,
+    logoUrl: "/platforms/direct.svg",
+    color: "#2F5D50",
+  },
 ];
 
 export interface FeeComparisonRow {
@@ -119,7 +147,7 @@ export function comparePlatforms(input: {
   nightlyRate: number;
   nights: number;
   cleaningFee: number;
-  platforms: PlatformScenario[];
+  platforms: Pick<PlatformScenario, "name" | "feePercent">[];
 }): FeeComparisonRow[] {
   const guestPays = input.nightlyRate * input.nights + input.cleaningFee;
   const rows = input.platforms.map((platform) => {
