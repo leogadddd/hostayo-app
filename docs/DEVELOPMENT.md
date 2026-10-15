@@ -21,7 +21,7 @@ Contributor and architecture notes live in [`CLAUDE.md`](./CLAUDE.md).
 cp .env.example .env            # then set BETTER_AUTH_SECRET (openssl rand -base64 32)
 npm install
 npm run db:setup                # docker compose up + migrations + demo workspace
-npm run dev                     # http://localhost:3000
+npm run dev                     # http://localhost:4001
 ```
 
 Already have a local database? After pulling schema changes, apply the latest

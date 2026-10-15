@@ -6,7 +6,7 @@ import { migrate } from "drizzle-orm/postgres-js/migrator";
 export default async function globalSetup() {
   const url =
     process.env.TEST_DATABASE_URL ??
-    "postgres://hostayo:hostayo@localhost:5432/hostayo_test";
+    "postgres://hostayo:hostayo@localhost:4002/hostayo_test";
   if (new URL(url).pathname !== "/hostayo_test") {
     throw new Error(
       "Integration tests require a dedicated hostayo_test database.",

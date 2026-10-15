@@ -3,7 +3,7 @@ import path from "node:path";
 
 const testDatabaseUrl =
   process.env.TEST_DATABASE_URL ??
-  "postgres://hostayo:hostayo@localhost:5432/hostayo_test";
+  "postgres://hostayo:hostayo@localhost:4002/hostayo_test";
 if (new URL(testDatabaseUrl).pathname !== "/hostayo_test") {
   throw new Error(
     "Integration tests require a dedicated hostayo_test database.",

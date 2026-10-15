@@ -199,11 +199,11 @@ async function signUp(
   headers: Record<string, string> = {},
 ): Promise<{ status: number; body: { code?: string; message?: string } }> {
   const response = await auth.handler(
-    new Request("https://localhost:3000/api/auth/sign-up/email", {
+    new Request("https://localhost:4001/api/auth/sign-up/email", {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        origin: "https://localhost:3000",
+        origin: "https://localhost:4001",
         ...headers,
       },
       body: JSON.stringify({

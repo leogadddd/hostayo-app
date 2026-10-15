@@ -94,7 +94,7 @@ async function main() {
     maxUses: uses,
     validDays: days,
   });
-  const base = (process.env.BETTER_AUTH_URL ?? "http://localhost:3000").replace(
+  const base = (process.env.BETTER_AUTH_URL ?? "http://localhost:4001").replace(
     /\/$/,
     "",
   );

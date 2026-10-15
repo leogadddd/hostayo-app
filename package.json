@@ -4,9 +4,9 @@
   "private": true,
   "description": "Hostayo — a calmer way to run your stays. Direct-booking operations for small Philippine short-stay operators.",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 4001",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 4001",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

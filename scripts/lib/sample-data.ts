@@ -17,7 +17,7 @@ import {
 export function assertSafeDatabase() {
   const url = new URL(process.env.DATABASE_URL ?? "");
   const local = ["localhost", "127.0.0.1", "::1"].includes(url.hostname);
-  console.log(`Database: ${url.hostname}:${url.port || 5432}${url.pathname}`);
+  console.log(`Database: ${url.hostname}:${url.port || 4002}${url.pathname}`);
   if (!local && !process.argv.includes("--allow-remote")) {
     throw new Error(
       "Refusing to write to a non-local database. Pass --allow-remote if you really mean it.",

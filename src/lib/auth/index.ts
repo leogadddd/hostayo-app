@@ -23,7 +23,7 @@ import {
 import { admitSignUp } from "@/server/registration/service";
 
 const configuredBaseUrl =
-  process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
+  process.env.BETTER_AUTH_URL ?? "http://localhost:4001";
 const configuredHost = new URL(configuredBaseUrl).host;
 
 export const auth = betterAuth({
@@ -38,7 +38,7 @@ export const auth = betterAuth({
   baseURL: {
     fallback: configuredBaseUrl,
     allowedHosts: [
-      "localhost:3000",
+      "localhost:4001",
       configuredHost,
       // Same deployment on two hosts: the official app and the public demo.
       "app.hostayo.casa",
