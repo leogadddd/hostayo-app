@@ -1,4 +1,12 @@
-import { index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  foreignKey,
+  index,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
+import { registrationInvites } from "./registration";
 
 /**
  * A request from the marketing site's early-access form, kept here so it
@@ -16,9 +24,22 @@ export const earlyAccessRequests = pgTable(
     units: text("units").notNull(),
     source: text("source").notNull(),
     readAt: timestamp("read_at", { withTimezone: true }),
+    // Set when an operator accepts the request: a sign-up link was made.
+    acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+    // The link made on accept. Replaced when the invite is sent again.
+    inviteId: uuid("invite_id"),
+    // Null while accepted means the welcome email did not go out.
+    welcomeSentAt: timestamp("welcome_sent_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
   },
-  (table) => [index("early_access_requests_created_idx").on(table.createdAt)],
+  (table) => [
+    index("early_access_requests_created_idx").on(table.createdAt),
+    foreignKey({
+      name: "early_access_requests_invite_fk",
+      columns: [table.inviteId],
+      foreignColumns: [registrationInvites.id],
+    }).onDelete("set null"),
+  ],
 );

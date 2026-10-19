@@ -10,8 +10,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { listEarlyAccessRequests } from "@/server/early-access/service";
+import { EntryDialog } from "./entry-dialog";
 import { MarkAllReadButton, RequestActions } from "./request-actions";
 
 export const metadata: Metadata = { title: "Early access requests" };
@@ -56,7 +58,10 @@ export default async function EarlyAccessRequestsPage() {
         title="Early access requests"
         description={`From the form on hostayo.casa. New requests are in bold. Times shown in Asia/Manila.`}
       >
-        {unread > 0 ? <MarkAllReadButton /> : null}
+        <div className="flex items-center gap-2">
+          {unread > 0 ? <MarkAllReadButton /> : null}
+          <EntryDialog />
+        </div>
       </PageHeading>
 
       <p className="mb-3 text-sm text-ink/65" aria-live="polite">
@@ -77,6 +82,7 @@ export default async function EarlyAccessRequestsPage() {
               <TableHead>Facebook / Instagram</TableHead>
               <TableHead>Hosts</TableHead>
               <TableHead>Bookings from</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead className="text-right">
                 <span className="sr-only">Actions</span>
               </TableHead>
@@ -85,7 +91,7 @@ export default async function EarlyAccessRequestsPage() {
           <TableBody>
             {requests.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="py-12 text-center">
+                <TableCell colSpan={8} className="py-12 text-center">
                   <p className="font-medium text-pine">No requests yet</p>
                   <p className="mt-1 text-ink/55">
                     Requests from the early-access form will appear here.
@@ -135,18 +141,38 @@ export default async function EarlyAccessRequestsPage() {
                           {request.social}
                         </a>
                       ) : (
-                        request.social
+                        request.social || "—"
                       )}
                     </TableCell>
-                    <TableCell>{UNITS[request.units] ?? request.units}</TableCell>
                     <TableCell>
-                      {SOURCES[request.source] ?? request.source}
+                      {UNITS[request.units] ?? (request.units || "—")}
+                    </TableCell>
+                    <TableCell>
+                      {SOURCES[request.source] ?? (request.source || "—")}
+                    </TableCell>
+                    <TableCell>
+                      {request.acceptedAt ? (
+                        request.welcomeSentAt ? (
+                          <Badge tone="sage">Accepted</Badge>
+                        ) : (
+                          <Badge tone="clay">Email not sent</Badge>
+                        )
+                      ) : (
+                        <Badge tone="neutral">Pending</Badge>
+                      )}
                     </TableCell>
                     <TableCell>
                       <RequestActions
-                        id={request.id}
-                        name={request.name}
+                        entry={{
+                          id: request.id,
+                          name: request.name,
+                          email: request.email,
+                          social: request.social,
+                          units: request.units,
+                          source: request.source,
+                        }}
                         read={read}
+                        accepted={Boolean(request.acceptedAt)}
                       />
                     </TableCell>
                   </TableRow>

@@ -108,7 +108,8 @@ The marketing site (`hostayo-page`) POSTs every early-access request to
 value on both sides) before it emails the team, so a request survives a failed
 email. Rows live in `early_access_requests`; `readAt` null means new. L1
 operators read them at `/early-access` (sidebar: Early access), where they can
-mark requests read or unread and delete them. Everyone else gets a 404, and
+mark requests read or unread, delete them, add an entry by hand (name and
+email only; the other columns are stored as "") and edit any field. Everyone else gets a 404, and
 each server action re-checks L1.
 
 ## UI copy: helper text goes in an info tooltip

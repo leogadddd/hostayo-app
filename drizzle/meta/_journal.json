@@ -288,6 +288,13 @@
       "when": 1792071037495,
       "tag": "20261015133037_add_property_description",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1792368935349,
+      "tag": "20261019001535_add_early_access_acceptance",
+      "breakpoints": true
     }
   ]
 }
