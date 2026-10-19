@@ -23,6 +23,8 @@
     "seed:platforms": "tsx --tsconfig tsconfig.scripts.json scripts/seed-platforms.ts",
     "l1": "tsx --tsconfig tsconfig.scripts.json scripts/l1.ts",
     "invite": "tsx --tsconfig tsconfig.scripts.json scripts/invite.ts",
+    "accounts": "tsx --tsconfig tsconfig.scripts.json scripts/accounts.ts",
+    "early-access": "tsx --tsconfig tsconfig.scripts.json scripts/early-access.ts",
     "db:reset": "tsx --tsconfig tsconfig.scripts.json scripts/reset-db.ts",
     "db:setup": "npm run db:up && npm run db:migrate && npm run seed:demo"
   },

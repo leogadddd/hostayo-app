@@ -7,6 +7,8 @@ import {
   createEarlyAccessEntry,
   deleteEarlyAccessRequest,
   parseEarlyAccessEntry,
+  restoreEarlyAccessEntry,
+  revokeEarlyAccessEntry,
   updateEarlyAccessEntry,
   markAllEarlyAccessRead,
   setEarlyAccessRead,
@@ -82,4 +84,28 @@ export async function acceptEntry(id: string) {
   const accepted = await acceptEarlyAccessEntry(id);
   revalidatePath("/early-access");
   return accepted.error ? { error: accepted.error } : { success: true };
+}
+
+/**
+ * Takes early access back. Blocks the account if the person already signed
+ * up; otherwise just kills the unused link.
+ */
+export async function revokeEntry(id: string) {
+  const user = await requireUser();
+  if (!(await isL1(user.id)) || !UUID.test(id))
+    return { error: "Not allowed." };
+  const revoked = await revokeEarlyAccessEntry(id, { actorUserId: user.id });
+  revalidatePath("/early-access");
+  revalidatePath("/accounts");
+  return revoked.error ? { error: revoked.error } : { success: true };
+}
+
+/** Lets a person whose early access was revoked sign in again. */
+export async function restoreEntry(id: string) {
+  if (!(await requireOperator()) || !UUID.test(id))
+    return { error: "Not allowed." };
+  const restored = await restoreEarlyAccessEntry(id);
+  revalidatePath("/early-access");
+  revalidatePath("/accounts");
+  return restored.error ? { error: restored.error } : { success: true };
 }

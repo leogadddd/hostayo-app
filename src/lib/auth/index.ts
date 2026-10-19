@@ -5,7 +5,7 @@ import {
   createAuthMiddleware,
   getSessionFromCtx,
 } from "better-auth/api";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { twoFactor } from "better-auth/plugins";
 import { db } from "@/lib/db";
@@ -20,6 +20,7 @@ import {
   REGISTRATION_TOKEN_HEADER,
   TEAM_INVITATION_HEADER,
 } from "@/lib/auth/registration-access";
+import { linkEarlyAccessAccount } from "@/server/early-access/service";
 import { admitSignUp } from "@/server/registration/service";
 
 const configuredBaseUrl =
@@ -74,6 +75,54 @@ export const auth = betterAuth({
       });
       if (!admission.ok)
         return { error: admission.code, errorDescription: admission.message };
+    },
+  },
+  databaseHooks: {
+    user: {
+      create: {
+        // Remember which early-access entry this account came from, so
+        // revoking that entry can block the account.
+        after: async (created, ctx) => {
+          try {
+            await linkEarlyAccessAccount({
+              userId: created.id,
+              email: created.email,
+              registrationToken: ctx?.request?.headers.get(
+                REGISTRATION_TOKEN_HEADER,
+              ),
+            });
+          } catch (error) {
+            console.error(
+              "[auth] could not link the early-access entry",
+              error,
+            );
+          }
+        },
+      },
+    },
+    session: {
+      create: {
+        // The one place every sign-in passes through (password, two-factor),
+        // so a blocked account can't get a session however it signs in.
+        before: async (created) => {
+          const [account] = await db
+            .select({ blockedAt: user.blockedAt })
+            .from(user)
+            .where(eq(user.id, created.userId))
+            .limit(1);
+          if (account?.blockedAt)
+            throw new APIError("FORBIDDEN", {
+              message:
+                "This account has been blocked. Contact Hostayo support if you think this is a mistake.",
+            });
+        },
+        after: async (created) => {
+          await db
+            .update(user)
+            .set({ lastLoginAt: sql`now()` })
+            .where(eq(user.id, created.userId));
+        },
+      },
     },
   },
   hooks: {

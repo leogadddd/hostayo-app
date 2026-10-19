@@ -23,6 +23,12 @@ export const user = pgTable("user", {
   isDemoAccount: boolean("is_demo_account").notNull().default(false),
   // Managed by Better Auth's two-factor plugin.
   twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
+  // Set by an L1 operator to lock the account: sign-in is refused and its
+  // sessions are deleted. Nothing else about the account changes.
+  blockedAt: timestamp("blocked_at", { withTimezone: true }),
+  blockedReason: text("blocked_reason"),
+  // Stamped each time a session is created, i.e. on every sign-in.
+  lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
 });

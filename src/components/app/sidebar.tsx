@@ -183,7 +183,11 @@ const NAV: readonly NavEntry[] = [
     id: "l1",
     label: "L1 operator",
     l1Only: true,
-    items: [{ href: "/early-access", label: "Early access", icon: Inbox }],
+    items: [
+      { href: "/early-access", label: "Early access", icon: Inbox },
+      { href: "/accounts", label: "Accounts", icon: Users },
+      { href: "/workspaces", label: "Workspaces", icon: Building2 },
+    ],
   },
 ];
 
@@ -538,6 +542,8 @@ const SEGMENT_LABELS: Record<string, string> = {
   reports: "Reports",
   "audit-logs": "Audit logs",
   "early-access": "Early access",
+  accounts: "Accounts",
+  workspaces: "Workspaces",
   settings: "Settings",
   properties: "Properties",
   units: "Units",

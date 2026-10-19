@@ -1,14 +1,29 @@
 import "server-only";
 
-import { count, desc, eq, isNull } from "drizzle-orm";
+import {
+  and,
+  count,
+  desc,
+  eq,
+  getTableColumns,
+  isNull,
+  sql,
+} from "drizzle-orm";
 import { db } from "@/lib/db";
 import { escapeHtml, sendMail } from "@/lib/mailer";
 import {
   REGISTRATION_INVITE_VALID_DAYS,
+  digestRegistrationToken,
   createRegistrationInvite,
   revokeRegistrationInvite,
 } from "@/server/registration/service";
-import { earlyAccessRequests } from "@/lib/db/schema";
+import {
+  earlyAccessRequests,
+  registrationInviteRedemptions,
+  registrationInvites,
+  user,
+} from "@/lib/db/schema";
+import { blockAccount, unblockAccount } from "@/server/accounts/service";
 
 const NAME_MAX = 80;
 const EMAIL_MAX = 120;
@@ -211,8 +226,19 @@ export async function createEarlyAccessRequest(
 
 export async function listEarlyAccessRequests() {
   return db
-    .select()
+    .select({
+      ...getTableColumns(earlyAccessRequests),
+      // Set when the account made from this entry has been blocked.
+      accountBlockedAt: user.blockedAt,
+      // When someone signed up with this entry's link; null until they do.
+      registeredAt: sql<Date | null>`(
+        select min(${registrationInviteRedemptions.redeemedAt})
+        from ${registrationInviteRedemptions}
+        where ${registrationInviteRedemptions.inviteId} = ${earlyAccessRequests.inviteId}
+      )`.mapWith((value) => (value ? new Date(value) : null)),
+    })
     .from(earlyAccessRequests)
+    .leftJoin(user, eq(earlyAccessRequests.userId, user.id))
     .orderBy(desc(earlyAccessRequests.createdAt))
     .limit(500);
 }
@@ -244,4 +270,128 @@ export async function markAllEarlyAccessRead(): Promise<void> {
 
 export async function deleteEarlyAccessRequest(id: string): Promise<void> {
   await db.delete(earlyAccessRequests).where(eq(earlyAccessRequests.id, id));
+}
+
+/**
+ * Remembers which entry an account came from, so revoking the entry can block
+ * the account. Matches by the sign-up link used; failing that, by the email
+ * of an accepted entry that has no account yet.
+ */
+export async function linkEarlyAccessAccount(input: {
+  userId: string;
+  email: string;
+  registrationToken?: string | null;
+}): Promise<void> {
+  const token = input.registrationToken?.trim();
+  if (token && token.length <= 200) {
+    const [invite] = await db
+      .select({ id: registrationInvites.id })
+      .from(registrationInvites)
+      .where(eq(registrationInvites.tokenHash, digestRegistrationToken(token)))
+      .limit(1);
+    if (invite) {
+      const linked = await db
+        .update(earlyAccessRequests)
+        .set({ userId: input.userId })
+        .where(
+          and(
+            eq(earlyAccessRequests.inviteId, invite.id),
+            isNull(earlyAccessRequests.userId),
+          ),
+        )
+        .returning({ id: earlyAccessRequests.id });
+      if (linked.length) return;
+    }
+  }
+  await db
+    .update(earlyAccessRequests)
+    .set({ userId: input.userId })
+    .where(
+      and(
+        sql`lower(${earlyAccessRequests.email}) = ${input.email.trim().toLowerCase()}`,
+        sql`${earlyAccessRequests.acceptedAt} is not null`,
+        isNull(earlyAccessRequests.userId),
+      ),
+    );
+}
+
+/** The account made with an entry's link: the linked one, else the one whose email redeemed it. */
+async function accountOfEntry(entry: {
+  userId: string | null;
+  inviteId: string | null;
+}): Promise<string | null> {
+  if (entry.userId) return entry.userId;
+  if (!entry.inviteId) return null;
+  const [found] = await db
+    .select({ id: user.id })
+    .from(registrationInviteRedemptions)
+    .innerJoin(
+      user,
+      sql`lower(${user.email}) = ${registrationInviteRedemptions.email}`,
+    )
+    .where(eq(registrationInviteRedemptions.inviteId, entry.inviteId))
+    .limit(1);
+  return found?.id ?? null;
+}
+
+/**
+ * Takes early access back. If the person already created an account with
+ * the link, that account is blocked and signed out everywhere (the entry
+ * stays accepted so the history is kept; `restoreEarlyAccessEntry` undoes
+ * it). Otherwise the link stops working and the entry goes back to pending.
+ */
+export async function revokeEarlyAccessEntry(
+  id: string,
+  options: { actorUserId?: string } = {},
+): Promise<{ error?: string }> {
+  const [entry] = await db
+    .select({
+      inviteId: earlyAccessRequests.inviteId,
+      userId: earlyAccessRequests.userId,
+    })
+    .from(earlyAccessRequests)
+    .where(eq(earlyAccessRequests.id, id))
+    .limit(1);
+  if (!entry) return { error: "That entry no longer exists." };
+
+  const accountId = await accountOfEntry(entry);
+  if (entry.inviteId) await revokeRegistrationInvite(entry.inviteId);
+  if (accountId) {
+    try {
+      await blockAccount(accountId, {
+        reason: "Early access revoked",
+        actorUserId: options.actorUserId,
+      });
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Not blocked." };
+    }
+    await db
+      .update(earlyAccessRequests)
+      .set({ userId: accountId })
+      .where(eq(earlyAccessRequests.id, id));
+    return {};
+  }
+  await db
+    .update(earlyAccessRequests)
+    .set({ acceptedAt: null, inviteId: null, welcomeSentAt: null })
+    .where(eq(earlyAccessRequests.id, id));
+  return {};
+}
+
+/** Undoes a revoke that blocked an account: the person can sign in again. */
+export async function restoreEarlyAccessEntry(
+  id: string,
+): Promise<{ error?: string }> {
+  const [entry] = await db
+    .select({
+      inviteId: earlyAccessRequests.inviteId,
+      userId: earlyAccessRequests.userId,
+    })
+    .from(earlyAccessRequests)
+    .where(eq(earlyAccessRequests.id, id))
+    .limit(1);
+  const accountId = entry ? await accountOfEntry(entry) : null;
+  if (!accountId) return { error: "There is no account to restore." };
+  await unblockAccount(accountId);
+  return {};
 }

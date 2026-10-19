@@ -84,8 +84,9 @@ manage rules at Pricing (`pricing.*` permissions). The guest-facing unit page
 
 `system_admins` lists L1 operators, who get owner access to every
 organization without a membership (`listAccessibleOrganizations`). Manage
-them with `npm run l1 -- list | grant <email> | revoke <email>`; there is no
-UI for it by design.
+them on the Accounts page (Grant L1 / Revoke L1: confirmation plus the
+acting operator's own password; you can't revoke yourself or the last
+operator) or with `npm run l1 -- list | grant <email> | revoke <email>`.
 
 ## Sign-up access
 
@@ -107,10 +108,45 @@ The marketing site (`hostayo-page`) POSTs every early-access request to
 `/api/early-access` (`Authorization: Bearer $EARLY_ACCESS_API_SECRET`, same
 value on both sides) before it emails the team, so a request survives a failed
 email. Rows live in `early_access_requests`; `readAt` null means new. L1
-operators read them at `/early-access` (sidebar: Early access), where they can
-mark requests read or unread, delete them, add an entry by hand (name and
-email only; the other columns are stored as "") and edit any field. Everyone else gets a 404, and
-each server action re-checks L1.
+operators work them at `/early-access` (sidebar: Early access); everyone else
+gets a 404 and each server action re-checks L1.
+
+- **Accept** (or **Add entry**, which accepts straight away) makes a one-use
+  sign-up link (`registration_invites`) and emails a welcome with it
+  (`acceptEarlyAccessEntry`; mail goes through `src/lib/mailer.ts`, Resend or
+  Gmail, sender from `MAIL_FROM` or `EARLY_ACCESS_FROM`). If the email fails
+  the entry stays accepted with `welcomeSentAt` null ("Email not sent"); the
+  paper-plane button sends a fresh link.
+- The account created with the link is stored on the entry (`user_id`, set by
+  the `databaseHooks.user.create.after` hook in `src/lib/auth/index.ts`, by link,
+  falling back to the entry's email).
+- **Revoke** blocks that account (signed out everywhere, can't sign in) and
+  kills the link; with no account yet it only kills the link and returns the
+  entry to pending. **Restore** unblocks the account.
+  CLI: `npm run early-access -- list | revoke <email> | restore <email>`.
+
+## Accounts and workspaces (L1)
+
+L1 operators manage every account at `/accounts` and every workspace at
+`/workspaces` (sidebar: L1 operator). Both pages 404 for everyone else and
+their server actions go through `l1Action` (`src/server/l1-action.ts`), which
+re-checks L1.
+
+- Accounts (`src/server/accounts/service.ts`): create (temporary password shown
+  once, no email), edit name/email, reset password (new temporary password,
+  signs the account out everywhere), block/unblock, delete, and last login.
+  `user.blocked_at` is enforced in `databaseHooks.session.create.before`, the one
+  place every sign-in passes through, and blocking deletes existing sessions.
+  `user.last_login_at` is stamped in `session.create.after`. L1 operators, the
+  demo account and yourself can't be blocked or deleted; the only owner of a
+  workspace can't be deleted. CLI:
+  `npm run accounts -- list | block <email> [reason] | unblock <email> | reset-password <email> | delete <email>`.
+- Workspaces (`src/server/workspaces/service.ts`): create (for an existing
+  account), edit name/slug, block/unblock, delete (type the name; cascades
+  everything, uploaded files stay in storage). A blocked workspace
+  (`organizations.blocked_at`) can't be opened by its members
+  (`requireMembership` sends them to `/workspace-blocked`); L1 still can. Its
+  public pages (`/h/...`, guest links) keep working.
 
 ## UI copy: helper text goes in an info tooltip
 

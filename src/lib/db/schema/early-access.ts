@@ -6,6 +6,7 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
+import { user } from "./auth";
 import { registrationInvites } from "./registration";
 
 /**
@@ -30,6 +31,8 @@ export const earlyAccessRequests = pgTable(
     inviteId: uuid("invite_id"),
     // Null while accepted means the welcome email did not go out.
     welcomeSentAt: timestamp("welcome_sent_at", { withTimezone: true }),
+    // The account created with this entry's link. Revoking early access blocks it.
+    userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

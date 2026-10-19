@@ -64,6 +64,7 @@ const membership = {
   organizationName: "Test stays",
   organizationSlug: "test-stays",
   role: "owner" as const,
+  blockedAt: null,
 };
 const property = {
   id: "property-1",

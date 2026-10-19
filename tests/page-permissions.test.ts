@@ -261,6 +261,7 @@ describe("independent owner page boundaries", () => {
         legalName: null,
         taxId: null,
         paymentInstructions: null,
+        blockedAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
       });

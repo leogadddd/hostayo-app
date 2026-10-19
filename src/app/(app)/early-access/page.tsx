@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { listEarlyAccessRequests } from "@/server/early-access/service";
-import { EntryDialog } from "./entry-dialog";
+import { NewEntryDialog } from "./entry-dialog";
 import { MarkAllReadButton, RequestActions } from "./request-actions";
 
 export const metadata: Metadata = { title: "Early access requests" };
@@ -60,7 +60,7 @@ export default async function EarlyAccessRequestsPage() {
       >
         <div className="flex items-center gap-2">
           {unread > 0 ? <MarkAllReadButton /> : null}
-          <EntryDialog />
+          <NewEntryDialog />
         </div>
       </PageHeading>
 
@@ -83,9 +83,7 @@ export default async function EarlyAccessRequestsPage() {
               <TableHead>Hosts</TableHead>
               <TableHead>Bookings from</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">
-                <span className="sr-only">Actions</span>
-              </TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -151,7 +149,11 @@ export default async function EarlyAccessRequestsPage() {
                       {SOURCES[request.source] ?? (request.source || "—")}
                     </TableCell>
                     <TableCell>
-                      {request.acceptedAt ? (
+                      {request.accountBlockedAt ? (
+                        <Badge tone="clay">Blocked</Badge>
+                      ) : request.registeredAt ? (
+                        <Badge tone="sage">Registered</Badge>
+                      ) : request.acceptedAt ? (
                         request.welcomeSentAt ? (
                           <Badge tone="sage">Accepted</Badge>
                         ) : (
@@ -161,7 +163,7 @@ export default async function EarlyAccessRequestsPage() {
                         <Badge tone="neutral">Pending</Badge>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="text-right">
                       <RequestActions
                         entry={{
                           id: request.id,
@@ -173,6 +175,8 @@ export default async function EarlyAccessRequestsPage() {
                         }}
                         read={read}
                         accepted={Boolean(request.acceptedAt)}
+                        registered={Boolean(request.registeredAt)}
+                        blocked={Boolean(request.accountBlockedAt)}
                       />
                     </TableCell>
                   </TableRow>

@@ -159,6 +159,7 @@ describe("branded app shell", () => {
         organizationName: identity.organizationName,
         organizationSlug: "example",
         role: "owner",
+        blockedAt: null,
       },
     ]);
     vi.mocked(isL1).mockResolvedValue(false);

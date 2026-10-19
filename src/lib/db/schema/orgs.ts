@@ -121,6 +121,8 @@ export const organizations = pgTable("organizations", {
   // Shown to guests on the private booking-status page (e.g. GCash number
   // and transfer instructions). Never displayed publicly.
   paymentInstructions: text("payment_instructions"),
+  // Set by an L1 operator: members can no longer open the workspace.
+  blockedAt: timestamp("blocked_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

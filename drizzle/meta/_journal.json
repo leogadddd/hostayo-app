@@ -295,6 +295,13 @@
       "when": 1792368935349,
       "tag": "20261019001535_add_early_access_acceptance",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1792371464836,
+      "tag": "20261019005744_add_account_blocking_and_last_login",
+      "breakpoints": true
     }
   ]
 }

@@ -94,7 +94,10 @@ export const requireMembership = cache(async (): Promise<MembershipContext> => {
   const preferredOrganizationId = cookieStore.get(
     ACTIVE_ORGANIZATION_COOKIE,
   )?.value;
-  const own = rows.find(
+  // A blocked workspace can't be opened by its members; L1 can still reach it.
+  const open = l1 ? rows : rows.filter((row) => !row.blockedAt);
+  if (!open.length && rows.length) redirect("/workspace-blocked");
+  const own = open.find(
     (row) => row.organizationId === preferredOrganizationId,
   );
   const membership = own
@@ -102,7 +105,7 @@ export const requireMembership = cache(async (): Promise<MembershipContext> => {
     : l1
       ? ((await getL1Organization(preferredOrganizationId)) ??
         (rows[0] ? { ...rows[0], viaL1: false } : await getL1Organization()))
-      : rows[0] && { ...rows[0], viaL1: false };
+      : open[0] && { ...open[0], viaL1: false };
   if (!membership) {
     redirect("/onboarding");
   }
@@ -202,6 +205,7 @@ export const listMemberships = cache(async (userId: string) => {
       organizationName: organizations.name,
       organizationSlug: organizations.slug,
       role: roles.key,
+      blockedAt: organizations.blockedAt,
     })
     .from(memberships)
     .innerJoin(organizations, eq(memberships.organizationId, organizations.id))
@@ -248,7 +252,11 @@ export async function canOpenOrganization(
   organizationId: string,
 ): Promise<boolean> {
   const rows = await listMemberships(userId);
-  if (rows.some((row) => row.organizationId === organizationId)) return true;
+  // A member opens their own workspace unless it is blocked; L1 opens any.
+  if (
+    rows.some((row) => row.organizationId === organizationId && !row.blockedAt)
+  )
+    return true;
   return (
     (await isL1(userId)) && (await getL1Organization(organizationId)) !== null
   );
@@ -256,6 +264,7 @@ export async function canOpenOrganization(
 
 /** Whether the user has somewhere to work: a membership, or L1 access. */
 export async function hasOrganizationAccess(userId: string): Promise<boolean> {
-  if ((await listMemberships(userId)).length) return true;
+  if ((await listMemberships(userId)).some((row) => !row.blockedAt))
+    return true;
   return (await isL1(userId)) && (await getL1Organization()) !== null;
 }
