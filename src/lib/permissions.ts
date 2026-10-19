@@ -90,6 +90,15 @@ export const PERMISSION_AREAS = [
     },
   },
   {
+    area: "reviews",
+    label: "Guest reviews",
+    actions: {
+      view: "See guest reviews, including private feedback",
+      update:
+        "Reply to reviews, approve open-link reviews, match them to stays, and hide reviews",
+    },
+  },
+  {
     area: "tasks",
     label: "Turnover tasks",
     actions: {

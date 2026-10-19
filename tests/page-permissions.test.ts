@@ -80,6 +80,11 @@ vi.mock("@/lib/db", () => ({
     select: vi.fn(),
   },
 }));
+// Plain functions (not vi.fn) so resetAllMocks keeps them returning nothing.
+vi.mock("@/app/(app)/reviews/actions", () => ({}));
+vi.mock("@/server/reviews/service", () => ({
+  getReservationReview: async () => null,
+}));
 vi.mock("@/server/audit/service", () => ({
   getAuditLogPage: vi.fn(),
   listAuditEvents: vi.fn(),

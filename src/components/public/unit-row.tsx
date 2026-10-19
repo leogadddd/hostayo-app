@@ -12,6 +12,7 @@ import { nextOpenDate } from "@/lib/public-availability";
 import type { PublicUnit } from "@/lib/public-demo";
 import { cn } from "@/lib/utils";
 import { PhotoPlaceholder } from "./public-shell";
+import { RatingBadge } from "./reviews-section";
 import { AvailabilityStrip, shortDate } from "./showcase";
 
 /** One unit on the host page: photos, what it has, its rate and when it is free. */
@@ -82,6 +83,7 @@ export function UnitRow({
           </Link>
         </h3>
         <p className="mt-1 text-ink/60">{unit.propertyName}</p>
+        <RatingBadge rating={unit.rating} className="mt-1 text-ink/70" />
         <ul className="mt-4 flex flex-wrap gap-2 text-sm font-medium text-ink/80">
           <li className="flex items-center gap-1.5 rounded-lg bg-pine-mist px-3 py-1.5">
             <Users className="h-4 w-4 text-pine" aria-hidden />

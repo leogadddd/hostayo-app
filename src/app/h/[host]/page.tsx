@@ -5,6 +5,11 @@ import { Card, CardBody } from "@/components/ui/card";
 import { ChannelList } from "@/components/public/contact-channel-list";
 import { HeroChannels, ShowcaseFooter } from "@/components/public/showcase";
 import { UnitRow } from "@/components/public/unit-row";
+import {
+  RatingBadge,
+  ReviewsSection,
+} from "@/components/public/reviews-section";
+import { listPublicReviews } from "@/server/reviews/service";
 import { JsonLd } from "@/components/json-ld";
 import { getPublicHost, todayISO } from "@/lib/public-demo";
 import { absoluteUrl, APP_URL } from "@/lib/site";
@@ -45,6 +50,7 @@ export default async function HostPage({
   const host = await getPublicHost(slug);
   if (!host) notFound();
   const today = todayISO();
+  const reviews = await listPublicReviews({ hostSlug: host.slug }, 12);
   const initials = host.displayName
     .split(" ")
     .map((word) => word[0])
@@ -61,6 +67,17 @@ export default async function HostPage({
             name: host.displayName,
             description: host.tagline,
             url: `${APP_URL}/h/${encodeURIComponent(host.slug)}`,
+            ...(host.rating.displayRating !== null
+              ? {
+                  aggregateRating: {
+                    "@type": "AggregateRating",
+                    ratingValue: Number(host.rating.displayRating.toFixed(1)),
+                    reviewCount: host.rating.count,
+                    bestRating: 5,
+                    worstRating: 1,
+                  },
+                }
+              : {}),
             ...(host.logoUrl ? { image: absoluteUrl(host.logoUrl) } : {}),
             address: {
               "@type": "PostalAddress",
@@ -122,6 +139,9 @@ export default async function HostPage({
                 {host.tagline}
               </p>
             ) : null}
+            <a href="#reviews" className="mt-4 inline-block hover:underline">
+              <RatingBadge rating={host.rating} className="text-white/85" />
+            </a>
             <HeroChannels channels={host.channels} className="mt-6" />
           </div>
         </section>
@@ -164,6 +184,15 @@ export default async function HostPage({
               </Card>
             )}
           </section>
+
+          <div id="reviews" className="mt-10 scroll-mt-20 border-t border-pine/10">
+            <ReviewsSection
+              id="host-reviews"
+              rating={host.rating}
+              reviews={reviews}
+              showUnitName
+            />
+          </div>
 
           <section
             aria-labelledby="about-heading"

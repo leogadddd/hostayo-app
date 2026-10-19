@@ -13,7 +13,8 @@ export type EmptyArtName =
   | "guests"
   | "tasks"
   | "money"
-  | "reservations";
+  | "reservations"
+  | "reviews";
 
 const INK = "var(--color-pine)";
 const SAGE = "var(--color-sage)";
@@ -345,6 +346,32 @@ function Reservations() {
   );
 }
 
+/** Two speech bubbles with stars, waiting for the first review. */
+function Reviews() {
+  return (
+    <>
+      <Ground />
+      {/* back bubble */}
+      <g {...STROKE}>
+        <path d="M150 40h84a10 10 0 0 1 10 10v44a10 10 0 0 1-10 10h-18l-14 16-6-16h-46a10 10 0 0 1-10-10V50a10 10 0 0 1 10-10z" fill={SAGE} />
+        <path d="M170 68h54M170 82h34" strokeWidth={2.5} />
+      </g>
+      {/* front bubble with stars */}
+      <g {...STROKE}>
+        <path d="M46 78h96a10 10 0 0 1 10 10v50a10 10 0 0 1-10 10h-62l-20 18-4-18h-10a10 10 0 0 1-10-10V88a10 10 0 0 1 10-10z" fill={PAPER} />
+      </g>
+      <g stroke={INK} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round">
+        <path d="M66 102l4.2 8.6 9.4 1.4-6.8 6.6 1.6 9.4-8.4-4.4-8.4 4.4 1.6-9.4-6.8-6.6 9.4-1.4z" fill={SAND_DEEP} />
+        <path d="M96 102l4.2 8.6 9.4 1.4-6.8 6.6 1.6 9.4-8.4-4.4-8.4 4.4 1.6-9.4-6.8-6.6 9.4-1.4z" fill={SAND_DEEP} />
+        <path d="M126 102l4.2 8.6 9.4 1.4-6.8 6.6 1.6 9.4-8.4-4.4-8.4 4.4 1.6-9.4-6.8-6.6 9.4-1.4z" fill="none" strokeDasharray="4 5" />
+      </g>
+      <g stroke={MOSS} strokeWidth={2.5} strokeLinecap="round">
+        <path d="M256 30l6-6M262 44h8M248 20v-8" />
+      </g>
+    </>
+  );
+}
+
 const ART: Record<EmptyArtName, () => React.ReactElement> = {
   house: House,
   dashboard: Dashboard,
@@ -354,6 +381,7 @@ const ART: Record<EmptyArtName, () => React.ReactElement> = {
   tasks: Tasks,
   money: Money,
   reservations: Reservations,
+  reviews: Reviews,
 };
 
 export function EmptyArt({

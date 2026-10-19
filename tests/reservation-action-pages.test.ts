@@ -112,6 +112,10 @@ vi.mock("@/server/reservations/extensions", () => ({
 }));
 vi.mock("@/server/inventory/service", () => ({ listOrgUnits: vi.fn() }));
 vi.mock("@/app/(app)/reservations/actions", () => ({}));
+vi.mock("@/app/(app)/reviews/actions", () => ({}));
+vi.mock("@/server/reviews/service", () => ({
+  getReservationReview: async () => null,
+}));
 vi.mock("@/app/(app)/tasks/actions", () => ({}));
 
 const owner: MembershipContext = {

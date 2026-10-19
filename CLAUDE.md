@@ -148,6 +148,34 @@ re-checks L1.
   (`requireMembership` sends them to `/workspace-blocked`); L1 still can. Its
   public pages (`/h/...`, guest links) keep working.
 
+## Guest reviews
+
+One review per stay, per unit, rolled up per workspace. Scoring is pure code in
+`src/lib/reviews.ts` (`REVIEW_ALGO_VERSION`; bump it when a constant or formula
+changes); the database work is `src/server/reviews/service.ts`.
+
+- **Verified** reviews come from a review link (`review_links`, own table so it
+  can never open `/g/...`): the owner creates it on a checked-out reservation
+  (Guest review card; `guests.update`), the guest opens `/r/[token]`. They
+  publish immediately. One per reservation.
+- **Community** reviews come from the open form at `/h/[host]/[unit]/review`.
+  They wait as `pending` until a host with `reviews.update` publishes them or
+  matches them to a checked-out stay (which makes them verified). One per
+  reviewer fingerprint per unit per 90 days (`fingerprint_hash`, salted).
+- Hosts can reply, publish, hide and restore; never edit or delete. Private
+  feedback is only for verified reviews and never leaves `listOrgReviews`
+  (`listPublicReviews` doesn't select it).
+- Scoring signals (`source`, `payment_verified`, `stay_check_out_at`) are
+  snapshotted on the row, so scores can be recomputed without the reservation.
+  Trust weight, 12-month half-life decay and a Bayesian prior (`rankingScore`,
+  for a marketplace to sort by) are separate from `displayRating` (what guests
+  see; `null` shows "New" until 3 verified reviews). Community weight is capped
+  at 20% of the combined total. Scores are computed on read from the published
+  rows; add cached score tables when the marketplace needs them.
+- Public pages show per-unit reviews (`/h/[host]/[unit]`) and the workspace
+  roll-up (`/h/[host]`), with `aggregateRating` in the JSON-LD once a score
+  shows. The app inbox is Reviews (`reviews.view` / `reviews.update`).
+
 ## UI copy: helper text goes in an info tooltip
 
 Never write helper text as a visible paragraph under a field, card, choice

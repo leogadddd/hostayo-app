@@ -29,6 +29,11 @@ import { formatPHP } from "@/lib/money";
 import { JsonLd } from "@/components/json-ld";
 import { getPublicUnit, todayISO } from "@/lib/public-demo";
 import { absoluteUrl, APP_URL } from "@/lib/site";
+import {
+  RatingBadge,
+  ReviewsSection,
+} from "@/components/public/reviews-section";
+import { listPublicReviews } from "@/server/reviews/service";
 
 type Params = { host: string; unit: string };
 
@@ -133,6 +138,7 @@ export default async function UnitPage({
   const heroImage = photos[0] ?? host.coverImageUrl;
   const open = nextOpenDate(unit.booked, today);
   const openNow = open === today;
+  const reviews = await listPublicReviews({ unitId: unit.id }, 20);
 
   return (
     <div className="flex min-h-dvh flex-col bg-paper">
@@ -145,6 +151,17 @@ export default async function UnitPage({
             description: unit.description,
             url: `${APP_URL}${hostHref}/${encodeURIComponent(unit.slug)}`,
             ...(unit.imageUrl ? { image: absoluteUrl(unit.imageUrl) } : {}),
+            ...(unit.rating.displayRating !== null
+              ? {
+                  aggregateRating: {
+                    "@type": "AggregateRating",
+                    ratingValue: Number(unit.rating.displayRating.toFixed(1)),
+                    reviewCount: unit.rating.count,
+                    bestRating: 5,
+                    worstRating: 1,
+                  },
+                }
+              : {}),
             numberOfBedrooms: unit.bedrooms,
             numberOfBathroomsTotal: unit.bathrooms,
             occupancy: {
@@ -225,6 +242,9 @@ export default async function UnitPage({
                 {unit.bathrooms} {unit.bathrooms === 1 ? "bath" : "baths"}
               </li>
             </ul>
+            <a href="#reviews" className="mt-3 inline-block hover:underline">
+              <RatingBadge rating={unit.rating} className="text-white/85" />
+            </a>
             <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
               <p className="text-white/80">
                 <span className="font-display text-3xl text-white">
@@ -373,7 +393,7 @@ export default async function UnitPage({
               ) : null}
             </div>
             <aside
-              className="hidden lg:block lg:sticky lg:top-6"
+              className="hidden lg:block lg:sticky lg:top-6 lg:pb-10"
               aria-label="Book this unit"
             >
               <div className="rounded-3xl border border-pine/12 bg-surface p-6 shadow-[0_10px_30px_rgba(32,58,53,0.10)]">
@@ -413,6 +433,15 @@ export default async function UnitPage({
                 </div>
               </div>
             </aside>
+          </div>
+
+          <div id="reviews" className="scroll-mt-20 border-t border-pine/10">
+            <ReviewsSection
+              id="unit-reviews"
+              rating={unit.rating}
+              reviews={reviews}
+              writeHref={`${hostHref}/${encodeURIComponent(unit.slug)}/review`}
+            />
           </div>
 
           <section

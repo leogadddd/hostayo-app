@@ -26,6 +26,7 @@ import {
   ChatText as MessageSquareText,
   Percent,
   Scroll as ScrollText,
+  Star,
 } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { SIDEBAR_GROUPS_COOKIE } from "@/lib/sidebar-groups";
@@ -83,6 +84,12 @@ const NAV: readonly NavEntry[] = [
         anyOf: ["reservations.view"],
       },
       { href: "/guests", label: "Guests", icon: Users, anyOf: ["guests.view"] },
+      {
+        href: "/reviews",
+        label: "Reviews",
+        icon: Star,
+        anyOf: ["reviews.view"],
+      },
     ],
   },
   {

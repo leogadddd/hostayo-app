@@ -27,11 +27,24 @@ import {
 } from "@/server/inventory/public-photos";
 import { isStoredPhotoKey } from "@/lib/photos";
 import { findActiveGuestToken } from "@/server/reservations/guest-link";
+import type { CategoryScores } from "@/lib/reviews";
+import { getReviewSummaries } from "@/server/reviews/service";
 
 export interface PublicAmenity {
   name: string;
   /** Key into the amenity icon map (see amenityIcon). */
   icon: string;
+}
+
+/** What the public pages show for a unit's or host's reviews. */
+export interface PublicRating {
+  /** Mean shown to guests; null while "New" (too few verified reviews). */
+  displayRating: number | null;
+  /** Published reviews of any kind. */
+  count: number;
+  verifiedCount: number;
+  /** Average per category, for the categories guests rated. */
+  categories: CategoryScores;
 }
 
 export interface PublicBookedRange {
@@ -74,6 +87,7 @@ export interface PublicUnit {
   /** Null uses every host channel; [] intentionally offers no contact options. */
   contactChannelIds: string[] | null;
   booked: PublicBookedRange[];
+  rating: PublicRating;
 }
 
 export interface PublicHost {
@@ -90,6 +104,8 @@ export interface PublicHost {
   hostingSince: string;
   publicListingEnabled: boolean;
   units: PublicUnit[];
+  /** Roll-up over all the host's units. */
+  rating: PublicRating;
 }
 
 export interface GuestStay {
@@ -148,6 +164,7 @@ function demoUnits(today: string): PublicUnit[] {
     propertyName: "Casa Alon Beach Villas",
     propertyDescription: "",
     location: "Corong-Corong, El Nido, Palawan",
+    rating: { displayRating: null, count: 0, verifiedCount: 0, categories: {} },
     imageUrl: null,
     imageGallery: [],
     cleaningFeeCents: 80000,
@@ -313,6 +330,18 @@ export const getPublicHost = cache(
     // Photos kept as a web address or inline image before uploads existed.
     const legacyPhoto = (value: string | null) =>
       value && !isStoredPhotoKey(value) ? value : null;
+    const reviewSummaries = await getReviewSummaries(
+      organization.id,
+      rows.map(({ unit }) => unit.id),
+    );
+    const publicRating = (
+      summary: Awaited<ReturnType<typeof getReviewSummaries>>["overall"],
+    ): PublicRating => ({
+      displayRating: summary.score.displayRating,
+      count: summary.score.count,
+      verifiedCount: summary.score.verifiedCount,
+      categories: summary.categories,
+    });
     const mappedUnits = await Promise.all(
       rows.map(async ({ unit, property }) => {
         const [unitAmenities, propertyAmenities] = await Promise.all([
@@ -368,6 +397,7 @@ export const getPublicHost = cache(
             checkIn: segment.startDate,
             checkOut: segment.endDate,
           })),
+          rating: publicRating(reviewSummaries.byUnit.get(unit.id)!),
         } satisfies PublicUnit;
       }),
     );
@@ -388,6 +418,7 @@ export const getPublicHost = cache(
       hostingSince: String(organization.createdAt.getUTCFullYear()),
       publicListingEnabled: organization.publicListingEnabled,
       units: mappedUnits,
+      rating: publicRating(reviewSummaries.overall),
     };
   },
 );

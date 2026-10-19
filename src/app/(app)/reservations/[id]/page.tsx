@@ -66,6 +66,8 @@ import {
 import { DamageCard } from "./damage-card";
 import { ExtensionsCard } from "./extensions-card";
 import { GuestLinkCard } from "./guest-link-card";
+import { ReviewLinkCard } from "./review-link-card";
+import { getReservationReview } from "@/server/reviews/service";
 import { PaymentsCard } from "./payments-card";
 import { ReservationHistory } from "./reservation-history";
 import { InfoTip } from "@/components/ui/info-tip";
@@ -126,6 +128,10 @@ export default async function ReservationDetailPage({
   // Old reservation records and test doubles predate the optional occupant list.
   const occupants = detail.occupants ?? [];
   const platform = detail.platform ?? null;
+  const stayReview =
+    reservation.status === "checked_out"
+      ? await getReservationReview(membership.organizationId, id)
+      : null;
   const ledger = canSeeMoney
     ? await getReservationLedger(membership.organizationId, id)
     : null;
@@ -1028,6 +1034,29 @@ export default async function ReservationDetailPage({
                       : null
                   }
                 />
+              </div>
+            </section>
+          ) : null}
+
+          {reservation.status === "checked_out" &&
+          can(membership, "guests.update") ? (
+            <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)]">
+              <h2 className="font-display text-lg text-pine">Guest review</h2>
+              <div className="mt-4">
+                {stayReview ? (
+                  <p className="text-sm text-ink/70">
+                    The guest left a {stayReview.rating}-star review.{" "}
+                    <Link
+                      href="/reviews"
+                      className="text-pine underline-offset-2 hover:underline"
+                    >
+                      See it in Reviews
+                    </Link>
+                    .
+                  </p>
+                ) : (
+                  <ReviewLinkCard reservationId={reservation.id} />
+                )}
               </div>
             </section>
           ) : null}
