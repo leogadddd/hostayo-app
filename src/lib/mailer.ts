@@ -38,7 +38,10 @@ export async function sendMail(message: Message): Promise<void> {
   const user = process.env.GMAIL_USER?.trim();
   // Google shows app passwords in four spaced groups; SMTP wants them joined.
   const pass = process.env.GMAIL_APP_PASSWORD?.replace(/\s+/g, "");
-  const from = process.env.MAIL_FROM?.trim();
+  // EARLY_ACCESS_FROM is the marketing site's name for the same sender, so one
+  // value can serve both apps.
+  const from =
+    process.env.MAIL_FROM?.trim() || process.env.EARLY_ACCESS_FROM?.trim();
 
   if (resendKey) {
     const response = await fetch("https://api.resend.com/emails", {
