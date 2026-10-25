@@ -23,7 +23,6 @@ import {
 import { Logo } from "@/components/logo";
 import { AccountMenu } from "@/components/app/account-menu";
 import { AppStatusPill } from "@/components/app/app-status-pill";
-import { SharePublicLink } from "@/components/app/share-public-link";
 import { LiveClock } from "@/components/app/live-clock";
 import { GlobalSearch } from "@/components/app/global-search";
 import {
@@ -454,7 +453,7 @@ export function AppHeader({
       // The phone layout has no top header: each page brings its own title bar.
       className="z-20 hidden h-20 shrink-0 items-center justify-between gap-3 border-b border-pine/12 bg-chrome px-6 lg:flex"
     >
-      <div className="flex min-w-0 items-center">
+      <div className="flex min-w-0 flex-1 basis-0 items-center justify-start xl:w-[26rem] xl:flex-none">
         <nav aria-label="Breadcrumb" className="hidden min-w-0 sm:block">
           {/* <ol className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm">
             {segments.map((segment, index) => {
@@ -499,28 +498,18 @@ export function AppHeader({
           l1={props.l1}
         />
       </div>
-      <div className="flex min-w-0 flex-1 justify-end md:justify-center md:px-4">
+      <div className="flex min-w-0 flex-1 items-center justify-end md:justify-center md:px-4">
         <GlobalSearch
           organizationId={activeOrganizationId}
           userEmail={props.userEmail}
           pages={searchPages}
         />
       </div>
-      <div className="flex shrink-0 items-center gap-5">
+      <div className="flex min-w-fit flex-1 basis-0 items-center justify-end gap-5 xl:w-[26rem] xl:flex-none">
         {props.publicPageLive !== undefined ? (
           <AppStatusPill
             publicPageLive={props.publicPageLive}
             canManageGoLive={props.canManageGoLive ?? false}
-          />
-        ) : null}
-        {props.organizationSlug && props.publicPageLive !== false ? (
-          <SharePublicLink
-            href={`/h/${encodeURIComponent(props.organizationSlug)}`}
-            title={`${props.organizationName} public page`}
-            label="Share"
-            size="md"
-            hideLabelOnMobile
-            className="border-transparent px-2 hover:border-transparent sm:border-pine/25 sm:px-4 sm:hover:border-pine/50"
           />
         ) : null}
         <LiveClock initialNow={initialNow} />
