@@ -129,7 +129,9 @@ export function StayRangeCalendar({
     <div className="@container rounded-2xl border border-pine/10 bg-surface p-4 sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p
-          className="flex min-w-0 items-center gap-2 text-sm text-ink/65"
+          // Two lines are always reserved on phones, so picking a day never resizes
+          // the drawer the calendar sits in.
+          className="flex min-w-0 items-center gap-2 text-sm text-ink/65 max-sm:min-h-10"
           aria-live="polite"
         >
           <MousePointerClick
@@ -153,11 +155,10 @@ export function StayRangeCalendar({
               <strong className="text-pine">
                 {SHORT_LABEL.format(toDate(checkOut))}
               </strong>{" "}
-              · {selectedNights} night{selectedNights === 1 ? "" : "s"}. Click a
-              day to change.
+              · {selectedNights} night{selectedNights === 1 ? "" : "s"}
             </span>
           ) : (
-            <span>Click a check-in day, then a check-out day.</span>
+            <span>Pick a check-in day, then a check-out day.</span>
           )}
         </p>
         <div className="flex items-center gap-1.5">
@@ -325,9 +326,6 @@ export function StayRangeCalendar({
         <Legend className="bg-pine/15">Booked</Legend>
         <Legend className="bg-amber-100">Hold</Legend>
         <Legend className="bg-ink/10">Blocked</Legend>
-        <li className="text-ink/45">
-          The check-out day is free for the next guest.
-        </li>
       </ul>
     </div>
   );

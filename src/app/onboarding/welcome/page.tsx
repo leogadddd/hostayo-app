@@ -14,8 +14,9 @@ export default async function OnboardingWelcomePage() {
   const state = await getOnboardingState(user.id);
   if (!state.membership) redirect("/onboarding/organization");
   if (state.membership.role !== "owner") redirect("/dashboard");
+  const next = nextOnboardingPath(state);
+  if (next !== "/onboarding/welcome") redirect(next);
 
-  const unit = state.unit;
   const firstName = user.name.trim().split(/\s+/)[0];
 
   return (
@@ -31,14 +32,12 @@ export default async function OnboardingWelcomePage() {
         className="animate-rise mt-3 max-w-xl text-base leading-relaxed text-ink/65"
         style={{ animationDelay: "120ms" }}
       >
-        {unit
-          ? `${unit.name} is ready for bookings.`
-          : state.property
-            ? "Add a unit whenever you’re ready."
-            : "Add a property whenever you’re ready."}
+        Your dashboard has a checklist to get {state.membership.organizationName}{" "}
+        ready: add your property and units, then go live when you’re happy with
+        your public page.
       </p>
 
-      <StepNav backHref={unit ? "/onboarding/unit" : nextOnboardingPath(state)}>
+      <StepNav backHref="/onboarding/workflow">
         <Link
           href="/dashboard"
           replace

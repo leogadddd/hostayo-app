@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
+import { FormActions } from "@/components/ui/form-actions";
 import { FieldError, Label, Textarea } from "@/components/ui/input";
 import { cancelReservationAction, type ReservationFormState } from "../actions";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
@@ -45,9 +46,11 @@ export function CancelReservationForm({
           Cancelled. The dates are free again.
         </p>
       ) : (
-        <Button type="submit" variant="clay" disabled={pending}>
-          {pending ? "Cancelling…" : label}
-        </Button>
+        <FormActions>
+          <Button type="submit" variant="clay" disabled={pending}>
+            {pending ? "Cancelling…" : label}
+          </Button>
+        </FormActions>
       )}
     </form>
   );

@@ -423,6 +423,7 @@ export async function submitCommunityReview(input: {
       organizationId: units.organizationId,
       unitId: units.id,
       listed: organizations.publicListingEnabled,
+      live: organizations.publicPageLive,
     })
     .from(units)
     .innerJoin(organizations, eq(units.organizationId, organizations.id))
@@ -435,7 +436,9 @@ export async function submitCommunityReview(input: {
       ),
     )
     .limit(1);
-  if (!target) throw new ReviewError("This listing was not found.");
+  if (!target || !target.live) {
+    throw new ReviewError("This listing was not found.");
+  }
 
   const since = new Date(Date.now() - COMMUNITY_REPEAT_DAYS * 86_400_000);
   const [recent] = await db

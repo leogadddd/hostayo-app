@@ -10,6 +10,7 @@ import {
   vi,
 } from "vitest";
 import DashboardPage from "@/app/(app)/dashboard/page";
+import { getDeviceClass } from "@/lib/device";
 import AvailabilityPage from "@/app/(app)/calendar/availability/page";
 import { buildDashboardSeries, seriesStart } from "@/lib/dashboard-series";
 import { addDaysLocal, todayInTimeZone } from "@/lib/dates";
@@ -46,12 +47,37 @@ vi.mock("@/server/inventory/stay-search", async (importOriginal) => ({
   findFreeUnitIds: vi.fn(),
 }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+vi.mock("@/lib/device", () => ({
+  getDeviceClass: vi.fn(async () => "desktop"),
+}));
+vi.mock("@/lib/app-identity", () => ({
+  getAppIdentity: vi.fn(async () => ({
+    organizationId: "org-a",
+    organizations: [
+      { id: "org-a", name: "Riverside Stays", role: "owner" },
+      { id: "org-b", name: "Lakeview Lodge", role: "admin" },
+    ],
+    userEmail: "owner@example.com",
+    role: "owner",
+    permissions: undefined,
+    l1: false,
+  })),
+}));
 vi.mock("@/server/operations/service", () => ({ listTasks: vi.fn() }));
 vi.mock("@/server/reservations/extensions", () => ({
   getExtensionHours: vi.fn(async () => new Map()),
   getPendingExtensionHours: vi.fn(async () => new Map()),
 }));
 vi.mock("@/server/reports/service", () => ({ getReport: vi.fn() }));
+vi.mock("@/server/orgs/checklist", () => ({
+  getGoLiveChecklist: vi.fn(async () => ({
+    items: [],
+    doneCount: 0,
+    total: 1,
+    live: false,
+    ready: false,
+  })),
+}));
 vi.mock("@/server/reports/dashboard", () => ({
   getDashboardSeries: vi.fn(),
   getDashboardPlatformBreakdown: vi.fn(),
@@ -359,6 +385,119 @@ describe("operations dashboard", () => {
     expect(html).toContain("Unit not ready");
     expect(html).toContain("Turn over Unit 12B");
     expect(html).toContain("1 before today’s arrivals");
+  });
+
+  describe("on a phone", () => {
+    beforeEach(() => {
+      vi.mocked(getDeviceClass).mockResolvedValue("mobile");
+    });
+
+    it("renders the phone layout instead of the desktop one", async () => {
+      const html = renderToStaticMarkup(await DashboardPage());
+      expect(html).toContain('aria-label="At a glance"');
+      expect(html).toContain('aria-label="Schedule"');
+      expect(html).toContain('aria-label="Needs attention"');
+      expect(html).toContain('aria-label="Quick actions"');
+      expect(html).toContain("You’ve reached the end of this page");
+      expect(html).toContain("Search guests, bookings, pages");
+      expect(html).toContain("Damage reports");
+      expect(html).not.toContain("Today&#x27;s schedule");
+      expect(html).toMatch(/Good (morning|afternoon|evening)/);
+    });
+
+    it("merges today's check-outs and check-ins into one list ordered by time", async () => {
+      const today = todayInTimeZone("Asia/Manila");
+      vi.mocked(listCalendarActivity).mockResolvedValue([
+        {
+          id: "arriving",
+          unitId: "unit-a",
+          status: "confirmed",
+          guestName: "Ana Cruz",
+          guestCount: 2,
+          startDate: today,
+          endDate: addDaysLocal(today, 2),
+          expiresAt: null,
+        },
+        {
+          id: "leaving",
+          unitId: "unit-a",
+          status: "checked_out",
+          guestName: "Ben Reyes",
+          guestCount: 1,
+          startDate: addDaysLocal(today, -2),
+          endDate: today,
+          expiresAt: null,
+        },
+      ] as Awaited<ReturnType<typeof listCalendarActivity>>);
+      const html = renderToStaticMarkup(await DashboardPage());
+      // Check-out is 11:00 and check-in 15:00 at the fixture property.
+      expect(html.indexOf("Ben Reyes")).toBeLessThan(html.indexOf("Ana Cruz"));
+      expect(html).toContain("1 of 2 done");
+      expect(html).toContain("Checked out");
+      expect(html).toContain("Unit 12B");
+    });
+
+    it("keeps the needs-attention list and flags a blocking turnover", async () => {
+      const today = todayInTimeZone("Asia/Manila");
+      vi.mocked(listCalendarActivity).mockResolvedValue([
+        {
+          id: "arriving",
+          unitId: "unit-a",
+          status: "confirmed",
+          guestName: "Ana Cruz",
+          guestCount: 2,
+          startDate: today,
+          endDate: addDaysLocal(today, 2),
+          expiresAt: null,
+        },
+      ] as Awaited<ReturnType<typeof listCalendarActivity>>);
+      vi.mocked(listTasks).mockResolvedValue([
+        {
+          id: "task-a",
+          status: "open",
+          unitId: "unit-a",
+          unitName: "Unit 12B",
+          propertyName: "Riverside Residences",
+          reservationId: null,
+          createdAt: new Date(),
+          markedReadyAt: null,
+          totalItems: 4,
+          doneItems: 1,
+          requiredLeft: 3,
+          lastActivityAt: null,
+        },
+      ]);
+      const html = renderToStaticMarkup(await DashboardPage());
+      expect(html).toContain("Unit not ready");
+      expect(html).toContain("Turn over Unit 12B");
+      expect(html).toContain('href="/tasks/task-a"');
+    });
+
+    it("shows the money summary to people who can see reports", async () => {
+      const html = renderToStaticMarkup(await DashboardPage());
+      expect(html).toContain('aria-label="Money"');
+      expect(html).toContain("Cash collected");
+      expect(html).toContain("Net operating cash");
+      expect(html).toContain("Deposits held");
+      expect(html).toContain("₱2,000");
+      expect(html).toContain("Full reports");
+      // The money summary comes after what needs doing today.
+      expect(html.indexOf('aria-label="Needs attention"')).toBeLessThan(
+        html.indexOf('aria-label="Money"'),
+      );
+    });
+
+    it("keeps money and reports away from staff", async () => {
+      vi.mocked(requireMembership).mockResolvedValue({
+        ...owner,
+        role: "staff",
+      });
+      const html = renderToStaticMarkup(await DashboardPage());
+      expect(html).not.toContain('aria-label="Money"');
+      expect(html).not.toContain("How your stays are doing");
+      expect(html).not.toContain("Security deposits held");
+      expect(html).not.toContain("Spending by category");
+    });
   });
 
   it("lists open damage, with costs only for people who see money", async () => {

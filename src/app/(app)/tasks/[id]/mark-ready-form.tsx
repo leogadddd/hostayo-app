@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CheckCircle as CheckCircle2 } from "@/components/ui/icons";
 import { toast } from "sonner";
+import { FormActions } from "@/components/ui/form-actions";
 import { Button } from "@/components/ui/button";
 import { FieldError, Label, Textarea } from "@/components/ui/input";
 import { markTaskReadyAction, type TaskFormState } from "../actions";
@@ -84,7 +85,7 @@ export function MarkReadyForm({
         </div>
       ) : null}
       <FieldError message={state.error} />
-      <div className="flex flex-wrap items-center gap-4">
+      <FormActions className="flex flex-wrap items-center gap-4 max-lg:flex-col-reverse max-lg:items-stretch max-lg:gap-1">
         <Button
           type="submit"
           variant="clay"
@@ -98,11 +99,11 @@ export function MarkReadyForm({
         </Button>
         <Link
           href={`/tasks/${taskId}`}
-          className="text-sm text-pine hover:underline"
+          className="text-sm text-pine hover:underline max-lg:py-3 max-lg:text-center max-lg:text-base max-lg:font-medium"
         >
           Cancel
         </Link>
-      </div>
+      </FormActions>
     </form>
   );
 }

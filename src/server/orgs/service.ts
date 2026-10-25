@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, eq, ilike, inArray, isNull, ne, or } from "drizzle-orm";
+import { and, asc, eq, ilike, inArray, isNull, ne, or, sql } from "drizzle-orm";
 import { createHash, randomBytes } from "node:crypto";
 import { db } from "@/lib/db";
 import {
@@ -14,6 +14,8 @@ import {
   user,
 } from "@/lib/db/schema";
 import { type RoleKey } from "@/lib/permissions";
+import type { OnboardingProfile } from "@/lib/onboarding-profile";
+import { getGoLiveChecklist } from "@/server/orgs/checklist";
 import { seedDefaultAmenities } from "@/server/inventory/amenities";
 import { seedDefaultPlatforms } from "@/server/reservations/platforms";
 import { isSupportedTimeZone } from "@/lib/timezones";
@@ -128,6 +130,161 @@ export async function updateOrganizationContactChannels(input: {
   });
 }
 
+export async function setPublicPageLive(input: {
+  organizationId: string;
+  actorUserId: string;
+  live: boolean;
+}): Promise<void> {
+  // Going live with the checklist finished is what completes setup.
+  const completesSetup =
+    input.live && (await getGoLiveChecklist(input.organizationId)).ready;
+  await db.transaction(async (tx) => {
+    const [updated] = await tx
+      .update(organizations)
+      .set({
+        publicPageLive: input.live,
+        ...(completesSetup
+          ? {
+              setupCompletedAt: sql`coalesce(${organizations.setupCompletedAt}, now())`,
+            }
+          : {}),
+        updatedAt: new Date(),
+      })
+      .where(eq(organizations.id, input.organizationId))
+      .returning({ id: organizations.id });
+    if (!updated) throw new OrgError("Organization not found.");
+    await tx.insert(auditEvents).values({
+      organizationId: input.organizationId,
+      actorUserId: input.actorUserId,
+      entity: "organization",
+      entityId: input.organizationId,
+      action: input.live
+        ? "organization.public_page_live"
+        : "organization.public_page_offline",
+      metadata: {},
+    });
+  });
+}
+
+/** Merges onboarding answers into the stored profile. Never read for access decisions. */
+export async function saveOnboardingProfile(input: {
+  organizationId: string;
+  answers: OnboardingProfile;
+}): Promise<void> {
+  const [current] = await db
+    .select({ profile: organizations.onboardingProfile })
+    .from(organizations)
+    .where(eq(organizations.id, input.organizationId))
+    .limit(1);
+  if (!current) throw new OrgError("Organization not found.");
+  const defined = Object.fromEntries(
+    Object.entries(input.answers).filter(([, value]) => value !== undefined),
+  );
+  await db
+    .update(organizations)
+    .set({
+      onboardingProfile: { ...(current.profile ?? {}), ...defined },
+      updatedAt: new Date(),
+    })
+    .where(eq(organizations.id, input.organizationId));
+}
+
+export const MIN_STAY_MAX = 30;
+const ABOUT_MAX = 2000;
+const POLICY_MAX = 2000;
+
+export interface BookingSettings {
+  minStayNights: number;
+  aboutText: string;
+  cancellationPolicy: string;
+}
+
+export async function getBookingSettings(
+  organizationId: string,
+): Promise<BookingSettings> {
+  const [row] = await db
+    .select({
+      minStayNights: organizations.minStayNights,
+      aboutText: organizations.aboutText,
+      cancellationPolicy: organizations.cancellationPolicy,
+    })
+    .from(organizations)
+    .where(eq(organizations.id, organizationId))
+    .limit(1);
+  if (!row) throw new OrgError("Organization not found.");
+  return {
+    minStayNights: row.minStayNights,
+    aboutText: row.aboutText ?? "",
+    cancellationPolicy: row.cancellationPolicy ?? "",
+  };
+}
+
+export async function updateBookingSettings(input: {
+  organizationId: string;
+  actorUserId: string;
+  minStayNights: number;
+  aboutText: string;
+  cancellationPolicy: string;
+}): Promise<void> {
+  if (
+    !Number.isInteger(input.minStayNights) ||
+    input.minStayNights < 1 ||
+    input.minStayNights > MIN_STAY_MAX
+  ) {
+    throw new OrgError(
+      `Minimum stay must be between 1 and ${MIN_STAY_MAX} nights.`,
+      "minStayNights",
+    );
+  }
+  const aboutText = input.aboutText.trim();
+  const cancellationPolicy = input.cancellationPolicy.trim();
+  if (aboutText.length > ABOUT_MAX) {
+    throw new OrgError(
+      `About text is limited to ${ABOUT_MAX} characters.`,
+      "aboutText",
+    );
+  }
+  if (cancellationPolicy.length > POLICY_MAX) {
+    throw new OrgError(
+      `The cancellation policy is limited to ${POLICY_MAX} characters.`,
+      "cancellationPolicy",
+    );
+  }
+  await db.transaction(async (tx) => {
+    const [updated] = await tx
+      .update(organizations)
+      .set({
+        minStayNights: input.minStayNights,
+        aboutText: aboutText || null,
+        cancellationPolicy: cancellationPolicy || null,
+        updatedAt: new Date(),
+      })
+      .where(eq(organizations.id, input.organizationId))
+      .returning({ id: organizations.id });
+    if (!updated) throw new OrgError("Organization not found.");
+    await tx.insert(auditEvents).values({
+      organizationId: input.organizationId,
+      actorUserId: input.actorUserId,
+      entity: "organization",
+      entityId: input.organizationId,
+      action: "organization.booking_settings_updated",
+      metadata: { minStayNights: input.minStayNights },
+    });
+  });
+}
+
+export async function getPublicPageStatus(
+  organizationId: string,
+): Promise<{ slug: string; live: boolean }> {
+  const [row] = await db
+    .select({ slug: organizations.slug, live: organizations.publicPageLive })
+    .from(organizations)
+    .where(eq(organizations.id, organizationId))
+    .limit(1);
+  if (!row) throw new OrgError("Organization not found.");
+  return row;
+}
+
 function normalizeEmail(value: string): string {
   const email = value.trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -220,6 +377,7 @@ function validateTimeZone(value: string): string {
 export interface OrganizationProfileInput {
   name: string;
   displayName: string;
+  tagline: string;
   logoUrl?: string | null;
   contactEmail: string;
   contactPhone: string;
@@ -415,6 +573,7 @@ export async function updateOrganizationProfile(input: {
 }): Promise<void> {
   const name = validateOrgName(input.data.name);
   const displayName = optionalText(input.data.displayName, 80, "Display name");
+  const tagline = optionalText(input.data.tagline, 120, "Tagline");
   const contactEmail = optionalText(
     input.data.contactEmail,
     254,
@@ -476,6 +635,7 @@ export async function updateOrganizationProfile(input: {
       .set({
         name,
         displayName,
+        tagline,
         ...(input.data.logoUrl !== undefined
           ? { logoUrl: input.data.logoUrl }
           : {}),
@@ -709,14 +869,12 @@ export async function acceptInvitation(input: {
         .where(eq(roles.id, invitation.roleId))
         .limit(1);
       if (!role) throw new OrgError("Invitation role is unavailable.");
-      await tx
-        .insert(memberships)
-        .values({
-          organizationId: invitation.organizationId,
-          userId: input.userId,
-          roleId: invitation.roleId,
-          role: role.key === "owner" ? "owner" : "staff",
-        });
+      await tx.insert(memberships).values({
+        organizationId: invitation.organizationId,
+        userId: input.userId,
+        roleId: invitation.roleId,
+        role: role.key === "owner" ? "owner" : "staff",
+      });
     }
     await tx
       .update(organizationInvitations)

@@ -33,6 +33,7 @@ export function AuthLoadingOverlay({
   const dark = tone === "dark";
   return (
     <dialog
+      data-keep-modal
       ref={dialog}
       onCancel={(event) => event.preventDefault()}
       className={`animate-fade-in fixed inset-0 z-[100] m-0 h-dvh max-h-none w-dvw max-w-none items-center justify-center border-0 px-6 open:flex ${dark ? "theme-keep-light bg-pine-deep/95 text-paper" : "bg-paper/95 text-pine"}`}

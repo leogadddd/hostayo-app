@@ -9,6 +9,7 @@ import {
   LinkBreak as Unlink,
 } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
+import { FormActions } from "@/components/ui/form-actions";
 import { FieldError, Label, Textarea } from "@/components/ui/input";
 import { centavosToPesosInput, formatPHP } from "@/lib/money";
 import { cn } from "@/lib/utils";
@@ -226,19 +227,21 @@ export function AddDeductionForm({
       ) : null}
 
       <FieldError message={state.error} />
-      <Button
-        type="submit"
-        variant="clay"
-        size="lg"
-        disabled={pending || invalidAmount || tooMuch}
-        className="w-full"
-      >
-        {pending
-          ? "Recording…"
-          : amountCents && !tooMuch
-            ? `Keep ${formatPHP(amountCents)} from deposit`
-            : "Record deduction"}
-      </Button>
+      <FormActions>
+        <Button
+          type="submit"
+          variant="clay"
+          size="lg"
+          disabled={pending || invalidAmount || tooMuch}
+          className="w-full"
+        >
+          {pending
+            ? "Recording…"
+            : amountCents && !tooMuch
+              ? `Keep ${formatPHP(amountCents)} from deposit`
+              : "Record deduction"}
+        </Button>
+      </FormActions>
     </form>
   );
 }

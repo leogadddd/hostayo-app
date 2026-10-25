@@ -6,6 +6,7 @@ import {
   CheckCircle as CheckCircle2,
 } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
+import { FormActions } from "@/components/ui/form-actions";
 import { FieldError, Label, Textarea } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { checkInAction, type ReservationFormState } from "../actions";
@@ -85,16 +86,18 @@ export function CheckInForm({ reservationId }: { reservationId: string }) {
         />
       </div>
       <FieldError message={state.error} />
-      <Button
-        type="submit"
-        variant="clay"
-        size="lg"
-        disabled={pending}
-        className="w-full"
-      >
-        <BedDouble className="h-4 w-4" aria-hidden />
-        {pending ? "Checking in…" : "Check in guest"}
-      </Button>
+      <FormActions>
+        <Button
+          type="submit"
+          variant="clay"
+          size="lg"
+          disabled={pending}
+          className="w-full"
+        >
+          <BedDouble className="h-4 w-4" aria-hidden />
+          {pending ? "Checking in…" : "Check in guest"}
+        </Button>
+      </FormActions>
     </form>
   );
 }

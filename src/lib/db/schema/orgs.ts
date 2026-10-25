@@ -1,5 +1,6 @@
 import {
   boolean,
+  integer,
   index,
   jsonb,
   pgEnum,
@@ -11,6 +12,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 import type { ContactChannel } from "@/lib/contact-channels";
+import type { OnboardingProfile } from "@/lib/onboarding-profile";
 
 export const membershipRole = pgEnum("membership_role", ["owner", "staff"]);
 export const invitationStatus = pgEnum("organization_invitation_status", [
@@ -96,6 +98,20 @@ export const organizations = pgTable("organizations", {
   publicListingEnabled: boolean("public_listing_enabled")
     .notNull()
     .default(true),
+  // Go-live switch for the public showcase pages (/h/...). Off, they 404 and
+  // stay out of the sitemap, so a host can finish setting up before sharing.
+  publicPageLive: boolean("public_page_live").notNull().default(false),
+  // Set the first time the owner goes live with every setup step done. After
+  // that the dashboard checklist stays away, even if the page goes offline.
+  setupCompletedAt: timestamp("setup_completed_at", { withTimezone: true }),
+  // Shown on the public host page: a longer introduction and the booking terms.
+  aboutText: text("about_text"),
+  cancellationPolicy: text("cancellation_policy"),
+  // Shortest stay the team accepts on a direct booking. 1 means no minimum.
+  minStayNights: integer("min_stay_nights").notNull().default(1),
+  // Answers from the onboarding questions. Null until the owner has been
+  // through them; organizations that predate them hold an empty object.
+  onboardingProfile: jsonb("onboarding_profile").$type<OnboardingProfile>(),
   // Ordered guest-facing contact methods for the public host and unit pages.
   contactChannels: jsonb("contact_channels")
     .$type<ContactChannel[]>()

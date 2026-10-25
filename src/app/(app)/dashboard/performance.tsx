@@ -941,7 +941,11 @@ function categoryLabel(category: string) {
   return EXPENSE_CATEGORY_LABELS[category as ExpenseCategory] ?? category;
 }
 
-function moneyDelta(current: number, previous: number, upIsGood: boolean) {
+export function moneyDelta(
+  current: number,
+  previous: number,
+  upIsGood: boolean,
+) {
   const value = change(current, previous);
   if (value === null) return null;
   const rounded = Math.round(value * 100);
@@ -951,7 +955,7 @@ function moneyDelta(current: number, previous: number, upIsGood: boolean) {
   };
 }
 
-function pointsDelta(current: number | null, previous: number | null) {
+export function pointsDelta(current: number | null, previous: number | null) {
   if (current === null || previous === null) return null;
   const points = Math.round((current - previous) * 100);
   return {
@@ -961,7 +965,7 @@ function pointsDelta(current: number | null, previous: number | null) {
 }
 
 /** Running total, so money sparklines show how the period built up rather than daily spikes. */
-function running(values: number[]) {
+export function running(values: number[]) {
   let total = 0;
   return values.map((value) => (total += value));
 }

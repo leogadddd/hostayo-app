@@ -9,9 +9,10 @@ const variants = {
 } as const;
 
 const sizes = {
-  sm: "h-8 px-3 text-sm",
-  md: "h-10 px-4 text-sm",
-  lg: "h-11 px-5 text-base",
+  // On phones every size grows a step so it is easy to hit with a thumb.
+  sm: "h-8 px-3 text-sm max-lg:h-10",
+  md: "h-10 px-4 text-sm max-lg:h-12 max-lg:text-base",
+  lg: "h-11 px-5 text-base max-lg:h-12",
 } as const;
 
 export function buttonClassName(

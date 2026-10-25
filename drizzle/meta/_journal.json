@@ -309,6 +309,34 @@
       "when": 1792376256002,
       "tag": "20261019021735_add_reviews",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1792897444133,
+      "tag": "20261025030404_add_public_page_live",
+      "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1792897825226,
+      "tag": "20261025031025_add_onboarding_profile",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1792898000028,
+      "tag": "20261025031320_add_booking_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1792900082663,
+      "tag": "20261025034802_add_setup_completed_at",
+      "breakpoints": true
     }
   ]
 }

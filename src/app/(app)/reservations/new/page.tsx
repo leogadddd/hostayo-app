@@ -7,7 +7,9 @@ import { listOrgUnits, listProperties } from "@/server/inventory/service";
 import { listPricingRules } from "@/server/pricing/service";
 import { listGuests } from "@/server/reservations/service";
 import { listPlatforms } from "@/server/reservations/platforms";
+import { MobileBackHeader } from "@/components/app/mobile-back-header";
 import { PageHeading } from "@/components/app/page-heading";
+import { getDeviceClass } from "@/lib/device";
 import { ReservationForm } from "./reservation-form";
 import { toUnitOption } from "./unit-options";
 
@@ -27,6 +29,7 @@ export default async function NewReservationPage({
   const membership = await requirePermission("reservations.create");
   if (!membership) return <PermissionDenied />;
   const params = await searchParams;
+  const device = await getDeviceClass();
 
   const [units, properties, guestRows, platforms, pricingRules] =
     await Promise.all([
@@ -66,14 +69,24 @@ export default async function NewReservationPage({
 
   return (
     <div className="min-w-0 overflow-x-clip">
-      <PageHeading
-        title="New reservation"
-        backHref={backHref}
-        backLabel={fromSearch ? "Back to stay details" : "All reservations"}
-        description={`${canConfirm ? "Place a time-limited hold or a confirmed booking." : "Place a time-limited hold for someone who can confirm bookings to review."} Dates use each property's local timezone; the check-out day is free.`}
-      />
+      <div className="lg:hidden">
+        <MobileBackHeader
+          title="New reservation"
+          backHref={backHref}
+          backLabel={fromSearch ? "Back to stay details" : "All reservations"}
+        />
+      </div>
+      <div className="hidden lg:block">
+        <PageHeading
+          title="New reservation"
+          backHref={backHref}
+          backLabel={fromSearch ? "Back to stay details" : "All reservations"}
+          description={`${canConfirm ? "Place a time-limited hold or a confirmed booking." : "Place a time-limited hold for someone who can confirm bookings to review."} Dates use each property's local timezone; the check-out day is free.`}
+        />
+      </div>
 
       <ReservationForm
+        variant={device}
         canConfirm={canConfirm}
         canSetCharges={canSetCharges}
         units={activeUnits.map((unit) =>

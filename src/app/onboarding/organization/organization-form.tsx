@@ -18,7 +18,7 @@ export function OrganizationForm({ defaultName }: { defaultName: string }) {
   const router = useRouter();
   useEffect(() => {
     if (!state.success) return;
-    router.replace("/onboarding/property");
+    router.replace("/onboarding/operation");
     router.refresh();
   }, [state.success, router]);
 

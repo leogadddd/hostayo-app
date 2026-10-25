@@ -49,9 +49,12 @@ export function RouteModal({
       }}
       className={`fixed left-1/2 top-1/2 m-0 max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] ${wide ? "max-w-3xl" : "max-w-xl"} -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-pine/15 bg-surface p-0 text-ink shadow-2xl backdrop:bg-scrim/55`}
     >
-      <div className="flex items-start gap-4 border-b border-pine/10 px-6 py-5">
+      <div className="flex items-start gap-4 border-b border-pine/10 px-6 py-5 max-lg:gap-3 max-lg:px-5 max-lg:pb-4 max-lg:pt-3">
         <div className="min-w-0 flex-1">
-          <h2 id={titleId} className="font-display text-2xl text-pine">
+          <h2
+            id={titleId}
+            className="font-display text-2xl text-pine max-lg:text-xl"
+          >
             {title}
           </h2>
           <p
@@ -65,12 +68,12 @@ export function RouteModal({
           type="button"
           onClick={() => dialog.current?.close()}
           aria-label="Close"
-          className="rounded-md p-1.5 text-ink/45 hover:bg-pine-mist hover:text-pine"
+          className="rounded-md p-1.5 text-ink/45 hover:bg-pine-mist hover:text-pine max-lg:flex max-lg:h-10 max-lg:w-10 max-lg:items-center max-lg:justify-center max-lg:rounded-full max-lg:bg-ink/[0.07] max-lg:p-0"
         >
           <X className="h-4 w-4" aria-hidden />
         </button>
       </div>
-      <div className="px-6 py-5">
+      <div className="px-6 py-5 max-lg:px-5">
         {unavailable ? (
           <p
             className="rounded-xl bg-linen px-4 py-3 text-sm text-ink/70"

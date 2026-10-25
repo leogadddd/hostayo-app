@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { CheckCircle as CheckCircle2 } from "@/components/ui/icons";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { FormActions } from "@/components/ui/form-actions";
 import { FieldError, Input, Label, Textarea } from "@/components/ui/input";
 import { createDamageReportAction, type DamageFormState } from "./actions";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
@@ -96,9 +97,11 @@ export function DamageReportForm({
       </div>
       <FieldError message={state.error} />
       <div className="flex flex-wrap items-center gap-4">
-        <Button type="submit" variant="clay" disabled={pending}>
-          {pending ? "Reporting…" : "Report damage"}
-        </Button>
+        <FormActions>
+          <Button type="submit" variant="clay" disabled={pending}>
+            {pending ? "Reporting…" : "Report damage"}
+          </Button>
+        </FormActions>
         {returnHref ? (
           <Link href={returnHref} className="text-sm text-pine hover:underline">
             Cancel

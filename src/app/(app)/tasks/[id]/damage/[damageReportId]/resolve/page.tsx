@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requirePermission } from "@/lib/auth/session";
 import { getTaskDetail } from "@/server/operations/service";
-import { PageHeading } from "@/components/app/page-heading";
 import { PermissionDenied } from "@/components/app/permission-denied";
-import { Card, CardBody } from "@/components/ui/card";
+import { TaskActionPage } from "../../../task-action-page";
 import { ResolveDamageForm } from "../../../resolve-damage-form";
 
 export const metadata: Metadata = { title: "Resolve damage" };
@@ -30,15 +29,12 @@ export default async function ResolveTaskDamagePage({
   if (!report) notFound();
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <PageHeading
-        title="Resolve damage"
-        description={`${propertyName} · ${unitName}`}
-        backHref={`/tasks/${task.id}`}
-        backLabel="Back to task"
-      />
-      <Card>
-        <CardBody className="space-y-5">
+    <TaskActionPage
+      title="Resolve damage"
+      description={`${propertyName} · ${unitName}`}
+      taskId={task.id}
+      bodyClassName="space-y-5"
+    >
           <p className="whitespace-pre-line rounded-lg bg-sage/35 p-4 text-sm text-pine">
             {report.description}
           </p>
@@ -46,8 +42,6 @@ export default async function ResolveTaskDamagePage({
             from={{ taskId: task.id }}
             damageReportId={report.id}
           />
-        </CardBody>
-      </Card>
-    </div>
+    </TaskActionPage>
   );
 }

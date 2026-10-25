@@ -7,6 +7,7 @@ import {
   eq,
   gte,
   ilike,
+  inArray,
   isNull,
   lte,
   ne,
@@ -19,6 +20,7 @@ import {
   auditEvents,
   bookingPlatforms,
   guests,
+  organizations,
   properties,
   paymentEntries,
   refundEntries,
@@ -410,14 +412,22 @@ export interface ReservationListFilters {
   query?: string;
   status?: ReservationStatus;
   unitId?: string;
+  /** Any of these units; combines with `unitId`. */
+  unitIds?: readonly string[];
   guestId?: string;
   platformId?: string;
+  /** Any of these platforms; combines with `platformId`. */
+  platformIds?: readonly string[];
   /** Inclusive check-in date range. */
   startDate?: string;
   endDate?: string;
   /** "checkin" (latest stay first, the default) or "booked" (newest booking first). */
   sort?: "checkin" | "booked";
-  /** Adds bookingTotalCents (charges excluding the deposit). Owner views only. */
+  /**
+   * Adds bookingTotalCents (charges excluding the deposit) plus the booking
+   * payments and refunds against it, so a list can show what is still owed.
+   * Owner views only.
+   */
   includeTotals?: boolean;
 }
 
@@ -442,11 +452,17 @@ export async function listReservations(
   if (filters.unitId) {
     conditions.push(eq(reservations.unitId, filters.unitId));
   }
+  if (filters.unitIds?.length) {
+    conditions.push(inArray(reservations.unitId, [...filters.unitIds]));
+  }
   if (filters.guestId) {
     conditions.push(eq(reservations.guestId, filters.guestId));
   }
   if (filters.platformId) {
     conditions.push(eq(reservations.platformId, filters.platformId));
+  }
+  if (filters.platformIds?.length) {
+    conditions.push(inArray(reservations.platformId, [...filters.platformIds]));
   }
   if (filters.startDate) {
     conditions.push(gte(reservations.checkInDate, filters.startDate));
@@ -461,6 +477,19 @@ export async function listReservations(
     where ${reservationCharges.reservationId} = ${reservations.id}
       and ${reservationCharges.organizationId} = ${reservations.organizationId}
       and ${reservationCharges.type} <> 'security_deposit'
+  ), 0)`.mapWith(Number);
+
+  const bookingPaidCents = sql<number>`coalesce((
+    select sum(${paymentEntries.amountCents}) from ${paymentEntries}
+    where ${paymentEntries.reservationId} = ${reservations.id}
+      and ${paymentEntries.organizationId} = ${reservations.organizationId}
+      and ${paymentEntries.allocation} = 'booking'
+  ), 0)`.mapWith(Number);
+  const bookingRefundedCents = sql<number>`coalesce((
+    select sum(${refundEntries.amountCents}) from ${refundEntries}
+    where ${refundEntries.reservationId} = ${reservations.id}
+      and ${refundEntries.organizationId} = ${reservations.organizationId}
+      and ${refundEntries.allocation} = 'booking'
   ), 0)`.mapWith(Number);
 
   return db
@@ -481,7 +510,9 @@ export async function listReservations(
       platformName: bookingPlatforms.name,
       platformLogoUrl: bookingPlatforms.logoUrl,
       platformColor: bookingPlatforms.color,
-      ...(filters.includeTotals ? { bookingTotalCents } : {}),
+      ...(filters.includeTotals
+        ? { bookingTotalCents, bookingPaidCents, bookingRefundedCents }
+        : {}),
     })
     .from(reservations)
     .innerJoin(
@@ -720,6 +751,48 @@ function assertBookableUnit(unit: Unit) {
   }
 }
 
+/**
+ * The organization's minimum stay applies to direct bookings. Airbnb and the
+ * other platforms enforce their own rules, so a booking that arrives from one
+ * is recorded as it was made.
+ */
+async function assertMinimumStay(
+  organizationId: string,
+  values: { checkIn: string; checkOut: string; platformId?: string },
+) {
+  const [organization] = await db
+    .select({ minStayNights: organizations.minStayNights })
+    .from(organizations)
+    .where(eq(organizations.id, organizationId))
+    .limit(1);
+  const minimum = organization?.minStayNights ?? 1;
+  if (minimum <= 1) return;
+  if (values.platformId) {
+    const [platform] = await db
+      .select({ key: bookingPlatforms.key })
+      .from(bookingPlatforms)
+      .where(
+        and(
+          eq(bookingPlatforms.id, values.platformId),
+          eq(bookingPlatforms.organizationId, organizationId),
+        ),
+      )
+      .limit(1);
+    if (platform && platform.key !== "direct") return;
+  }
+  const nights = Math.round(
+    (Date.parse(`${values.checkOut}T00:00:00Z`) -
+      Date.parse(`${values.checkIn}T00:00:00Z`)) /
+      86_400_000,
+  );
+  if (nights < minimum) {
+    throw new ReservationError(
+      `Direct bookings need at least ${minimum} nights. Change it in Settings → Bookings.`,
+      "checkOut",
+    );
+  }
+}
+
 interface CreateReservationArgs {
   organizationId: string;
   actorUserId: string;
@@ -763,6 +836,8 @@ async function createReservation(
       "guestCount",
     );
   }
+
+  await assertMinimumStay(organizationId, values);
 
   let initialPayment:
     | {
@@ -1645,16 +1720,14 @@ export async function updateReservation(input: {
         ),
       );
     if (data.occupantNames.length)
-      await tx
-        .insert(reservationOccupants)
-        .values(
-          data.occupantNames.map((name, position) => ({
-            organizationId: input.organizationId,
-            reservationId: reservation.id,
-            name,
-            position,
-          })),
-        );
+      await tx.insert(reservationOccupants).values(
+        data.occupantNames.map((name, position) => ({
+          organizationId: input.organizationId,
+          reservationId: reservation.id,
+          name,
+          position,
+        })),
+      );
     // Extension charges are managed from the stay's extensions, not this form.
     await tx
       .delete(reservationCharges)
@@ -1665,20 +1738,18 @@ export async function updateReservation(input: {
           ne(reservationCharges.type, "extension"),
         ),
       );
-    await tx
-      .insert(reservationCharges)
-      .values(
-        data.charges.map((line) => ({
-          organizationId: input.organizationId,
-          reservationId: reservation.id,
-          type: line.type,
-          description: line.description,
-          quantity: line.quantity,
-          unitAmountCents: line.unitAmountCents,
-          amountCents: line.quantity * line.unitAmountCents,
-          isRefundableDeposit: line.type === "security_deposit",
-        })),
-      );
+    await tx.insert(reservationCharges).values(
+      data.charges.map((line) => ({
+        organizationId: input.organizationId,
+        reservationId: reservation.id,
+        type: line.type,
+        description: line.description,
+        quantity: line.quantity,
+        unitAmountCents: line.unitAmountCents,
+        amountCents: line.quantity * line.unitAmountCents,
+        isRefundableDeposit: line.type === "security_deposit",
+      })),
+    );
     await recordAudit(tx, {
       organizationId: input.organizationId,
       actorUserId: input.actorUserId,

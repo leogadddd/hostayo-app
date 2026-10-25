@@ -47,13 +47,13 @@ export function ViewSwitcher({
             scroll={false}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "inline-flex h-9 items-center gap-1.5 px-3 font-medium transition-colors not-first:border-l not-first:border-pine/15 focus-visible:-outline-offset-2",
+              "inline-flex h-9 items-center gap-1.5 px-3 font-medium max-sm:px-3.5 transition-colors not-first:border-l not-first:border-pine/15 focus-visible:-outline-offset-2",
               active
                 ? "bg-primary text-white"
                 : "text-pine hover:bg-pine-mist/60",
             )}
           >
-            <Icon className="h-4 w-4" aria-hidden />
+            <Icon className="h-4 w-4 max-sm:hidden" aria-hidden />
             {label}
           </Link>
         );

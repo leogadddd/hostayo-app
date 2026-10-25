@@ -28,7 +28,7 @@ const CHOICES = [
     href: "/onboarding/organization",
     title: "Create a new organization",
     description:
-      "Set up your business, first property and first unit. You’ll be its owner.",
+      "Tell us about your business and get a checklist to go live. You’ll be its owner.",
     icon: Building2,
   },
   {

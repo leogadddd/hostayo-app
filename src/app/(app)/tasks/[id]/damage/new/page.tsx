@@ -3,8 +3,7 @@ import { redirect } from "next/navigation";
 import { requirePermission } from "@/lib/auth/session";
 import { PermissionDenied } from "@/components/app/permission-denied";
 import { getTaskDetail } from "@/server/operations/service";
-import { PageHeading } from "@/components/app/page-heading";
-import { Card, CardBody } from "@/components/ui/card";
+import { TaskActionPage } from "../../task-action-page";
 import { DamageReportForm } from "../../../damage-report-form";
 
 export const metadata: Metadata = { title: "Report turnover damage" };
@@ -24,21 +23,12 @@ export default async function NewTaskDamagePage({
   if (task.status !== "open") redirect(`/tasks/${task.id}`);
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <PageHeading
-        title="Report damage"
-        description={`${propertyName} · ${unitName}. This report stays open until the owner resolves it.`}
-        backHref={`/tasks/${task.id}`}
-        backLabel="Back to task"
-      />
-      <Card>
-        <CardBody>
-          <DamageReportForm
-            unitId={task.unitId}
-            returnHref={`/tasks/${task.id}`}
-          />
-        </CardBody>
-      </Card>
-    </div>
+    <TaskActionPage
+      title="Report damage"
+      description={`${propertyName} · ${unitName}. This report stays open until the owner resolves it.`}
+      taskId={task.id}
+    >
+      <DamageReportForm unitId={task.unitId} returnHref={`/tasks/${task.id}`} />
+    </TaskActionPage>
   );
 }

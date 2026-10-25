@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import {
@@ -19,6 +20,59 @@ const TIME_LABEL = new Intl.DateTimeFormat("en-PH", {
   dateStyle: "medium",
   timeStyle: "short",
 });
+
+type LedgerRow = {
+  id: string;
+  when: Date;
+  title: ReactNode;
+  detail?: ReactNode;
+  badge?: string;
+  amount: string;
+  /** Money going back out (refunds, deductions). */
+  out?: boolean;
+};
+
+/** The phone's version of a ledger table: one tappable-looking card row per entry. */
+function LedgerRows({ rows, empty }: { rows: LedgerRow[]; empty: string }) {
+  if (!rows.length)
+    return (
+      <p className="rounded-2xl bg-linen px-4 py-5 text-center text-sm text-ink/55 lg:hidden">
+        {empty}
+      </p>
+    );
+  return (
+    <ul className="divide-y divide-pine/8 overflow-hidden rounded-2xl bg-linen lg:hidden">
+      {rows.map((row) => (
+        <li
+          key={row.id}
+          className="flex items-start justify-between gap-3 px-4 py-3.5"
+        >
+          <div className="min-w-0">
+            <p className="text-[15px] font-semibold text-pine">{row.title}</p>
+            {row.detail ? (
+              <p className="mt-0.5 break-words text-xs text-ink/60">
+                {row.detail}
+              </p>
+            ) : null}
+            <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink/50">
+              {TIME_LABEL.format(row.when)}
+              {row.badge ? <Badge tone="neutral">{row.badge}</Badge> : null}
+            </p>
+          </div>
+          <p
+            className={
+              row.out
+                ? "shrink-0 text-base font-semibold tabular-nums text-clay-deep"
+                : "shrink-0 text-base font-semibold tabular-nums text-pine"
+            }
+          >
+            {row.amount}
+          </p>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export function PaymentsCard({
   reservationId,
@@ -107,140 +161,189 @@ export function PaymentsCard({
           <h3 className="text-sm font-medium text-pine">
             Payments ({payments.length})
           </h3>
-          <Table aria-label="Payments">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Received</TableHead>
-                <TableHead>Method / reference</TableHead>
-                <TableHead>Towards</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {payments.length ? (
-                payments.map((payment) => (
-                  <TableRow key={payment.id}>
-                    <TableCell className="whitespace-nowrap text-xs text-ink/60">
-                      {TIME_LABEL.format(payment.receivedAt)}
-                    </TableCell>
-                    <TableCell>
-                      <PaymentMethodLabel
-                        method={payment.method}
-                        className="text-pine"
-                      />
-                      {payment.reference ? (
-                        <p className="mt-1 max-w-64 break-words text-xs text-ink/55">
-                          {payment.reference}
-                        </p>
-                      ) : null}
-                    </TableCell>
-                    <TableCell>
-                      <Badge tone="neutral">
-                        {PAYMENT_ALLOCATION_LABELS[payment.allocation]}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap text-right font-medium text-pine">
-                      {formatPHP(payment.amountCents)}
+          <div className="max-lg:hidden">
+            <Table aria-label="Payments">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Received</TableHead>
+                  <TableHead>Method / reference</TableHead>
+                  <TableHead>Towards</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {payments.length ? (
+                  payments.map((payment) => (
+                    <TableRow key={payment.id}>
+                      <TableCell className="whitespace-nowrap text-xs text-ink/60">
+                        {TIME_LABEL.format(payment.receivedAt)}
+                      </TableCell>
+                      <TableCell>
+                        <PaymentMethodLabel
+                          method={payment.method}
+                          className="text-pine"
+                        />
+                        {payment.reference ? (
+                          <p className="mt-1 max-w-64 break-words text-xs text-ink/55">
+                            {payment.reference}
+                          </p>
+                        ) : null}
+                      </TableCell>
+                      <TableCell>
+                        <Badge tone="neutral">
+                          {PAYMENT_ALLOCATION_LABELS[payment.allocation]}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-right font-medium text-pine">
+                        {formatPHP(payment.amountCents)}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-ink/55">
+                      No payments recorded yet.
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-ink/55">
-                    No payments recorded yet.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          <LedgerRows
+            empty="No payments recorded yet."
+            rows={payments.map((payment) => ({
+              id: payment.id,
+              when: payment.receivedAt,
+              title: (
+                <PaymentMethodLabel
+                  method={payment.method}
+                  className="text-pine"
+                />
+              ),
+              detail: payment.reference,
+              badge: PAYMENT_ALLOCATION_LABELS[payment.allocation],
+              amount: formatPHP(payment.amountCents),
+            }))}
+          />
         </section>
 
         <section className="space-y-3">
           <h3 className="text-sm font-medium text-pine">
             Refunds ({refunds.length})
           </h3>
-          <Table aria-label="Refunds">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Returned</TableHead>
-                <TableHead>Reason / method</TableHead>
-                <TableHead>From</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {refunds.length ? (
-                refunds.map((refund) => (
-                  <TableRow key={refund.id}>
-                    <TableCell className="whitespace-nowrap text-xs text-ink/60">
-                      {TIME_LABEL.format(refund.refundedAt)}
-                    </TableCell>
-                    <TableCell>
-                      <p className="min-w-40 max-w-64 break-words text-pine">
-                        {refund.reason}
-                      </p>
-                      <PaymentMethodLabel
-                        method={refund.method}
-                        className="mt-1 text-xs text-ink/55"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Badge tone="neutral">
-                        {PAYMENT_ALLOCATION_LABELS[refund.allocation]}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap text-right font-medium text-clay-deep">
-                      -{formatPHP(refund.amountCents)}
+          <div className="max-lg:hidden">
+            <Table aria-label="Refunds">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Returned</TableHead>
+                  <TableHead>Reason / method</TableHead>
+                  <TableHead>From</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {refunds.length ? (
+                  refunds.map((refund) => (
+                    <TableRow key={refund.id}>
+                      <TableCell className="whitespace-nowrap text-xs text-ink/60">
+                        {TIME_LABEL.format(refund.refundedAt)}
+                      </TableCell>
+                      <TableCell>
+                        <p className="min-w-40 max-w-64 break-words text-pine">
+                          {refund.reason}
+                        </p>
+                        <PaymentMethodLabel
+                          method={refund.method}
+                          className="mt-1 text-xs text-ink/55"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Badge tone="neutral">
+                          {PAYMENT_ALLOCATION_LABELS[refund.allocation]}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-right font-medium text-clay-deep">
+                        -{formatPHP(refund.amountCents)}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-ink/55">
+                      No refunds recorded yet.
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-ink/55">
-                    No refunds recorded yet.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          <LedgerRows
+            empty="No refunds recorded yet."
+            rows={refunds.map((refund) => ({
+              id: refund.id,
+              when: refund.refundedAt,
+              title: refund.reason,
+              detail: (
+                <PaymentMethodLabel
+                  method={refund.method}
+                  className="text-xs"
+                />
+              ),
+              badge: PAYMENT_ALLOCATION_LABELS[refund.allocation],
+              amount: `-${formatPHP(refund.amountCents)}`,
+              out: true,
+            }))}
+          />
         </section>
 
         <section className="space-y-3">
           <h3 className="text-sm font-medium text-pine">
             Deposit deductions ({deductions.length})
           </h3>
-          <Table aria-label="Deposit deductions">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Recorded</TableHead>
-                <TableHead>Reason</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {deductions.length ? (
-                deductions.map((deduction) => (
-                  <TableRow key={deduction.id}>
-                    <TableCell className="whitespace-nowrap text-xs text-ink/60">
-                      {TIME_LABEL.format(deduction.createdAt)}
-                    </TableCell>
-                    <TableCell className="min-w-40 max-w-64 break-words text-pine">
-                      {deduction.reason}
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap text-right font-medium text-clay-deep">
-                      -{formatPHP(deduction.amountCents)}
+          <div className="max-lg:hidden">
+            <Table aria-label="Deposit deductions">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Recorded</TableHead>
+                  <TableHead>Reason</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {deductions.length ? (
+                  deductions.map((deduction) => (
+                    <TableRow key={deduction.id}>
+                      <TableCell className="whitespace-nowrap text-xs text-ink/60">
+                        {TIME_LABEL.format(deduction.createdAt)}
+                      </TableCell>
+                      <TableCell className="min-w-40 max-w-64 break-words text-pine">
+                        {deduction.reason}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-right font-medium text-clay-deep">
+                        -{formatPHP(deduction.amountCents)}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-ink/55">
+                      No deductions recorded yet.
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={3} className="text-ink/55">
-                    No deductions recorded yet.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          <LedgerRows
+            empty="No deductions recorded yet."
+            rows={deductions.map((deduction) => ({
+              id: deduction.id,
+              when: deduction.createdAt,
+              title: deduction.reason,
+              amount: `-${formatPHP(deduction.amountCents)}`,
+              out: true,
+            }))}
+          />
         </section>
 
         {canReviewProofs && proofs.length > 0 ? (

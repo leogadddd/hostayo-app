@@ -54,10 +54,10 @@ export function ReservationSummary({
       : 0);
   const paidTotal = paidBooking + paidDeposit;
   return (
-    <div className="overflow-hidden rounded-2xl border border-pine/10 bg-surface shadow-[0_1px_2px_rgba(32,58,53,0.06)]">
+    <div className="overflow-hidden rounded-2xl border border-pine/10 bg-surface shadow-[0_1px_2px_rgba(32,58,53,0.06)] max-lg:rounded-3xl max-lg:border-0 max-lg:shadow-[0_4px_24px_rgba(32,58,53,0.07)] max-lg:ring-1 max-lg:ring-pine/[0.06]">
       <UnitPhoto
         src={unit?.imageUrl ?? null}
-        className="aspect-[16/9] w-full"
+        className="aspect-[16/9] w-full max-lg:aspect-[21/8]"
       />
       <div className="space-y-4 p-5">
         <div>

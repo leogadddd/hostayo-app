@@ -4,8 +4,7 @@ import { requirePermission } from "@/lib/auth/session";
 import { can } from "@/lib/permissions";
 import { PermissionDenied } from "@/components/app/permission-denied";
 import { getTaskDetail } from "@/server/operations/service";
-import { PageHeading } from "@/components/app/page-heading";
-import { Card, CardBody } from "@/components/ui/card";
+import { TaskActionPage } from "../task-action-page";
 import { MarkReadyForm } from "../mark-ready-form";
 
 export const metadata: Metadata = { title: "Mark unit ready" };
@@ -26,41 +25,34 @@ export default async function TaskReadyPage({
   );
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <PageHeading
-        title="Mark unit ready"
-        description={`${propertyName} · ${unitName}`}
-        backHref={`/tasks/${task.id}`}
-        backLabel="Back to task"
-      />
-      <Card>
-        <CardBody className="space-y-4">
-          <p className="rounded-lg bg-sage/35 p-4 text-sm text-pine">
-            Marking ready is final. The turnover checklist will become
-            read-only.
-          </p>
-          {!requiredComplete ? (
-            <p className="text-sm text-ink/70">
-              Complete every required checklist item before marking the unit
-              ready. Damage overrides never skip required items.
-            </p>
-          ) : assessment.openDamageCount > 0 &&
-            !can(membership, "damage.update") ? (
-            <p className="text-sm text-ink/70">
-              Your role can’t mark a unit ready while damage is open. Ask
-              someone who can resolve damage to resolve it or approve an
-              override.
-            </p>
-          ) : (
-            <MarkReadyForm
-              taskId={task.id}
-              canMarkReady={assessment.canMarkReady}
-              openDamageCount={assessment.openDamageCount}
-              canOverrideDamage={can(membership, "damage.update")}
-            />
-          )}
-        </CardBody>
-      </Card>
-    </div>
+    <TaskActionPage
+      title="Mark unit ready"
+      description={`${propertyName} · ${unitName}`}
+      taskId={task.id}
+      bodyClassName="space-y-4"
+    >
+      <p className="rounded-lg bg-sage/35 p-4 text-sm text-pine">
+        Marking ready is final. The turnover checklist will become read-only.
+      </p>
+      {!requiredComplete ? (
+        <p className="text-sm text-ink/70">
+          Complete every required checklist item before marking the unit ready.
+          Damage overrides never skip required items.
+        </p>
+      ) : assessment.openDamageCount > 0 &&
+        !can(membership, "damage.update") ? (
+        <p className="text-sm text-ink/70">
+          Your role can’t mark a unit ready while damage is open. Ask someone
+          who can resolve damage to resolve it or approve an override.
+        </p>
+      ) : (
+        <MarkReadyForm
+          taskId={task.id}
+          canMarkReady={assessment.canMarkReady}
+          openDamageCount={assessment.openDamageCount}
+          canOverrideDamage={can(membership, "damage.update")}
+        />
+      )}
+    </TaskActionPage>
   );
 }

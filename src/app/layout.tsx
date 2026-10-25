@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Montserrat } from "next/font/google";
 import { cookies } from "next/headers";
 import { HostayoToaster } from "@/components/ui/sonner";
@@ -24,6 +24,14 @@ const montserrat = Montserrat({
 const TITLE = "Hostayo | A calmer way to run your stays";
 const DESCRIPTION =
   "Bookings, payments, turnovers and expenses for short-stay hosts in the Philippines.";
+
+// `cover` lets the app bar sit under the home indicator; the tab bar pads itself
+// with the safe-area inset.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://app.hostayo.casa"),

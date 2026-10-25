@@ -1,84 +1,18 @@
-import { cookies } from "next/headers";
-import { getDatabaseLabel } from "@/lib/database-label";
-import {
-  isL1,
-  listMemberships,
-  requireMembership,
-  requireUser,
-} from "@/lib/auth/session";
-import { resolvePermissions } from "@/lib/permissions";
 import { AppHeader, AppSidebar } from "@/components/app/sidebar";
-import { parseOpenGroups, SIDEBAR_GROUPS_COOKIE } from "@/lib/sidebar-groups";
-import { countUnreadEarlyAccessRequests } from "@/server/early-access/service";
-import { getOrganizationLogoUrl } from "@/server/orgs/service";
+import { MobileTabBar } from "@/components/app/mobile-tab-bar";
+import { ViewportSync } from "@/components/app/viewport-sync";
+import { getAppIdentity } from "@/lib/app-identity";
+import { getDeviceClass } from "@/lib/device";
 
 export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // These share the request-scoped auth cache, and running them together keeps
-  // the layout from adding a sequential wait before the page can render.
-  const [user, membership, memberOf, l1] = await Promise.all([
-    requireUser(),
-    requireMembership(),
-    requireUser().then((user) => listMemberships(user.id)),
-    requireUser().then((user) => isL1(user.id)),
+  const [identity, device] = await Promise.all([
+    getAppIdentity(),
+    getDeviceClass(),
   ]);
-  // An L1 operator's picker searches the rest; only their own organizations
-  // and the one they're in are sent down.
-  const organizations = [
-    ...memberOf.map((row) => ({ ...row, viaL1: false })),
-    ...(membership.viaL1 ? [{ ...membership, viaL1: true }] : []),
-  ];
-  const organizationLogoUrls = await Promise.all(
-    organizations.map((organization) =>
-      getOrganizationLogoUrl(organization.organizationId),
-    ),
-  );
-  const organizationLogoUrl =
-    organizationLogoUrls[
-      organizations.findIndex(
-        (organization) =>
-          organization.organizationId === membership.organizationId,
-      )
-    ] ?? null;
-  const identity = {
-    organizationId: membership.organizationId,
-    organizationSlug: membership.organizationSlug,
-    organizationName: membership.organizationName,
-    organizationImage: organizationLogoUrl?.startsWith("data:")
-      ? organizationLogoUrl
-      : organizationLogoUrl
-        ? `/api/orgs/${membership.organizationId}/logo`
-        : null,
-    organizations: organizations.map((organization, index) => ({
-      id: organization.organizationId,
-      name: organization.organizationName,
-      role: organization.role,
-      viaL1: organization.viaL1,
-      imageSrc: organizationLogoUrls[index]?.startsWith("data:")
-        ? organizationLogoUrls[index]
-        : organizationLogoUrls[index]
-          ? `/api/orgs/${organization.organizationId}/logo`
-          : null,
-    })),
-    userName: user.name,
-    userEmail: user.email,
-    userImage: user.image?.startsWith(`user/${user.id}/`)
-      ? `/api/users/${user.id}/profile-image`
-      : (user.image ?? null),
-    role: membership.role,
-    viaL1: membership.viaL1 ?? false,
-    isDemoAccount: membership.isDemoAccount,
-    l1,
-    permissions: membership.permissions ?? resolvePermissions(membership.role),
-    databaseLabel: getDatabaseLabel(),
-    openGroups: parseOpenGroups(
-      (await cookies()).get(SIDEBAR_GROUPS_COOKIE)?.value,
-    ),
-    earlyAccessUnread: l1 ? await countUnreadEarlyAccessRequests() : 0,
-  };
   return (
     <div className="flex h-dvh overflow-hidden bg-paper">
       <a
@@ -87,16 +21,20 @@ export default async function AppLayout({
       >
         Skip to content
       </a>
+      <ViewportSync rendered={device} />
       <AppSidebar {...identity} />
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <AppHeader {...identity} initialNow={new Date().toISOString()} />
         <main
           id="main-content"
           tabIndex={-1}
-          className="app-scroll relative min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8 lg:py-8"
+          // Sticky bars inside this scroller stick inside its padding; this is how far
+          // to pull them back so they sit flush on the tab bar.
+          className="app-scroll relative min-h-0 flex-1 overflow-y-auto px-4 py-5 [--sticky-bottom:-1.25rem] sm:px-6 sm:py-6 sm:[--sticky-bottom:-1.5rem] lg:px-8 lg:py-8 lg:[--sticky-bottom:0px]"
         >
           {children}
         </main>
+        <MobileTabBar role={identity.role} permissions={identity.permissions} />
       </div>
     </div>
   );

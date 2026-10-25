@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { CheckCircle as CheckCircle2 } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
+import { FormActions } from "@/components/ui/form-actions";
 import { FieldError, Input, Label, Select } from "@/components/ui/input";
 import { PAYMENT_ALLOCATION_LABELS, PAYMENT_METHOD_LABELS } from "@/lib/labels";
 import {
@@ -106,9 +107,11 @@ export function RecordProofForm({
         </div>
       </div>
       <FieldError message={state.error} />
-      <Button type="submit" variant="clay" disabled={pending}>
-        {pending ? "Recording…" : "Record against this reference"}
-      </Button>
+      <FormActions>
+        <Button type="submit" variant="clay" disabled={pending}>
+          {pending ? "Recording…" : "Record against this reference"}
+        </Button>
+      </FormActions>
     </form>
   );
 }

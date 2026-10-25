@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import {
   CheckCircle as CircleCheck,
   XCircle as CircleX,
@@ -20,7 +20,23 @@ export function setToastAfterNavigation(kind: ToastKind, message: string) {
   window.dispatchEvent(new Event(FLASH_EVENT));
 }
 
+const PHONE_QUERY = "(max-width: 1023px)";
+
+/** True below `lg`, where the tab bar and floating button own the bottom edge. */
+function usePhoneLayout() {
+  return useSyncExternalStore(
+    (notify) => {
+      const query = window.matchMedia(PHONE_QUERY);
+      query.addEventListener("change", notify);
+      return () => query.removeEventListener("change", notify);
+    },
+    () => window.matchMedia(PHONE_QUERY).matches,
+    () => false,
+  );
+}
+
 export function HostayoToaster() {
+  const phone = usePhoneLayout();
   useEffect(() => {
     function showNavigationToast() {
       const value = sessionStorage.getItem(FLASH_KEY);
@@ -45,9 +61,21 @@ export function HostayoToaster() {
   return (
     <Sonner
       className="hostayo-toaster"
-      position="bottom-right"
-      offset={{ bottom: 18, right: 18 }}
-      mobileOffset={{ bottom: 12, right: 12, left: 12 }}
+      position={phone ? "top-center" : "bottom-right"}
+      offset={
+        phone
+          ? {
+              top: "calc(env(safe-area-inset-top) + 12px)",
+              left: 12,
+              right: 12,
+            }
+          : { bottom: 18, right: 18 }
+      }
+      mobileOffset={{
+        top: "calc(env(safe-area-inset-top) + 12px)",
+        right: 12,
+        left: 12,
+      }}
       duration={4500}
       gap={10}
       visibleToasts={4}

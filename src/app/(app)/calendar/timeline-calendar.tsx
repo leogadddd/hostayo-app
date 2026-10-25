@@ -273,7 +273,7 @@ export function TimelineCalendar({
       <section
         aria-labelledby="calendar-month"
         aria-busy={loading}
-        className="overflow-hidden rounded-lg border border-pine/15 bg-linen shadow-[0_1px_3px_rgba(32,58,53,0.03)]"
+        className="[--unit-col:7rem] sm:[--unit-col:11rem] overflow-hidden rounded-lg border border-pine/15 bg-linen shadow-[0_1px_3px_rgba(32,58,53,0.03)]"
       >
         <div className="flex flex-wrap items-center gap-3 border-b border-pine/15 px-4 py-4 sm:px-5">
           <nav
@@ -332,14 +332,14 @@ export function TimelineCalendar({
           <div
             className="flex flex-col"
             style={{
-              minWidth: UNIT_COLUMN + daysWidth,
+              minWidth: `calc(var(--unit-col) + ${daysWidth}px)`,
               minHeight: MIN_HEIGHT,
             }}
           >
             <div className="flex border-b border-pine/15">
               <div
                 className="sticky left-0 z-30 shrink-0 border-r border-pine/15 bg-linen px-3 py-2 text-xs text-ink/60"
-                style={{ width: UNIT_COLUMN }}
+                style={{ width: "var(--unit-col)" }}
               >
                 Unit
               </div>
@@ -354,7 +354,7 @@ export function TimelineCalendar({
                       {/* The name stays in view while its month scrolls past. */}
                       <span
                         className="sticky inline-block whitespace-nowrap px-3 py-1 text-xs font-semibold text-pine"
-                        style={{ left: UNIT_COLUMN }}
+                        style={{ left: "var(--unit-col)" }}
                       >
                         {monthLabel(run.key)}
                       </span>
@@ -404,7 +404,7 @@ export function TimelineCalendar({
                   >
                     <div
                       className="sticky left-0 z-30 flex shrink-0 flex-col justify-center border-r border-pine/15 bg-linen px-3 py-2"
-                      style={{ width: UNIT_COLUMN }}
+                      style={{ width: "var(--unit-col)" }}
                     >
                       <span className="truncate text-sm font-medium text-pine">
                         {unit.name}
@@ -510,7 +510,7 @@ export function TimelineCalendar({
               <div aria-hidden="true" className="flex flex-1">
                 <div
                   className="sticky left-0 z-30 shrink-0 border-r border-pine/15 bg-linen"
-                  style={{ width: UNIT_COLUMN }}
+                  style={{ width: "var(--unit-col)" }}
                 />
                 <div className="relative flex-1" style={{ width: daysWidth }}>
                   {dayColumns("absolute inset-0")}
@@ -520,7 +520,7 @@ export function TimelineCalendar({
               <div
                 aria-hidden
                 className="pointer-events-none absolute inset-y-0"
-                style={{ left: UNIT_COLUMN, width: daysWidth }}
+                style={{ left: "var(--unit-col)", width: daysWidth }}
               >
                 <NowLine timeZone={timeZone} days={days} showLabel />
               </div>

@@ -26,7 +26,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           isNull(units.deletedAt),
         ),
       )
-      .where(eq(organizations.publicListingEnabled, true));
+      .where(
+        and(
+          eq(organizations.publicListingEnabled, true),
+          eq(organizations.publicPageLive, true),
+        ),
+      );
     const hosts = new Set<string>();
     for (const row of listed) {
       if (!hosts.has(row.host)) {

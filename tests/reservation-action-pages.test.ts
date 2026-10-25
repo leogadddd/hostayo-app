@@ -44,6 +44,8 @@ import DamagePage from "@/app/(app)/reservations/[id]/damage/new/page";
 import RecordProofPage from "@/app/(app)/reservations/[id]/proofs/[proofId]/record/page";
 import ReservationDetailPage from "@/app/(app)/reservations/[id]/page";
 import ReservationsPage from "@/app/(app)/reservations/page";
+import { getDeviceClass } from "@/lib/device";
+import { parseIds } from "@/app/(app)/reservations/model";
 import { RecordPaymentForm } from "@/app/(app)/reservations/[id]/record-payment-form";
 import { RecordRefundForm } from "@/app/(app)/reservations/[id]/record-refund-form";
 import { AddDeductionForm } from "@/app/(app)/reservations/[id]/add-deduction-form";
@@ -111,7 +113,12 @@ vi.mock("@/server/reservations/extensions", () => ({
   })),
 }));
 vi.mock("@/server/inventory/service", () => ({ listOrgUnits: vi.fn() }));
-vi.mock("@/app/(app)/reservations/actions", () => ({}));
+vi.mock("@/app/(app)/reservations/actions", () => ({
+  quickCancelReservationAction: vi.fn(),
+}));
+vi.mock("@/lib/device", () => ({
+  getDeviceClass: vi.fn(async () => "desktop"),
+}));
 vi.mock("@/app/(app)/reviews/actions", () => ({}));
 vi.mock("@/server/reviews/service", () => ({
   getReservationReview: async () => null,
@@ -211,6 +218,13 @@ function nodes(
   if (Array.isArray(node)) return node.flatMap(nodes);
   if (!React.isValidElement<Record<string, unknown>>(node)) return [];
   return [node, ...nodes(node.props.children as React.ReactNode)];
+}
+/** The page returns one element per layout; expand it to the tree it renders. */
+async function reservationsListTree(searchParams: Record<string, string> = {}) {
+  const element = (await ReservationsPage({
+    searchParams: Promise.resolve(searchParams),
+  })) as React.ReactElement<Record<string, unknown>>;
+  return (element.type as (props: unknown) => React.ReactNode)(element.props);
 }
 function serialize(tree: React.ReactNode) {
   return JSON.stringify(tree, (_key, value) =>
@@ -550,7 +564,7 @@ describe("read-only reservation detail and shared tables", () => {
         createdAt: new Date("2026-08-01T02:00:00Z"),
       },
     ] as Awaited<ReturnType<typeof listReservations>>);
-    const tree = await ReservationsPage({ searchParams: Promise.resolve({}) });
+    const tree = await reservationsListTree();
     expect(nodes(tree).some((node) => node.type === Table)).toBe(true);
     const html = renderToStaticMarkup(tree);
     for (const heading of [
@@ -570,6 +584,131 @@ describe("read-only reservation detail and shared tables", () => {
     // Staff never see money columns.
     expect(html).not.toContain(">Total</th>");
     expect(html).toContain('href="/reservations/reservation-a"');
+  });
+
+  describe("reservations list on a phone", () => {
+    const row = () => ({
+      ...fixture().reservation,
+      guestName: "Test guest",
+      unitName: "Test unit",
+      propertyName: "Test property",
+      platformName: "Airbnb",
+      platformLogoUrl: null,
+      platformColor: "#FF5A5F",
+      createdAt: new Date("2026-08-01T02:00:00Z"),
+      bookingTotalCents: 450_000,
+      bookingPaidCents: 100_000,
+      bookingRefundedCents: 0,
+    });
+
+    beforeEach(() => {
+      vi.mocked(getDeviceClass).mockResolvedValue("mobile");
+      vi.mocked(listOrgUnits).mockResolvedValue([]);
+      vi.mocked(listReservations).mockResolvedValue([
+        row(),
+      ] as unknown as Awaited<ReturnType<typeof listReservations>>);
+    });
+
+    it("shows cards instead of a table, with search, status chips and the end marker", async () => {
+      vi.mocked(requirePermission).mockResolvedValue(owner);
+      const html = renderToStaticMarkup(
+        (await ReservationsPage({
+          searchParams: Promise.resolve({}),
+        })) as React.ReactElement,
+      );
+      expect(html).not.toContain("<table");
+      expect(html).toContain("Test guest");
+      expect(html).toContain("Test unit");
+      expect(html).toContain('aria-label="Filter by status"');
+      expect(html).toContain('role="search"');
+      expect(html).toContain('href="/reservations/reservation-a"');
+      expect(html).toContain("You’ve reached the end of this page");
+      expect(html).toContain(
+        'aria-label="Open actions for reservation for Test guest"',
+      );
+    });
+
+    it("filters by several units and platforms at once", async () => {
+      vi.mocked(requirePermission).mockResolvedValue(owner);
+      const unitA = "11111111-1111-4111-8111-111111111111";
+      const unitB = "22222222-2222-4222-8222-222222222222";
+      const platform = "33333333-3333-4333-8333-333333333333";
+      await ReservationsPage({
+        searchParams: Promise.resolve({ unit: [unitA, unitB], platform }),
+      });
+      expect(listReservations).toHaveBeenLastCalledWith(
+        owner.organizationId,
+        expect.objectContaining({
+          unitIds: [unitA, unitB],
+          platformIds: [platform],
+        }),
+      );
+    });
+
+    it("ignores unit and platform values that are not ids", async () => {
+      vi.mocked(requirePermission).mockResolvedValue(owner);
+      await ReservationsPage({
+        searchParams: Promise.resolve({ unit: ["nope", ""], platform: "x" }),
+      });
+      expect(listReservations).toHaveBeenLastCalledWith(
+        owner.organizationId,
+        expect.objectContaining({ unitIds: [], platformIds: [] }),
+      );
+    });
+
+    it("shows totals to people who can see money", async () => {
+      vi.mocked(requirePermission).mockResolvedValue(owner);
+      const html = renderToStaticMarkup(
+        (await ReservationsPage({
+          searchParams: Promise.resolve({}),
+        })) as React.ReactElement,
+      );
+      expect(html).toContain("₱4,500");
+    });
+
+    it("shows what is still owed, and a paid-in-full mark once it is settled", async () => {
+      vi.mocked(requirePermission).mockResolvedValue(owner);
+      const render = async () =>
+        renderToStaticMarkup(
+          (await ReservationsPage({
+            searchParams: Promise.resolve({}),
+          })) as React.ReactElement,
+        );
+      // ₱4,500 total, ₱1,000 paid.
+      let html = await render();
+      expect(html).toContain("Remaining");
+      expect(html).toContain("₱3,500");
+      expect(html).not.toContain("Paid in full");
+      // Fully paid.
+      vi.mocked(listReservations).mockResolvedValue([
+        { ...row(), bookingPaidCents: 450_000 },
+      ] as unknown as Awaited<ReturnType<typeof listReservations>>);
+      html = await render();
+      expect(html).toContain("Paid in full");
+      expect(html).not.toContain("Remaining");
+      // A refund against the booking puts the balance back.
+      vi.mocked(listReservations).mockResolvedValue([
+        { ...row(), bookingPaidCents: 450_000, bookingRefundedCents: 50_000 },
+      ] as unknown as Awaited<ReturnType<typeof listReservations>>);
+      html = await render();
+      expect(html).toContain("₱500");
+      expect(html).toContain("Remaining");
+    });
+
+    it("keeps totals away from staff", async () => {
+      vi.mocked(requirePermission).mockResolvedValue({
+        ...owner,
+        role: "staff",
+      });
+      const html = renderToStaticMarkup(
+        (await ReservationsPage({
+          searchParams: Promise.resolve({}),
+        })) as React.ReactElement,
+      );
+      expect(html).toContain("Test guest");
+      expect(html).not.toContain("₱4,500");
+      expect(html).not.toContain("Remaining");
+    });
   });
 
   it("uses shared tables for all three financial movement lists", () => {
@@ -680,5 +819,18 @@ describe("proof payment retry safety", () => {
         data: { idempotencyKey: "proof:proof-a" },
       });
     }
+  });
+});
+
+describe("parseIds", () => {
+  const a = "11111111-1111-4111-8111-111111111111";
+  const b = "22222222-2222-4222-8222-222222222222";
+  it("accepts one id or a repeated parameter", () => {
+    expect(parseIds(a)).toEqual([a]);
+    expect(parseIds([a, b])).toEqual([a, b]);
+  });
+  it("drops blanks, repeats and anything that is not an id", () => {
+    expect(parseIds(undefined)).toEqual([]);
+    expect(parseIds(["", "nope", a, a])).toEqual([a]);
   });
 });

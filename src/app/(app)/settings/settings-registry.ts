@@ -1,5 +1,6 @@
 import {
   Buildings as Building2,
+  CalendarCheck,
   GlobeHemisphereWest as Globe2,
   Key as KeyRound,
   Lifebuoy as LifeBuoy,
@@ -31,6 +32,12 @@ export const SETTINGS_NAVIGATION: readonly {
     href: "/settings/organization",
     label: "Organization",
     icon: Building2,
+    requires: "organization.update",
+  },
+  {
+    href: "/settings/bookings",
+    label: "Bookings",
+    icon: CalendarCheck,
     requires: "organization.update",
   },
   {

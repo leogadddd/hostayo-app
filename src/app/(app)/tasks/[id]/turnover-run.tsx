@@ -794,9 +794,12 @@ export function TurnoverRun(props: RunProps) {
                       ref={doneButton}
                       type="button"
                       onClick={() => complete(current)}
-                      className="inline-flex h-16 flex-1 items-center justify-center gap-3 rounded-2xl bg-clay text-lg font-semibold text-white shadow-lg transition hover:bg-clay-strong active:scale-[0.98]"
+                      className="inline-flex max-sm:h-28 h-16 shrink-0 items-center justify-center gap-4 rounded-3xl bg-clay max-sm:text-3xl max-sm:w-full sm:h-16 sm:flex-1 sm:rounded-2xl sm:text-lg font-semibold text-white shadow-lg transition hover:bg-clay-strong active:scale-[0.98]"
                     >
-                      <Check className="h-6 w-6" aria-hidden />
+                      <Check
+                        className="h-10 w-10 max-sm:h-11 max-sm:w-11 sm:h-6 sm:w-6"
+                        aria-hidden
+                      />
                       Done
                       <kbd className="ml-1 hidden rounded border border-white/30 px-1.5 py-0.5 font-sans text-[11px] font-medium text-white/70 lg:inline">
                         Enter
@@ -806,7 +809,7 @@ export function TurnoverRun(props: RunProps) {
                       <button
                         type="button"
                         onClick={() => skip(current)}
-                        className="inline-flex h-16 items-center justify-center gap-2 rounded-2xl border border-white/25 px-6 font-medium text-white/85 transition hover:bg-white/10"
+                        className="inline-flex h-14 shrink-0 items-center justify-center gap-2 rounded-2xl border border-white/25 px-6 font-medium text-white/85 transition hover:bg-white/10"
                       >
                         <SkipForward className="h-5 w-5" aria-hidden />
                         Skip bonus

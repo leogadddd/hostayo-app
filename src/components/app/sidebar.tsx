@@ -1,38 +1,26 @@
 "use client";
 
-import { useMemo, useRef, useSyncExternalStore } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  BookOpen,
-  Buildings as Building2,
-  CalendarBlank as Calendar,
-  ClipboardText as ClipboardList,
-  Receipt,
-  Tag,
-  Wrench,
-  ChartBar as BarChart3,
   Gear as Settings,
-  Users,
-  List as Menu,
-  X,
   CaretRight as ChevronRight,
   Layout as LayoutDashboard,
-  House,
-  Tray as Inbox,
-  Calculator,
-  CalendarDots as CalendarRange,
-  Bank as Landmark,
-  ChatText as MessageSquareText,
-  Percent,
   Scroll as ScrollText,
-  Star,
 } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { SIDEBAR_GROUPS_COOKIE } from "@/lib/sidebar-groups";
 import { APP_VERSION } from "@/lib/app-version";
-import { can, type Permission, type RoleKey } from "@/lib/permissions";
-import { Logo, LogoMark } from "@/components/logo";
+import type { Permission, RoleKey } from "@/lib/permissions";
+import {
+  NAV,
+  isGroup,
+  linkActive,
+  linkVisible,
+  type NavLink,
+} from "@/components/app/nav-config";
+import { Logo } from "@/components/logo";
 import { AccountMenu } from "@/components/app/account-menu";
 import { SharePublicLink } from "@/components/app/share-public-link";
 import { LiveClock } from "@/components/app/live-clock";
@@ -41,177 +29,6 @@ import {
   OrganizationSelector,
   type OrganizationOption,
 } from "@/components/app/organization-selector";
-
-interface NavLink {
-  href: string;
-  label: string;
-  icon: typeof LayoutDashboard;
-  /** The item shows when the member holds any of these; without it, it shows to everyone. */
-  anyOf?: readonly Permission[];
-  /** Active only on this exact path, not on pages beneath it. */
-  exact?: boolean;
-}
-
-/** A labelled, collapsible section of links. */
-interface NavGroup {
-  id: string;
-  label: string;
-  items: readonly NavLink[];
-  defaultOpen?: boolean;
-  /** Shown to L1 operators only. */
-  l1Only?: boolean;
-}
-
-type NavEntry = NavLink | NavGroup;
-
-const NAV: readonly NavEntry[] = [
-  { href: "/dashboard", label: "Dashboard", icon: House },
-  {
-    id: "bookings",
-    label: "Bookings",
-    defaultOpen: true,
-    items: [
-      {
-        href: "/calendar",
-        label: "Calendar",
-        icon: Calendar,
-        anyOf: ["reservations.view"],
-      },
-      {
-        href: "/reservations",
-        label: "Reservations",
-        icon: BookOpen,
-        anyOf: ["reservations.view"],
-      },
-      { href: "/guests", label: "Guests", icon: Users, anyOf: ["guests.view"] },
-      {
-        href: "/reviews",
-        label: "Reviews",
-        icon: Star,
-        anyOf: ["reviews.view"],
-      },
-    ],
-  },
-  {
-    id: "property",
-    label: "Property",
-    defaultOpen: true,
-    items: [
-      {
-        href: "/properties",
-        label: "Properties",
-        icon: Building2,
-        anyOf: ["properties.view"],
-      },
-      {
-        href: "/tasks",
-        label: "Tasks",
-        icon: ClipboardList,
-        anyOf: ["tasks.view"],
-      },
-    ],
-  },
-  {
-    id: "money",
-    label: "Money",
-    defaultOpen: true,
-    items: [
-      {
-        href: "/pricing",
-        label: "Pricing",
-        icon: Tag,
-        anyOf: ["pricing.view"],
-      },
-      {
-        href: "/expenses",
-        label: "Expenses",
-        icon: Receipt,
-        anyOf: ["expenses.view"],
-      },
-      {
-        href: "/reports",
-        label: "Reports",
-        icon: BarChart3,
-        anyOf: ["reports.view"],
-      },
-    ],
-  },
-  {
-    id: "tools",
-    label: "Tools",
-    items: [
-      {
-        href: "/tools",
-        label: "All tools",
-        icon: Wrench,
-        anyOf: ["pricing.view"],
-        exact: true,
-      },
-      {
-        href: "/tools/pricing-calculator",
-        label: "Rate calculator",
-        icon: Calculator,
-        anyOf: ["pricing.view"],
-      },
-      {
-        href: "/tools/property-breakeven",
-        label: "Property break-even",
-        icon: Building2,
-        anyOf: ["pricing.view"],
-      },
-      {
-        href: "/tools/platform-fees",
-        label: "Platform fees",
-        icon: Percent,
-        anyOf: ["pricing.view"],
-      },
-      {
-        href: "/tools/guest-quote",
-        label: "Guest quote",
-        icon: MessageSquareText,
-        anyOf: ["pricing.view"],
-      },
-      {
-        href: "/tools/seasonal-planner",
-        label: "Seasonal planner",
-        icon: CalendarRange,
-        anyOf: ["pricing.view"],
-      },
-      {
-        href: "/tools/investment-payback",
-        label: "Investment payback",
-        icon: Landmark,
-        anyOf: ["pricing.view"],
-      },
-    ],
-  },
-  { href: "/settings/general", label: "Settings", icon: Settings },
-  {
-    id: "l1",
-    label: "L1 operator",
-    l1Only: true,
-    items: [
-      { href: "/early-access", label: "Early access", icon: Inbox },
-      { href: "/accounts", label: "Accounts", icon: Users },
-      { href: "/workspaces", label: "Workspaces", icon: Building2 },
-    ],
-  },
-];
-
-function isGroup(entry: NavEntry): entry is NavGroup {
-  return "items" in entry;
-}
-
-function linkVisible(
-  item: NavLink,
-  role: RoleKey,
-  permissions?: readonly Permission[],
-) {
-  return (
-    !item.anyOf ||
-    item.anyOf.some((permission) => can({ role, permissions }, permission))
-  );
-}
 
 /** A page the header search can jump to. */
 export interface SearchPage {
@@ -304,13 +121,6 @@ export function searchablePages(
   return pages;
 }
 
-function linkActive(item: NavLink, pathname: string) {
-  if (item.href === "/settings/general")
-    return pathname.startsWith("/settings");
-  if (item.exact) return pathname === item.href;
-  return pathname === item.href || pathname.startsWith(`${item.href}/`);
-}
-
 const GROUPS_CHANGED = "hostayo:sidebar-groups";
 
 /** Set once a group is toggled in this tab, so the desktop sidebar and the mobile drawer agree. */
@@ -356,7 +166,82 @@ type SidebarProps = {
   earlyAccessUnread?: number;
   /** Groups the member opened or closed, from the cookie the server read. */
   openGroups?: Record<string, boolean>;
+  /** Go-live setup progress; null once finished or for people who can't finish it. */
+  goLive?: { doneCount: number; total: number } | null;
+  /** Whether the public page is live; shown in the header. */
+  publicPageLive?: boolean;
+  /** The member can open Settings → General to change it. */
+  canManageGoLive?: boolean;
 };
+
+/** Live / Offline pill for the public page. Links to the switch when the member can change it. */
+function LiveStatus({ live, manage }: { live: boolean; manage: boolean }) {
+  const content = (
+    <>
+      <span
+        aria-hidden
+        className={cn("h-2 w-2 rounded-full", live ? "bg-moss" : "bg-ink/35")}
+      />
+      {live ? "Live" : "Offline"}
+    </>
+  );
+  const className = cn(
+    "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium",
+    live
+      ? "border-moss/40 bg-sage/40 text-pine"
+      : "border-pine/20 bg-pine-mist text-ink/65",
+  );
+  const title = live
+    ? "Your public page is live"
+    : "Your public page is offline";
+  return manage ? (
+    <Link
+      href="/settings/general"
+      title={`${title}. Open settings`}
+      className={cn(className, "hover:border-pine/40")}
+    >
+      {content}
+    </Link>
+  ) : (
+    <span title={title} className={className}>
+      {content}
+    </span>
+  );
+}
+
+/** Setup progress under the navigation. The whole card links to the checklist on the dashboard. */
+function SetupProgress({
+  goLive,
+}: {
+  goLive: NonNullable<SidebarProps["goLive"]>;
+}) {
+  const pathname = usePathname();
+  const percent = Math.round((goLive.doneCount / goLive.total) * 100);
+  return (
+    <Link
+      href="/dashboard"
+      aria-label={`Go-live setup, ${goLive.doneCount} of ${goLive.total} done. Open checklist`}
+      aria-current={pathname === "/dashboard" ? "page" : undefined}
+      className="mx-4 mb-3 block rounded-xl bg-paper/10 p-4 transition-colors hover:bg-paper/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage"
+    >
+      <div className="flex items-baseline justify-between gap-2">
+        <p className="text-sm font-medium text-white">Go-live setup</p>
+        <p className="text-xs tabular-nums text-paper/70">
+          {goLive.doneCount} of {goLive.total}
+        </p>
+      </div>
+      <div
+        aria-hidden
+        className="mt-3 h-1.5 overflow-hidden rounded-full bg-paper/15"
+      >
+        <div
+          className="h-full rounded-full bg-[#d58d74] transition-[width] duration-500"
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+    </Link>
+  );
+}
 
 function NavItem({
   item,
@@ -525,6 +410,7 @@ export function AppSidebar(props: SidebarProps) {
         earlyAccessUnread={props.earlyAccessUnread}
         openGroups={props.openGroups ?? NO_GROUPS}
       />
+      {props.goLive ? <SetupProgress goLive={props.goLive} /> : null}
       <p className="px-6 py-5 text-xs font-medium tracking-wide text-paper/45">
         {props.databaseLabel && (
           <span className="mb-1 block text-paper/70">
@@ -581,7 +467,6 @@ export function AppHeader({
   ...props
 }: SidebarProps & { initialNow: string }) {
   const pathname = usePathname();
-  const mobileNav = useRef<HTMLDialogElement>(null);
   // const segments = pathname.split("/").filter(Boolean);
   const organizations = props.organizations ?? [
     {
@@ -598,25 +483,10 @@ export function AppHeader({
   return (
     <header
       data-testid="app-header"
-      className="z-20 flex h-20 shrink-0 items-center justify-between gap-3 border-b border-pine/12 bg-chrome px-4 sm:px-6 lg:px-6"
+      // The phone layout has no top header: each page brings its own title bar.
+      className="z-20 hidden h-20 shrink-0 items-center justify-between gap-3 border-b border-pine/12 bg-chrome px-6 lg:flex"
     >
-      <div className="flex min-w-0 items-center gap-3 lg:gap-0">
-        <button
-          type="button"
-          aria-label="Open navigation"
-          aria-haspopup="dialog"
-          onClick={() => mobileNav.current?.showModal()}
-          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-pine/15 text-pine lg:hidden"
-        >
-          <Menu className="h-5 w-5" />
-        </button>
-        <Link
-          href="/dashboard"
-          aria-label="Hostayo dashboard"
-          className="inline-flex sm:hidden"
-        >
-          <LogoMark className="h-8 w-7 text-pine" />
-        </Link>
+      <div className="flex min-w-0 items-center">
         <nav aria-label="Breadcrumb" className="hidden min-w-0 sm:block">
           {/* <ol className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm">
             {segments.map((segment, index) => {
@@ -654,12 +524,10 @@ export function AppHeader({
             })}
           </ol> */}
         </nav>
-        {/* Below lg the selector lives in the navigation drawer instead. */}
         <OrganizationSelector
           organizations={organizations}
           activeOrganizationId={activeOrganizationId}
           imageSrc={props.organizationImage ?? null}
-          className="hidden lg:block"
           l1={props.l1}
         />
       </div>
@@ -671,7 +539,13 @@ export function AppHeader({
         />
       </div>
       <div className="flex shrink-0 items-center gap-5">
-        {props.organizationSlug ? (
+        {props.publicPageLive !== undefined ? (
+          <LiveStatus
+            live={props.publicPageLive}
+            manage={props.canManageGoLive ?? false}
+          />
+        ) : null}
+        {props.organizationSlug && props.publicPageLive !== false ? (
           <SharePublicLink
             href={`/h/${encodeURIComponent(props.organizationSlug)}`}
             title={`${props.organizationName} public page`}
@@ -682,59 +556,17 @@ export function AppHeader({
           />
         ) : null}
         <LiveClock initialNow={initialNow} />
-        <AccountMenu
-          userName={props.userName}
-          userEmail={props.userEmail}
-          userImage={props.userImage ?? null}
-          role={props.role}
-          viaL1={props.viaL1}
-          isDemoAccount={props.isDemoAccount}
-        />
-      </div>
-      <dialog
-        ref={mobileNav}
-        aria-label="Navigation"
-        className="fixed inset-y-0 left-0 m-0 h-dvh max-h-none theme-keep-light w-72 max-w-[85vw] border-0 bg-pine p-0 text-paper backdrop:bg-scrim/50"
-      >
-        <div className="flex h-full flex-col">
-          <div className="flex items-center justify-between gap-2 px-5 pb-4 pt-6">
-            <Logo className="w-40 text-paper" />
-            <button
-              type="button"
-              aria-label="Close navigation"
-              onClick={() => mobileNav.current?.close()}
-              className="rounded-lg p-2 hover:bg-paper/10"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-          <OrganizationSelector
-            organizations={organizations}
-            activeOrganizationId={activeOrganizationId}
-            imageSrc={props.organizationImage ?? null}
-            tone="dark"
-            l1={props.l1}
-            className="mx-3.5 mb-2 border-b border-paper/10 pb-3"
-            onSwitched={() => mobileNav.current?.close()}
-          />
-          <Navigation
+        <div>
+          <AccountMenu
+            userName={props.userName}
+            userEmail={props.userEmail}
+            userImage={props.userImage ?? null}
             role={props.role}
-            permissions={props.permissions}
-            l1={props.l1}
-            earlyAccessUnread={props.earlyAccessUnread}
-            openGroups={props.openGroups ?? NO_GROUPS}
-            onNavigate={() => mobileNav.current?.close()}
+            viaL1={props.viaL1}
+            isDemoAccount={props.isDemoAccount}
           />
-          <p className="px-6 py-5 text-xs font-medium tracking-wide text-paper/45">
-            {props.databaseLabel && (
-              <span className="mb-1 block text-paper/70">
-                {props.databaseLabel}
-              </span>
-            )}
-            Version {APP_VERSION}
-          </p>
         </div>
-      </dialog>
+      </div>
     </header>
   );
 }

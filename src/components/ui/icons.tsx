@@ -37,6 +37,7 @@ import {
   CaretLeftIcon as BaseCaretLeft,
   CaretRightIcon as BaseCaretRight,
   CaretUpDownIcon as BaseCaretUpDown,
+  CaretUpIcon as BaseCaretUp,
   ChartBarIcon as BaseChartBar,
   ChartBarHorizontalIcon as BaseChartBarHorizontal,
   ChartLineUpIcon as BaseChartLineUp,
@@ -151,6 +152,7 @@ import {
   TrophyIcon as BaseTrophy,
   UmbrellaIcon as BaseUmbrella,
   UploadSimpleIcon as BaseUploadSimple,
+  UserCircleIcon as BaseUserCircle,
   UserIcon as BaseUser,
   UserGearIcon as BaseUserGear,
   UserPlusIcon as BaseUserPlus,
@@ -221,6 +223,7 @@ export const Car = bold(BaseCar);
 export const CaretDown = bold(BaseCaretDown);
 export const CaretLeft = bold(BaseCaretLeft);
 export const CaretRight = bold(BaseCaretRight);
+export const CaretUp = bold(BaseCaretUp);
 export const CaretUpDown = bold(BaseCaretUpDown);
 export const ChartBar = bold(BaseChartBar);
 export const ChartBarHorizontal = bold(BaseChartBarHorizontal);
@@ -337,6 +340,7 @@ export const Trophy = bold(BaseTrophy);
 export const Umbrella = bold(BaseUmbrella);
 export const UploadSimple = bold(BaseUploadSimple);
 export const User = bold(BaseUser);
+export const UserCircle = bold(BaseUserCircle);
 export const UserGear = bold(BaseUserGear);
 export const UserPlus = bold(BaseUserPlus);
 export const Users = bold(BaseUsers);

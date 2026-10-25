@@ -1,15 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  getDemoAccountStatus,
   requireMembership,
   requireUser,
   type MembershipContext,
 } from "@/lib/auth/session";
-import * as inventory from "@/server/inventory/service";
 import * as orgs from "@/server/orgs/service";
 import {
-  saveFirstPropertyAction,
-  saveFirstUnitAction,
+  saveOperationAction,
   saveOrganizationAction,
+  saveWorkflowAction,
 } from "@/app/onboarding/actions";
 import {
   getOnboardingState,
@@ -22,6 +22,7 @@ vi.mock("@/lib/auth/session", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/auth/session")>()),
   requireUser: vi.fn(),
   requireMembership: vi.fn(),
+  getDemoAccountStatus: vi.fn(),
 }));
 vi.mock("@/lib/auth", () => ({ auth: {} }));
 vi.mock("@/lib/db", () => ({
@@ -38,14 +39,7 @@ vi.mock("@/server/orgs/service", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/server/orgs/service")>()),
   createOrganization: vi.fn(),
   updateOrganizationName: vi.fn(),
-}));
-vi.mock("@/server/inventory/service", () => ({
-  createProperty: vi.fn(),
-  updateProperty: vi.fn(),
-  createUnit: vi.fn(),
-  updateUnit: vi.fn(),
-  listProperties: vi.fn(),
-  listOrgUnits: vi.fn(),
+  saveOnboardingProfile: vi.fn(),
 }));
 vi.mock("@/app/onboarding/state", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/app/onboarding/state")>()),
@@ -66,30 +60,7 @@ const membership = {
   role: "owner" as const,
   blockedAt: null,
 };
-const property = {
-  id: "property-1",
-  name: "Makati Suites",
-  address: null,
-  timezone: "Asia/Manila",
-  checkInTime: "14:00",
-  checkOutTime: "12:00",
-  turnoverDurationMinutes: 90,
-  houseRules: "No smoking",
-} as NonNullable<OnboardingState["property"]>;
-const unit = {
-  id: "unit-1",
-  name: "Unit 12B",
-  capacity: 4,
-  bedrooms: 2,
-  bathrooms: 1.5,
-  defaultNightlyRateCents: 550000,
-  cleaningFeeCents: 50000,
-  securityDepositCents: null,
-  checkInTime: "14:00",
-  checkOutTime: "12:00",
-  status: "active",
-} as NonNullable<OnboardingState["unit"]>;
-const empty: OnboardingState = { membership: null, property: null, unit: null };
+const empty: OnboardingState = { membership: null, profile: null };
 
 function form(values: Record<string, string>) {
   const data = new FormData();
@@ -107,6 +78,7 @@ beforeEach(() => {
     ReturnType<typeof requireUser>
   >);
   vi.mocked(requireMembership).mockResolvedValue(owner);
+  vi.mocked(getDemoAccountStatus).mockResolvedValue(false);
   withState({});
 });
 
@@ -153,106 +125,45 @@ describe("saveOrganizationAction", () => {
   });
 });
 
-describe("saveFirstPropertyAction", () => {
-  it("creates the property with the organization's timezone", async () => {
-    withState({ membership });
+describe("saveOperationAction", () => {
+  it("saves the answers and ignores values it doesn't know", async () => {
     expect(
-      await saveFirstPropertyAction(
+      await saveOperationAction(
         {},
-        form({ name: "Makati Suites", address: "Ayala Ave" }),
+        form({ unitCount: "2-5", monthlyBookings: "<script>" }),
       ),
     ).toEqual({ success: true });
-    expect(inventory.createProperty).toHaveBeenCalledWith(
-      expect.objectContaining({
-        organizationId: "org-1",
-        data: expect.objectContaining({
-          name: "Makati Suites",
-          address: "Ayala Ave",
-          timezone: "Asia/Singapore",
-        }),
-      }),
-    );
-  });
-
-  it("edits the existing property and keeps its other settings", async () => {
-    withState({ membership, property });
-    await saveFirstPropertyAction(
-      {},
-      form({ name: "BGC Lofts", address: "5th Ave" }),
-    );
-    expect(inventory.createProperty).not.toHaveBeenCalled();
-    expect(inventory.updateProperty).toHaveBeenCalledWith(
-      expect.objectContaining({
-        propertyId: "property-1",
-        data: {
-          name: "BGC Lofts",
-          address: "5th Ave",
-          timezone: "Asia/Manila",
-          checkInTime: "14:00",
-          checkOutTime: "12:00",
-          turnoverDurationMinutes: 90,
-          houseRules: "No smoking",
-        },
-      }),
-    );
+    expect(orgs.saveOnboardingProfile).toHaveBeenCalledWith({
+      organizationId: "org-1",
+      answers: { unitCount: "2-5", monthlyBookings: undefined },
+    });
   });
 
   it("rejects staff", async () => {
     vi.mocked(requireMembership).mockResolvedValue({ ...owner, role: "staff" });
     expect(
-      (await saveFirstPropertyAction({}, form({ name: "Makati Suites" })))
-        .error,
+      (await saveOperationAction({}, form({ unitCount: "1" }))).error,
     ).toBeTruthy();
-    expect(inventory.createProperty).not.toHaveBeenCalled();
+    expect(orgs.saveOnboardingProfile).not.toHaveBeenCalled();
   });
 });
 
-describe("saveFirstUnitAction", () => {
-  it("creates an active unit from just its name", async () => {
-    withState({ membership, property });
-    expect(await saveFirstUnitAction({}, form({ name: "Unit 12B" }))).toEqual({
-      success: true,
+describe("saveWorkflowAction", () => {
+  it("saves distinct known sources", async () => {
+    const data = form({ teamSize: "solo", currentTool: "spreadsheet" });
+    data.append("sources", "airbnb");
+    data.append("sources", "airbnb");
+    data.append("sources", "bogus");
+    data.append("sources", "facebook");
+    expect(await saveWorkflowAction({}, data)).toEqual({ success: true });
+    expect(orgs.saveOnboardingProfile).toHaveBeenCalledWith({
+      organizationId: "org-1",
+      answers: {
+        sources: ["airbnb", "facebook"],
+        teamSize: "solo",
+        currentTool: "spreadsheet",
+      },
     });
-    expect(inventory.createUnit).toHaveBeenCalledWith(
-      expect.objectContaining({
-        propertyId: "property-1",
-        data: expect.objectContaining({
-          name: "Unit 12B",
-          status: "active",
-          capacity: 2,
-          checkInTime: "14:00",
-          checkOutTime: "12:00",
-        }),
-      }),
-    );
-  });
-
-  it("renames the existing unit and keeps its other settings", async () => {
-    withState({ membership, property, unit });
-    await saveFirstUnitAction({}, form({ name: "Unit 15A" }));
-    expect(inventory.createUnit).not.toHaveBeenCalled();
-    expect(inventory.updateUnit).toHaveBeenCalledWith(
-      expect.objectContaining({
-        unitId: "unit-1",
-        data: expect.objectContaining({
-          name: "Unit 15A",
-          capacity: 4,
-          bedrooms: 2,
-          bathrooms: 1.5,
-          defaultNightlyRateCents: 550000,
-          cleaningFeeCents: 50000,
-          status: "active",
-        }),
-      }),
-    );
-  });
-
-  it("needs a property first", async () => {
-    withState({ membership });
-    expect(
-      (await saveFirstUnitAction({}, form({ name: "Unit 12B" }))).error,
-    ).toBeTruthy();
-    expect(inventory.createUnit).not.toHaveBeenCalled();
   });
 });
 
@@ -260,26 +171,23 @@ describe("onboarding routing", () => {
   it("finds the first missing step", () => {
     expect(nextOnboardingPath(empty)).toBe("/onboarding/organization");
     expect(nextOnboardingPath({ ...empty, membership })).toBe(
-      "/onboarding/property",
+      "/onboarding/operation",
     );
-    expect(nextOnboardingPath({ ...empty, membership, property })).toBe(
-      "/onboarding/unit",
-    );
-    expect(nextOnboardingPath({ membership, property, unit })).toBe(
+    expect(
+      nextOnboardingPath({ membership, profile: { unitCount: "1" } }),
+    ).toBe("/onboarding/workflow");
+    expect(nextOnboardingPath({ membership, profile: { sources: [] } })).toBe(
       "/onboarding/welcome",
     );
   });
 
   it("lets owners revisit finished steps but not jump ahead", () => {
-    const done = { membership, property, unit };
+    const done = { membership, profile: { sources: [] } };
     expect(guardOnboardingStep(done, "organization")).toBeNull();
-    expect(guardOnboardingStep(done, "property")).toBeNull();
-    expect(guardOnboardingStep(done, "unit")).toBeNull();
-    expect(guardOnboardingStep(empty, "property")).toBe(
+    expect(guardOnboardingStep(done, "operation")).toBeNull();
+    expect(guardOnboardingStep(done, "workflow")).toBeNull();
+    expect(guardOnboardingStep(empty, "operation")).toBe(
       "/onboarding/organization",
-    );
-    expect(guardOnboardingStep({ ...empty, membership }, "unit")).toBe(
-      "/onboarding/property",
     );
   });
 

@@ -32,6 +32,14 @@ import { listTasks } from "@/server/operations/service";
 import { getReservationBalances } from "@/server/payments/service";
 import { formatPHP } from "@/lib/money";
 import { PageHeading } from "@/components/app/page-heading";
+import { getDeviceClass } from "@/lib/device";
+import {
+  getMobileSearchProps,
+  MobileTopBar,
+} from "@/components/app/mobile-top-bar";
+import { EndOfPage } from "@/components/app/end-of-page";
+import { MobileFab } from "@/components/app/mobile-fab";
+import { MobileMonth, type PhoneEvent } from "./mobile-month";
 import { buttonClassName } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MonthCalendar, type DisplayCalendarEvent } from "./month-calendar";
@@ -85,6 +93,8 @@ export default async function CalendarPage({
   const membership = await requirePermission("reservations.view");
   if (!membership) return <PermissionDenied />;
   const params = await searchParams;
+  const device = await getDeviceClass();
+  const phone = device === "mobile";
   const [properties, allUnits] = await Promise.all([
     listProperties(membership.organizationId),
     listOrgUnits(membership.organizationId),
@@ -499,6 +509,30 @@ export default async function CalendarPage({
     (unit) => unit.status === "active",
   );
   const monthLabel = MONTH_LABEL.format(new Date(`${month}-01T00:00:00Z`));
+  const phoneEvents: PhoneEvent[] = displayEvents.flatMap((event) =>
+    event.kind === "stay" ||
+    event.kind === "hold" ||
+    event.kind === "block" ||
+    event.kind === "unavailable"
+      ? [
+          {
+            id: event.id,
+            kind: event.kind,
+            status: event.status,
+            title:
+              event.kind === "block"
+                ? (event.description ?? event.title)
+                : event.title,
+            unitLabel: event.unitLabel,
+            startDate: event.startDate,
+            endDate: event.endDate,
+            href: event.href,
+            timeLabel: event.timeLabel,
+            platformName: event.platform?.name,
+          },
+        ]
+      : [],
+  );
   // Only display-safe fields cross into the presentation components.
   const activityDisplay = (reservation: (typeof activity)[number]) => ({
     ...reservation,
@@ -520,27 +554,32 @@ export default async function CalendarPage({
 
   return (
     <div className="mx-auto min-w-0 max-w-[1600px] overflow-hidden">
-      <PageHeading title="Calendar">
-        <div className="flex flex-wrap gap-2">
-          <Link
-            href="/calendar/availability"
-            className={buttonClassName("ghost", "md")}
-          >
-            <CalendarCheck className="h-4 w-4" aria-hidden />
-            Check availability
-          </Link>
-          <Link
-            href={newReservationHref(today)}
-            className={buttonClassName("clay", "md")}
-          >
-            <Plus className="h-4 w-4" aria-hidden />
-            New reservation
-          </Link>
-        </div>
-      </PageHeading>
+      {phone ? (
+        <MobileTopBar title="Calendar" search={await getMobileSearchProps()} />
+      ) : (
+        <PageHeading title="Calendar">
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/calendar/availability"
+              className={buttonClassName("ghost", "md")}
+            >
+              <CalendarCheck className="h-4 w-4" aria-hidden />
+              Check availability
+            </Link>
+            <Link
+              href={newReservationHref(today)}
+              className={buttonClassName("clay", "md")}
+            >
+              <Plus className="h-4 w-4" aria-hidden />
+              New reservation
+            </Link>
+          </div>
+        </PageHeading>
+      )}
 
       {allUnits.length > 1 ? (
         <UnitFilter
+          compact={phone}
           selectedId={selectedUnit?.id ?? null}
           hrefFor={(unitId) => calendarHref({ unitId })}
           units={allUnits.map((unit) => {
@@ -604,6 +643,21 @@ export default async function CalendarPage({
               unitId={selectedUnit?.id ?? null}
               viewSwitcher={viewSwitcher}
             />
+          ) : visibleUnits.length && phone ? (
+            <MobileMonth
+              month={month}
+              monthLabel={monthLabel}
+              today={today}
+              events={phoneEvents}
+              previousHref={calendarHref({ month: shiftMonth(month, -1) })}
+              nextHref={calendarHref({ month: shiftMonth(month, 1) })}
+              todayHref={calendarHref({ month: today.slice(0, 7) })}
+              viewSwitcher={viewSwitcher}
+              unitId={
+                selectedUnit?.status === "active" ? selectedUnit.id : undefined
+              }
+              canBook={canBookVisibleUnit}
+            />
           ) : visibleUnits.length ? (
             <MonthCalendar
               month={month}
@@ -642,20 +696,41 @@ export default async function CalendarPage({
           )}
         </div>
 
-        <TodayPanel
-          today={today}
-          timezone={timezone}
-          multipleTimezones={multipleTimezones}
-          scopeLabel={selectedUnit ? unitLabel(selectedUnit.id) : "All units"}
-          arrivals={arrivals.map(activityDisplay)}
-          departures={departures.map(activityDisplay)}
-          activeHolds={activeHolds.map(activityDisplay)}
-          openTasks={openTasks.map((task) => ({
-            ...task,
-            unitLabel: unitLabel(task.unitId),
-          }))}
-        />
+        {phone && view === "month" ? null : (
+          <TodayPanel
+            today={today}
+            timezone={timezone}
+            multipleTimezones={multipleTimezones}
+            scopeLabel={selectedUnit ? unitLabel(selectedUnit.id) : "All units"}
+            arrivals={arrivals.map(activityDisplay)}
+            departures={departures.map(activityDisplay)}
+            activeHolds={activeHolds.map(activityDisplay)}
+            openTasks={openTasks.map((task) => ({
+              ...task,
+              unitLabel: unitLabel(task.unitId),
+            }))}
+          />
+        )}
       </div>
+
+      {phone ? <EndOfPage /> : null}
+
+      {phone ? (
+        <MobileFab
+          actions={[
+            {
+              href: newReservationHref(today),
+              label: "New reservation",
+              icon: "plus",
+            },
+            {
+              href: "/calendar/availability",
+              label: "Check availability",
+              icon: "availability",
+            },
+          ]}
+        />
+      ) : null}
     </div>
   );
 }

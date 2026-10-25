@@ -8,6 +8,7 @@ import {
   ShieldCheck,
 } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
+import { FormActions } from "@/components/ui/form-actions";
 import { FieldError, Label, Textarea } from "@/components/ui/input";
 import { formatPHP } from "@/lib/money";
 import { cn } from "@/lib/utils";
@@ -258,19 +259,21 @@ export function RecordRefundForm({
       </div>
 
       <FieldError message={state.error} />
-      <Button
-        type="submit"
-        variant="clay"
-        size="lg"
-        disabled={pending || invalidAmount || tooMuch}
-        className="w-full"
-      >
-        {pending
-          ? "Recording…"
-          : amountCents && !tooMuch
-            ? `Record ${formatPHP(amountCents)} refund`
-            : "Record refund"}
-      </Button>
+      <FormActions>
+        <Button
+          type="submit"
+          variant="clay"
+          size="lg"
+          disabled={pending || invalidAmount || tooMuch}
+          className="w-full"
+        >
+          {pending
+            ? "Recording…"
+            : amountCents && !tooMuch
+              ? `Record ${formatPHP(amountCents)} refund`
+              : "Record refund"}
+        </Button>
+      </FormActions>
     </form>
   );
 }

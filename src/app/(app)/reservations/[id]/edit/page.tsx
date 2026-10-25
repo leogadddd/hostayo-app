@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { requirePermission } from "@/lib/auth/session";
 import { can } from "@/lib/permissions";
 import { PermissionDenied } from "@/components/app/permission-denied";
+import { MobileBackHeader } from "@/components/app/mobile-back-header";
 import { PageHeading } from "@/components/app/page-heading";
 import {
   getReservationDetail,
@@ -13,6 +14,7 @@ import { listPlatforms } from "@/server/reservations/platforms";
 import { listOrgUnits, listProperties } from "@/server/inventory/service";
 import { listPricingRules } from "@/server/pricing/service";
 import { getReservationLedger } from "@/server/payments/service";
+import { getDeviceClass } from "@/lib/device";
 import { ReservationForm } from "../../new/reservation-form";
 import { toUnitOption } from "../../new/unit-options";
 import { todayInTimeZone } from "@/lib/dates";
@@ -32,6 +34,7 @@ export default async function EditReservationPage({
     );
   }
   const { id } = await params;
+  const device = await getDeviceClass();
   let detail;
   try {
     detail = await getReservationDetail(membership.organizationId, id);
@@ -74,13 +77,24 @@ export default async function EditReservationPage({
 
   return (
     <div className="min-w-0 overflow-x-clip">
-      <PageHeading
-        title="Edit reservation"
-        description={`${guest.name} · #${reservation.id.slice(0, 8).toUpperCase()}. Payment history stays as an immutable ledger.`}
-        backHref={backHref}
-        backLabel="Back to reservation"
-      />
+      <div className="lg:hidden">
+        <MobileBackHeader
+          title="Edit reservation"
+          subtitle={`${guest.name} · #${reservation.id.slice(0, 8).toUpperCase()}`}
+          backHref={backHref}
+          backLabel="Back to reservation"
+        />
+      </div>
+      <div className="hidden lg:block">
+        <PageHeading
+          title="Edit reservation"
+          description={`${guest.name} · #${reservation.id.slice(0, 8).toUpperCase()}. Payment history stays as an immutable ledger.`}
+          backHref={backHref}
+          backLabel="Back to reservation"
+        />
+      </div>
       <ReservationForm
+        variant={device}
         canConfirm
         canSetCharges
         // The current unit stays selectable even if it is no longer active.

@@ -24,11 +24,49 @@ export function UnitFilter({
   units,
   selectedId,
   hrefFor,
+  compact = false,
 }: {
   units: UnitFilterOption[];
   selectedId: string | null;
   hrefFor: (unitId: string | null) => string;
+  /** One-line text pills, for phones. */
+  compact?: boolean;
 }) {
+  if (compact) {
+    const pills = [
+      { id: null, name: "All units" },
+      ...units.map((unit) => ({ id: unit.id, name: unit.name })),
+    ];
+    return (
+      <nav
+        aria-label="Show calendar for"
+        className="-mx-4 mb-3 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6"
+      >
+        <ul className="flex w-max gap-2">
+          {pills.map((pill) => {
+            const active = pill.id === selectedId;
+            return (
+              <li key={pill.id ?? "all"}>
+                <Link
+                  href={hrefFor(pill.id)}
+                  scroll={false}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "flex h-10 max-w-56 items-center truncate rounded-full px-4 text-sm font-medium",
+                    active
+                      ? "bg-pine text-white"
+                      : "bg-surface text-pine ring-1 ring-pine/12",
+                  )}
+                >
+                  <span className="truncate">{pill.name}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    );
+  }
   const showProperty = new Set(units.map((unit) => unit.propertyName)).size > 1;
   return (
     <nav

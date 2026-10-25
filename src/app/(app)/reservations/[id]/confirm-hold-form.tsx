@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import Link from "next/link";
 import { CheckCircle as CheckCircle2 } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
+import { FormActions } from "@/components/ui/form-actions";
 import { FieldError, Label, Textarea } from "@/components/ui/input";
 import { formatPHP } from "@/lib/money";
 import { confirmHoldAction, type ReservationFormState } from "../actions";
@@ -87,9 +88,11 @@ export function ConfirmHoldForm({
         </>
       )}
       <FieldError message={state.error} />
-      <Button type="submit" variant="primary" disabled={pending}>
-        {pending ? "Confirming…" : "Confirm hold"}
-      </Button>
+      <FormActions>
+        <Button type="submit" variant="primary" disabled={pending}>
+          {pending ? "Confirming…" : "Confirm hold"}
+        </Button>
+      </FormActions>
     </form>
   );
 }

@@ -210,6 +210,16 @@ export default async function HostPage({
                   {host.about}
                 </p>
               ) : null}
+              {host.cancellationPolicy ? (
+                <>
+                  <h3 className="mt-5 font-display text-xl text-pine">
+                    Cancellation policy
+                  </h3>
+                  <p className="mt-2 max-w-2xl whitespace-pre-line text-sm leading-relaxed text-ink/70">
+                    {host.cancellationPolicy}
+                  </p>
+                </>
+              ) : null}
               <p className="mt-3 text-sm text-ink/60">
                 Hosting since {host.hostingSince}. Questions about a unit or
                 your dates? Message the host the way that suits you. Your

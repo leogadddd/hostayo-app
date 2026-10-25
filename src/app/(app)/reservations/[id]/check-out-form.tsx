@@ -6,6 +6,7 @@ import {
   SignOut as LogOut,
 } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
+import { FormActions } from "@/components/ui/form-actions";
 import { DateTimeInput } from "@/components/ui/date-time-input";
 import { FieldError, Label, Textarea } from "@/components/ui/input";
 import { checkOutAction, type ReservationFormState } from "../actions";
@@ -94,16 +95,18 @@ export function CheckOutForm({
         />
       </div>
       <FieldError message={state.error} />
-      <Button
-        type="submit"
-        variant="clay"
-        size="lg"
-        disabled={pending}
-        className="w-full"
-      >
-        <LogOut className="h-4 w-4" aria-hidden />
-        {pending ? "Checking out…" : "Check out & start turnover"}
-      </Button>
+      <FormActions>
+        <Button
+          type="submit"
+          variant="clay"
+          size="lg"
+          disabled={pending}
+          className="w-full"
+        >
+          <LogOut className="h-4 w-4" aria-hidden />
+          {pending ? "Checking out…" : "Check out & start turnover"}
+        </Button>
+      </FormActions>
     </form>
   );
 }

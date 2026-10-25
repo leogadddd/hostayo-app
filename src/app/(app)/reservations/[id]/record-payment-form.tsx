@@ -9,6 +9,7 @@ import {
   Warning as TriangleAlert,
 } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
+import { FormActions } from "@/components/ui/form-actions";
 import { DateTimeInput } from "@/components/ui/date-time-input";
 import { FieldError, Input, Label } from "@/components/ui/input";
 import { formatPHP } from "@/lib/money";
@@ -239,19 +240,21 @@ export function RecordPaymentForm({
       />
 
       <FieldError message={state.error} />
-      <Button
-        type="submit"
-        variant="clay"
-        size="lg"
-        disabled={pending || invalidAmount}
-        className="w-full"
-      >
-        {pending
-          ? "Recording…"
-          : amountCents
-            ? `Record ${formatPHP(amountCents)} payment`
-            : "Record payment"}
-      </Button>
+      <FormActions>
+        <Button
+          type="submit"
+          variant="clay"
+          size="lg"
+          disabled={pending || invalidAmount}
+          className="w-full"
+        >
+          {pending
+            ? "Recording…"
+            : amountCents
+              ? `Record ${formatPHP(amountCents)} payment`
+              : "Record payment"}
+        </Button>
+      </FormActions>
     </form>
   );
 }

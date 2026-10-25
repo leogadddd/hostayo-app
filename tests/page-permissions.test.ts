@@ -65,6 +65,9 @@ vi.mock("@/lib/auth/session", async () => {
   };
 });
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("@/lib/device", () => ({
+  getDeviceClass: vi.fn(async () => "desktop"),
+}));
 vi.mock("next/navigation", () => ({
   notFound: vi.fn(() => {
     throw new Error("Not found");
@@ -249,6 +252,12 @@ describe("independent owner page boundaries", () => {
         displayName: null,
         tagline: null,
         publicListingEnabled: true,
+        publicPageLive: true,
+        onboardingProfile: null,
+        aboutText: null,
+        cancellationPolicy: null,
+        minStayNights: 1,
+        setupCompletedAt: null,
         contactChannels: [],
         slug: owner.organizationSlug,
         defaultTimezone: "Asia/Manila",
@@ -437,6 +446,7 @@ describe("new reservation financial boundary", () => {
     const form = elements(tree).find((node) => node.type === ReservationForm);
     expect(form?.props.canConfirm).toBe(false);
     expect(form?.props.canSetCharges).toBe(false);
+    expect(form?.props.variant).toBe("desktop");
     expect(form?.props.units).toEqual([
       {
         id: "unit-a",

@@ -95,6 +95,8 @@ export interface PublicHost {
   displayName: string;
   tagline: string;
   about: string;
+  /** The host's cancellation terms; empty when none were written. */
+  cancellationPolicy: string;
   logoUrl: string | null;
   /** A wide photo for the top of the host page: a property cover, else a unit's. */
   coverImageUrl: string | null;
@@ -277,6 +279,9 @@ export const getPublicHost = cache(
         tagline: true,
         contactChannels: true,
         publicListingEnabled: true,
+        publicPageLive: true,
+        aboutText: true,
+        cancellationPolicy: true,
         city: true,
         municipality: true,
         province: true,
@@ -284,7 +289,7 @@ export const getPublicHost = cache(
       },
       where: eq(organizations.slug, slug),
     });
-    if (!organization) return null;
+    if (!organization || !organization.publicPageLive) return null;
     const rows = await db
       .select({ unit: units, property: properties })
       .from(units)
@@ -405,7 +410,8 @@ export const getPublicHost = cache(
       slug,
       displayName: organization.displayName ?? organization.name,
       tagline: organization.tagline ?? "",
-      about: "",
+      about: organization.aboutText ?? "",
+      cancellationPolicy: organization.cancellationPolicy ?? "",
       logoUrl: isStoredPhotoKey(organization.logoUrl)
         ? `/api/public/hosts/${encodeURIComponent(slug)}/logo`
         : organization.logoUrl,

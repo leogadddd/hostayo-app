@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils";
 const STEPS = [
   { href: "/onboarding", label: "Welcome" },
   { href: "/onboarding/organization", label: "Business" },
-  { href: "/onboarding/property", label: "Property" },
-  { href: "/onboarding/unit", label: "Unit" },
+  { href: "/onboarding/operation", label: "Your business" },
+  { href: "/onboarding/workflow", label: "How you work" },
   { href: "/onboarding/welcome", label: "Ready" },
 ] as const;
 

@@ -62,6 +62,7 @@ export function MiniCalendar({
   gridStart,
   gridEnd,
   events,
+  className,
 }: {
   month: string;
   today: string;
@@ -70,6 +71,7 @@ export function MiniCalendar({
   /** Exclusive. */
   gridEnd: string;
   events: MiniCalendarEvent[];
+  className?: string;
 }) {
   // Nothing is selected at first: today's schedule already covers today.
   const [selected, setSelected] = useState<string | null>(null);
@@ -79,7 +81,7 @@ export function MiniCalendar({
   const selectedEvents = selected ? eventsOn(selected) : [];
 
   return (
-    <Card className="flex flex-col">
+    <Card className={cn("flex flex-col", className)}>
       <CardHeader className="flex items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-1.5">

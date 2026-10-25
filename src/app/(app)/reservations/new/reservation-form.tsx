@@ -1,70 +1,35 @@
 "use client";
 
-import {
-  useActionState,
-  useEffect,
-  useMemo,
-  useState,
-  useTransition,
-  type ReactNode,
-} from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   ArrowRight,
-  Money as Banknote,
   Bathtub as Bath,
   Bed as BedDouble,
-  CalendarCheck,
   Check,
   WarningCircle as CircleAlert,
-  CheckCircle as CircleCheck,
   Clock,
-  Bank as Landmark,
   CircleNotch as LoaderCircle,
   Minus,
-  PencilSimple as Pencil,
   Plus,
   Receipt,
   ArrowCounterClockwise as RotateCcw,
   ShieldCheck,
-  DeviceMobile as Smartphone,
-  Sparkle as Sparkles,
-  Tag,
   Trash as Trash2,
   Users,
   X,
 } from "@/components/ui/icons";
-import type { ChargeType } from "@/lib/db/schema";
-import { EDITABLE_CHARGE_TYPES } from "@/lib/db/schema";
 import { PAYMENT_ALLOCATION_LABELS, PAYMENT_METHOD_LABELS } from "@/lib/labels";
-import {
-  buildDefaultCharges,
-  CHARGE_TYPE_LABELS,
-  computeTotals,
-  type ChargeLineValues,
-} from "@/lib/charges";
-import type { DayRates } from "@/lib/rates";
-import { nightlyRateResolver, type PricingRuleLike } from "@/lib/pricing-rules";
-import { addDaysLocal, nightsBetween } from "@/lib/dates";
-import { centavosToPesosInput, formatPHP, pesosToCentavos } from "@/lib/money";
+import { CHARGE_TYPE_LABELS } from "@/lib/charges";
+import { addDaysLocal } from "@/lib/dates";
+import { formatPHP } from "@/lib/money";
 import { cn } from "@/lib/utils";
+import { StepProgress } from "@/components/ui/step-progress";
 import { TabBar } from "@/components/ui/tab-bar";
 import { Button, buttonClassName } from "@/components/ui/button";
 import { FieldError, Input, Label, Select } from "@/components/ui/input";
-import { SelectMenu, type SelectMenuOption } from "@/components/ui/select-menu";
-import {
-  ChoiceCards,
-  type ChoiceCardOption,
-} from "@/components/ui/choice-cards";
-import {
-  createReservationAction,
-  updateReservationAction,
-  type ReservationFormState,
-} from "../actions";
-import { checkStayAvailabilityAction, type StayAvailability } from "./actions";
-import { useActionFeedback } from "@/hooks/use-action-feedback";
+import { SelectMenu } from "@/components/ui/select-menu";
+import { ChoiceCards } from "@/components/ui/choice-cards";
 import {
   dayLabel,
   plural,
@@ -75,631 +40,120 @@ import { ReservationSummary } from "./reservation-summary";
 import { StayRangeCalendar } from "./stay-range-calendar";
 import { DateInput } from "@/components/ui/date-input";
 import { TimeInput } from "@/components/ui/time-input";
-import {
-  PlatformLogo,
-  type PlatformDisplay,
-} from "@/components/app/platform-badge";
-import {
-  describeReservationFee,
-  reservationFeeCents,
-  type ReservationFeeRule,
-} from "@/lib/reservation-fee";
-import { PAYMENT_METHOD_LOGOS } from "@/components/app/payment-method-logo";
+import { PlatformLogo } from "@/components/app/platform-badge";
+import { describeReservationFee } from "@/lib/reservation-fee";
 import { GuestPicker } from "./guest-picker";
 import { InfoTip } from "@/components/ui/info-tip";
+import {
+  useReservationDraft,
+  STEP_LABELS,
+  CHARGE_TYPE_OPTIONS,
+  PAYMENT_METHOD_OPTIONS,
+  HOLD_OPTIONS,
+  type ReservationDraft,
+  type ReservationFormProps,
+} from "./reservation-draft";
+import {
+  StepHeading,
+  AvailabilityBanner,
+  SaveNowButton,
+  ReviewBlock,
+  ReviewItem,
+  SaveOption,
+} from "./reservation-form-parts";
+import { MobileReservationForm } from "./mobile-reservation-form";
 
-export interface UnitOption {
-  id: string;
-  label: string;
-  name: string;
-  propertyName: string | null;
-  imageUrl: string | null;
-  capacity: number;
-  bedrooms: number;
-  bathrooms: number;
-  checkInTime: string;
-  checkOutTime: string;
-  nightlyRateCents: number | null;
-  /** Weekday rates that differ from the nightly rate; owners only. */
-  dayRates: DayRates | null;
-  /** Active pricing rules that price this unit; owners only. */
-  pricingRules: PricingRuleLike[];
-  cleaningFeeCents: number | null;
-  securityDepositCents: number | null;
-  /** The down payment that confirms a booking from the team's own channels; owners only. */
-  reservationFee: ReservationFeeRule | null;
+export type {
+  ReservationEdit,
+  ReservationFormProps,
+  UnitOption,
+} from "./reservation-draft";
+
+export function ReservationForm(props: ReservationFormProps) {
+  const draft = useReservationDraft(props);
+  return props.variant === "mobile" ? (
+    <MobileReservationForm draft={draft} />
+  ) : (
+    <DesktopReservationForm draft={draft} />
+  );
 }
 
-interface ChargeDraft {
-  key: string;
-  type: ChargeType;
-  description: string;
-  quantity: string;
-  amountInput: string;
-}
-
-type StepId = "stay" | "guests" | "charges" | "review";
-const STEP_LABELS: Record<StepId, string> = {
-  stay: "Stay",
-  guests: "Guests",
-  charges: "Charges & payment",
-  review: "Review",
-};
-
-function toDraft(lines: ChargeLineValues[]): ChargeDraft[] {
-  return lines.map((line) => ({
-    key: crypto.randomUUID(),
-    type: line.type,
-    description: line.description,
-    quantity: String(line.quantity),
-    amountInput: centavosToPesosInput(line.unitAmountCents),
-  }));
-}
-
-function parseDraft(draft: ChargeDraft): ChargeLineValues | null {
-  const description = draft.description.trim();
-  const quantity = Number(draft.quantity);
-  if (description.length < 2) return null;
-  if (!Number.isInteger(quantity) || quantity < 1) return null;
-  try {
-    return {
-      type: draft.type,
-      description,
-      quantity,
-      unitAmountCents: pesosToCentavos(draft.amountInput || "0"),
-    };
-  } catch {
-    return null;
-  }
-}
-
-function parsePayment(input: string): number | null {
-  if (!input.trim()) return null;
-  try {
-    return pesosToCentavos(input);
-  } catch {
-    return null;
-  }
-}
-
-const HOLD_OPTIONS = [
-  { value: "15", label: "15 minutes" },
-  { value: "60", label: "1 hour" },
-  { value: "240", label: "4 hours" },
-  { value: "1440", label: "24 hours" },
-];
-const PAYMENT_METHODS = ["gcash", "maya", "bank_transfer", "cash"] as const;
-type PaymentMethod = (typeof PAYMENT_METHODS)[number];
-type PaymentAllocation = "booking" | "security_deposit";
-
-const CHARGE_TYPE_OPTIONS: SelectMenuOption<ChargeType>[] =
-  EDITABLE_CHARGE_TYPES.map((type) => ({
-    value: type,
-    label: CHARGE_TYPE_LABELS[type],
-    icon: {
-      accommodation: BedDouble,
-      cleaning: Sparkles,
-      fee: Receipt,
-      discount: Tag,
-      security_deposit: ShieldCheck,
-    }[type],
-    description: {
-      accommodation: "Nightly rate for the stay",
-      cleaning: "One-off turnover cleaning",
-      fee: "Anything else: extra bed, late checkout…",
-      discount: "Negative amount off the booking",
-      security_deposit: "Held and returned after checkout",
-    }[type],
-  }));
-
-const PAYMENT_METHOD_OPTIONS: ChoiceCardOption<PaymentMethod>[] =
-  PAYMENT_METHODS.map((method) => ({
-    value: method,
-    label: PAYMENT_METHOD_LABELS[method],
-    icon: {
-      gcash: Smartphone,
-      maya: Smartphone,
-      bank_transfer: Landmark,
-      cash: Banknote,
-    }[method],
-    logo: PAYMENT_METHOD_LOGOS[method],
-  }));
-
-/** The description a charge type gets when picked; blank means "write your own". */
-function autoDescription(type: ChargeType, nights: number | null) {
-  switch (type) {
-    case "accommodation":
-      return nights
-        ? `Accommodation (${plural(nights, "night")})`
-        : "Accommodation";
-    case "cleaning":
-      return "Cleaning fee";
-    case "security_deposit":
-      return "Refundable security deposit";
-    default:
-      return "";
-  }
-}
-
-/** What editing an existing reservation starts from. */
-export interface ReservationEdit {
-  reservationId: string;
-  guestId: string;
-  platformId: string | null;
-  platformReference: string | null;
-  occupants: string[];
-  charges: ChargeLineValues[];
-  /** Already recorded on the ledger; editing never changes payments. */
-  paid: { bookingCents: number; depositCents: number };
-}
-
-/**
- * The reservation flow, in steps: stay → guests → charges (owner) → review.
- * Used to create a reservation and, with `edit`, to change one. Every field
- * lives in state so steps can unmount; the review step submits one FormData
- * to the create or update action. The current step is in `?step=` so the
- * browser's back button walks back through the steps.
- */
-export function ReservationForm({
-  units,
-  guests: initialGuests,
-  canCreateGuest = false,
-  platforms,
-  defaultCheckIn,
-  defaultCheckOut,
-  requestedUnitId,
-  requestedGuestId,
-  defaultGuestCount = 1,
-  canConfirm,
-  canSetCharges,
-  edit,
-  today,
-}: {
-  /** Book straight to confirmed (needs reservations.update and payments.create). */
-  canConfirm: boolean;
-  /** Set charge lines and see prices (payments.create); others get the unit's standard rates. */
-  canSetCharges: boolean;
-  /** The first property's local date; the calendar can't book before it. */
-  today: string;
-  edit?: ReservationEdit;
-  units: UnitOption[];
-  guests: {
-    id: string;
-    name: string;
-    email: string | null;
-    phone: string | null;
-  }[];
-  /** Show "New guest" (guests.create). */
-  canCreateGuest?: boolean;
-  /** Where bookings come from (Direct, Airbnb, …), in display order. */
-  platforms: (PlatformDisplay & {
-    id: string;
-    key: string | null;
-    downPaymentApplies: boolean;
-    hasBookingCode: boolean;
-  })[];
-  defaultCheckIn: string;
-  defaultCheckOut: string;
-  requestedUnitId?: string;
-  /** From a guest's page: starts with that guest selected. */
-  requestedGuestId?: string;
-  /** From an availability search: opens one blank name row per extra guest. */
-  defaultGuestCount?: number;
-}) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [action] = useState(() =>
-    edit
-      ? updateReservationAction.bind(null, edit.reservationId)
-      : createReservationAction,
-  );
-  const [state, formAction, pending] = useActionState<
-    ReservationFormState,
-    FormData
-  >(action, {});
-  const [, startTransition] = useTransition();
-
-  // Stay
-  const [unitId, setUnitId] = useState(
-    requestedUnitId && units.some((unit) => unit.id === requestedUnitId)
-      ? requestedUnitId
-      : (units[0]?.id ?? ""),
-  );
-  const [checkIn, setCheckIn] = useState(defaultCheckIn);
-  const [checkOut, setCheckOut] = useState(defaultCheckOut);
-  const [additional, setAdditional] = useState<string[]>(() =>
-    Array.from(
-      { length: Math.max(0, defaultGuestCount - 1) },
-      (_, index) => edit?.occupants[index] ?? "",
-    ),
-  );
-  // Guests: "new" creates a guest profile from the contact fields.
-  // Guests created from the "New guest" dialog join the list.
-  const [guests, setGuests] = useState(initialGuests);
-  // Nobody is picked until the user searches, unless we came from a guest's page.
-  const [guestId, setGuestId] = useState(
-    edit?.guestId ??
-      (initialGuests.some((guest) => guest.id === requestedGuestId)
-        ? requestedGuestId!
-        : ""),
-  );
-  // Booking source: new reservations start on the first platform (Direct).
-  const [platformId, setPlatformId] = useState(
-    edit ? (edit.platformId ?? "") : (platforms[0]?.id ?? ""),
-  );
-  const [platformReference, setPlatformReference] = useState(
-    edit?.platformReference ?? "",
-  );
-  const selectedPlatform = platforms.find(
-    (platform) => platform.id === platformId,
-  );
-  // Only platforms that issue a booking code ask for it (Airbnb does;
-  // Facebook, Messenger and Instagram don't). Set per platform in Settings.
-  const takesReference = selectedPlatform?.hasBookingCode ?? true;
-  // Editing lets the owner correct the existing guest's contact details too.
-  const contactOf = (id: string) => {
-    const guest = guests.find((candidate) => candidate.id === id);
-    return {
-      name: guest?.name ?? "",
-      email: guest?.email ?? "",
-      phone: guest?.phone ?? "",
-    };
-  };
-  const [contact, setContact] = useState(() => contactOf(edit?.guestId ?? ""));
-  // Charges: null = follow the unit/date defaults; any edit forks into a manual set.
-  const [customCharges, setCustomCharges] = useState<ChargeDraft[] | null>(
-    () => (edit ? toDraft(edit.charges) : null),
-  );
-  const [noPayment, setNoPayment] = useState(false);
-  const [payment, setPayment] = useState({
-    amount: "",
-    allocation: "booking" as PaymentAllocation,
-    method: "gcash" as PaymentMethod,
-    reference: "",
-    receivedAt: "",
-  });
-  // Checked: recorded as received now. Unchecked: the owner enters when.
-  const [receivedNow, setReceivedNow] = useState(true);
-  // Review
-  const [submitMode, setSubmitMode] = useState<"hold" | "confirmed">(
-    canConfirm ? "confirmed" : "hold",
-  );
-  const [holdMinutes, setHoldMinutes] = useState("1440");
-  const [reviewError, setReviewError] = useState<string | null>(null);
-  const [idempotencyKey] = useState(() => crypto.randomUUID());
-
-  useActionFeedback(state, {
-    success: edit
-      ? "Reservation updated."
-      : submitMode === "hold"
-        ? "Reservation hold created."
-        : payment.amount.trim()
-          ? "Reservation confirmed and payment recorded."
-          : "Reservation confirmed.",
-  });
-  useEffect(() => {
-    if (!state.success || !state.reservationId) return;
-    if (edit) {
-      router.push(`/reservations/${state.reservationId}`);
-      router.refresh();
-    } else {
-      router.push(`/reservations/${state.reservationId}/confirmation`);
-    }
-  }, [state, router, edit]);
-
-  const selectedUnit = units.find((unit) => unit.id === unitId);
-  const capacity = selectedUnit?.capacity ?? 1;
-  const guestCount = 1 + additional.length;
-  const validRange = Boolean(checkIn && checkOut && checkOut > checkIn);
-  const nights = validRange ? nightsBetween(checkIn, checkOut) : null;
-  const selectedGuest = guests.find((guest) => guest.id === guestId);
-  function chooseGuest(id: string, list = guests) {
-    setGuestId(id);
-    const guest = list.find((candidate) => candidate.id === id);
-    setContact({
-      name: guest?.name ?? "",
-      email: guest?.email ?? "",
-      phone: guest?.phone ?? "",
-    });
-  }
-
-  // Live availability, re-checked whenever the unit or dates change.
-  const stayKey = `${unitId}:${checkIn}:${checkOut}`;
-  // Editing without moving the stay: the dates are this reservation's own, so there's nothing to check.
-  const unchangedStay =
-    Boolean(edit) &&
-    unitId === requestedUnitId &&
-    checkIn === defaultCheckIn &&
-    checkOut === defaultCheckOut;
-  const [availability, setAvailability] = useState<{
-    key: string;
-    result: StayAvailability;
-  } | null>(null);
-  useEffect(() => {
-    if (!unitId || !validRange || unchangedStay) return;
-    let cancelled = false;
-    const timer = setTimeout(() => {
-      checkStayAvailabilityAction(
-        unitId,
-        checkIn,
-        checkOut,
-        edit?.reservationId,
-      )
-        .then((result) => {
-          if (!cancelled) setAvailability({ key: stayKey, result });
-        })
-        .catch(() => {
-          if (!cancelled)
-            setAvailability({
-              key: stayKey,
-              result: {
-                status: "error",
-                message: "Couldn’t check availability.",
-              },
-            });
-        });
-    }, 250);
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-    };
-  }, [
+/** The wide-screen wizard: tabs across the top, the summary beside the form. */
+function DesktopReservationForm({ draft }: { draft: ReservationDraft }) {
+  const {
+    guests,
+    units,
+    canCreateGuest,
+    platforms,
+    canConfirm,
+    canSetCharges,
+    edit,
+    today,
+    state,
+    pending,
+    savingLabel,
     unitId,
+    setUnitId,
     checkIn,
+    setCheckIn,
     checkOut,
-    stayKey,
+    setCheckOut,
+    additional,
+    setAdditional,
+    setGuests,
+    guestId,
+    platformId,
+    setPlatformId,
+    platformReference,
+    setPlatformReference,
+    selectedPlatform,
+    takesReference,
+    contact,
+    setContact,
+    customCharges,
+    setCustomCharges,
+    noPayment,
+    setNoPayment,
+    payment,
+    setPayment,
+    receivedNow,
+    setReceivedNow,
+    submitMode,
+    setSubmitMode,
+    holdMinutes,
+    setHoldMinutes,
+    reviewError,
+    selectedUnit,
+    capacity,
+    guestCount,
     validRange,
+    nights,
+    selectedGuest,
+    chooseGuest,
     unchangedStay,
-    edit?.reservationId,
-  ]);
-  const currentAvailability =
-    validRange && availability?.key === stayKey ? availability.result : null;
-
-  const defaultCharges = useMemo(() => {
-    if (!selectedUnit || selectedUnit.nightlyRateCents === null || !nights)
-      return [];
-    return toDraft(
-      buildDefaultCharges({
-        nightlyRateCents: selectedUnit.nightlyRateCents,
-        dayRates: selectedUnit.dayRates,
-        rateFor: nightlyRateResolver(
-          {
-            id: selectedUnit.id,
-            propertyId: "",
-            nightlyRateCents: selectedUnit.nightlyRateCents,
-            dayRates: selectedUnit.dayRates,
-          },
-          selectedUnit.pricingRules,
-        ),
-        checkIn,
-        cleaningFeeCents: selectedUnit.cleaningFeeCents,
-        securityDepositCents: selectedUnit.securityDepositCents,
-        nights,
-      }),
-    );
-  }, [selectedUnit, nights, checkIn]);
-  const charges = customCharges ?? defaultCharges;
-  const parsed = useMemo(
-    () => charges.map((draft) => ({ draft, line: parseDraft(draft) })),
-    [charges],
-  );
-  const submittableLines = parsed
-    .map((entry) => entry.line)
-    .filter((line): line is ChargeLineValues => line !== null);
-  const totals = computeTotals(submittableLines);
-  const paymentCents = noPayment ? null : parsePayment(payment.amount);
-  const feeRule =
-    selectedPlatform && !selectedPlatform.downPaymentApplies
-      ? null
-      : (selectedUnit?.reservationFee ?? null);
-  const feeCents = feeRule
-    ? reservationFeeCents(feeRule, totals.bookingTotalCents)
-    : 0;
-  const feeCovered =
-    !feeCents ||
-    (payment.allocation === "booking" && (paymentCents ?? 0) >= feeCents);
-
-  // What blocks each step; the first step with a problem caps how far you can go.
-  const stepIssues: Record<StepId, string | null> = {
-    stay: !selectedUnit
-      ? "Choose a unit."
-      : !validRange
-        ? "Check-out must be after check-in."
-        : guestCount > capacity
-          ? `This unit sleeps ${capacity}. Lower the guest count or choose a larger unit.`
-          : currentAvailability?.status === "unavailable"
-            ? `These dates aren’t free: ${currentAvailability.reason}.`
-            : null,
-    guests: !selectedGuest
-      ? "Search for the primary guest, or add a new one."
-      : edit && contact.name.trim().length < 2
-        ? "Enter the guest’s full name."
-        : edit && !contact.email.trim() && !contact.phone.trim()
-          ? "Add an email or phone number for the guest."
-          : additional.some((name) => name.trim().length < 2)
-            ? "Enter each additional guest’s full name."
-            : null,
-    charges: !canSetCharges
-      ? null
-      : submittableLines.length === 0
-        ? "Add at least one charge with a description, quantity and amount."
-        : parsed.some((entry) => entry.line === null)
-          ? "Fix the highlighted charge lines. Amounts look like 5500 or 5,500.50."
-          : !edit && payment.amount.trim() && paymentCents === null
-            ? "Enter the payment like 3000 or 3,000.50."
-            : !edit &&
-                paymentCents &&
-                !receivedNow &&
-                !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(payment.receivedAt)
-              ? "Enter the date and time the payment was received."
-              : null,
-    review: null,
-  };
-  // Editing has no review step: every part is open as a tab, and Save is always at hand.
-  const steps: StepId[] = edit
-    ? canSetCharges
-      ? ["stay", "guests", "charges"]
-      : ["stay", "guests"]
-    : canSetCharges
-      ? ["stay", "guests", "charges", "review"]
-      : ["stay", "guests", "review"];
-  const firstBlocked = steps.findIndex((step) => stepIssues[step] !== null);
-  const requested = steps.indexOf(
-    (searchParams.get("step") ?? "stay") as StepId,
-  );
-  const stepIndex = Math.max(
-    0,
-    Math.min(
-      requested === -1 ? 0 : requested,
-      // Creating goes one step at a time; editing can open any tab.
-      edit || firstBlocked === -1 ? steps.length - 1 : firstBlocked,
-    ),
-  );
-  const step = steps[stepIndex]!;
-  const [showIssue, setShowIssue] = useState(false);
-
-  /** Moving forward adds a history entry (so browser back works); the Back button replaces it. */
-  function goTo(target: StepId, replace = false) {
-    const query = new URLSearchParams(searchParams.toString());
-    if (target === "stay") query.delete("step");
-    else query.set("step", target);
-    window.history[replace ? "replaceState" : "pushState"](
-      null,
-      "",
-      `?${query}`,
-    );
-    setShowIssue(false);
-    setReviewError(null);
-    document
-      .getElementById("main-content")
-      ?.scrollTo({ top: 0, behavior: "smooth" });
-  }
-  function next() {
-    if (stepIssues[step]) {
-      setShowIssue(true);
-      return;
-    }
-    goTo(steps[stepIndex + 1]!);
-  }
-
-  function setGuestCount(count: number) {
-    const clamped = Math.max(1, Math.min(50, count));
-    setAdditional((current) =>
-      clamped - 1 <= current.length
-        ? current.slice(0, clamped - 1)
-        : [
-            ...current,
-            ...Array.from({ length: clamped - 1 - current.length }, () => ""),
-          ],
-    );
-  }
-  function updateCharge(key: string, patch: Partial<ChargeDraft>) {
-    setCustomCharges((current) =>
-      (current ?? defaultCharges).map((draft) =>
-        draft.key === key ? { ...draft, ...patch } : draft,
-      ),
-    );
-  }
-  // Switching type fills in its description, unless the owner wrote their own.
-  function changeChargeType(draft: ChargeDraft, type: ChargeType) {
-    const untouched =
-      !draft.description.trim() ||
-      draft.description === autoDescription(draft.type, nights);
-    updateCharge(draft.key, {
-      type,
-      ...(untouched ? { description: autoDescription(type, nights) } : {}),
-    });
-  }
-
-  function submitEdit() {
-    const data = new FormData();
-    data.set("unitId", unitId);
-    data.set("checkIn", checkIn);
-    data.set("checkOut", checkOut);
-    data.set("guestCount", String(guestCount));
-    data.set("platformId", platformId);
-    data.set("platformReference", platformReference.trim());
-    for (const name of additional) data.append("occupantName", name.trim());
-    // The update action edits the chosen profile's contact, or creates one for "new".
-    data.set("guestId", guestId);
-    data.set("guestName", contact.name.trim());
-    data.set("guestEmail", contact.email.trim());
-    data.set("guestPhone", contact.phone.trim());
-    for (const { draft } of parsed.filter((entry) => entry.line !== null)) {
-      data.append("chargeType", draft.type);
-      data.append("chargeDescription", draft.description.trim());
-      data.append("chargeQuantity", draft.quantity);
-      data.append("chargeAmountPesos", draft.amountInput || "0");
-    }
-    startTransition(() => formAction(data));
-  }
-
-  /** Edit mode: save from any step once nothing blocks it. */
-  function saveNow() {
-    if (firstBlocked !== -1) {
-      goTo(steps[firstBlocked]!);
-      setShowIssue(true);
-      return;
-    }
-    setReviewError(null);
-    submitEdit();
-  }
-
-  function submit() {
-    setReviewError(null);
-    if (edit) {
-      submitEdit();
-      return;
-    }
-    if (submitMode === "hold" && paymentCents) {
-      setReviewError(
-        "An initial payment can be recorded only with a confirmed booking. Choose Confirm booking, or remove the payment to place a hold.",
-      );
-      return;
-    }
-    if (
-      submitMode === "confirmed" &&
-      totals.bookingTotalCents > 0 &&
-      !paymentCents &&
-      !noPayment
-    ) {
-      setReviewError(
-        "Record the payment received, or mark “No payment received yet” in Charges & payment.",
-      );
-      return;
-    }
-    if (submitMode === "confirmed" && paymentCents && !feeCovered) {
-      setReviewError(
-        `This unit's reservation fee is ${formatPHP(feeCents)}. Record at least that towards the booking, or place a hold until it's paid.`,
-      );
-      return;
-    }
-    const data = new FormData();
-    data.set("mode", submitMode);
-    data.set("idempotencyKey", idempotencyKey);
-    data.set("unitId", unitId);
-    data.set("checkIn", checkIn);
-    data.set("checkOut", checkOut);
-    data.set("guestCount", String(guestCount));
-    data.set("platformId", platformId);
-    data.set("platformReference", platformReference.trim());
-    for (const name of additional) data.append("occupantName", name.trim());
-    // New guests are created by the picker's dialog, so this is always a saved profile.
-    data.set("guestMode", "existing");
-    data.set("guestId", guestId);
-    data.set("chargesJson", JSON.stringify(submittableLines));
-    data.set("holdMinutes", holdMinutes);
-    if (noPayment) data.set("acknowledgeUnpaid", "on");
-    if (paymentCents) {
-      data.set("paymentAmountPesos", payment.amount.trim());
-      data.set("paymentAllocation", payment.allocation);
-      data.set("paymentMethod", payment.method);
-      data.set("paymentReference", payment.reference.trim());
-      data.set("paymentReceivedAt", receivedNow ? "" : payment.receivedAt);
-    }
-    startTransition(() => formAction(data));
-  }
-
+    currentAvailability,
+    defaultCharges,
+    parsed,
+    submittableLines,
+    totals,
+    paymentCents,
+    feeRule,
+    feeCents,
+    feeCovered,
+    stepIssues,
+    steps,
+    firstBlocked,
+    stepIndex,
+    step,
+    showIssue,
+    goTo,
+    next,
+    setGuestCount,
+    updateCharge,
+    changeChargeType,
+    saveNow,
+    submit,
+  } = draft;
   if (units.length === 0) {
     return (
       <div className="rounded-2xl border border-pine/10 bg-surface p-6 text-sm text-ink/70">
@@ -710,27 +164,31 @@ export function ReservationForm({
   }
 
   const guestLabel = (edit ? contact.name.trim() : selectedGuest?.name) || null;
+  const stepItems = steps.map((id, index) => ({
+    key: id,
+    label: STEP_LABELS[id],
+    // Checks and the lock on later steps belong to creating a booking.
+    done: !edit && index < stepIndex,
+    disabled: !edit && firstBlocked !== -1 && index > firstBlocked,
+    onSelect: () => {
+      if (id !== step) goTo(id);
+    },
+  }));
 
   return (
-    <div className="min-w-0 space-y-6">
-      <TabBar
+    <div className="min-w-0 space-y-3 lg:space-y-6">
+      <div className="hidden lg:block">
+        <TabBar label="Reservation steps" current={step} items={stepItems} />
+      </div>
+      <StepProgress
         label="Reservation steps"
         current={step}
-        items={steps.map((id, index) => ({
-          key: id,
-          label: STEP_LABELS[id],
-          // Checks and the lock on later steps belong to creating a booking.
-          done: !edit && index < stepIndex,
-          disabled: !edit && firstBlocked !== -1 && index > firstBlocked,
-          onSelect: () => {
-            if (id !== step) goTo(id);
-          },
-        }))}
+        items={stepItems}
       />
 
       <div className="grid min-w-0 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] 2xl:grid-cols-[minmax(0,1fr)_26rem]">
         <div className="min-w-0">
-          <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)] sm:p-6">
+          <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)] sm:p-6 max-lg:rounded-3xl max-lg:border-0 max-lg:p-4 max-lg:shadow-[0_4px_24px_rgba(32,58,53,0.07)] max-lg:ring-1 max-lg:ring-pine/[0.06]">
             {step === "stay" ? (
               <div className="space-y-8">
                 <StepHeading
@@ -857,8 +315,7 @@ export function ReservationForm({
                     />
                     {selectedUnit ? (
                       <p className="mt-1 text-xs text-ink/50">
-                        By {timeLabel(selectedUnit.checkOutTime)} · the
-                        check-out day is free for the next guest
+                        By {timeLabel(selectedUnit.checkOutTime)}
                       </p>
                     ) : null}
                   </div>
@@ -1168,7 +625,7 @@ export function ReservationForm({
                               : "border-clay/40 bg-clay-mist/30",
                           )}
                         >
-                          <div>
+                          <div className="col-span-2 sm:col-span-1">
                             <Label htmlFor={`charge-type-${draft.key}`}>
                               Type
                             </Label>
@@ -1182,6 +639,7 @@ export function ReservationForm({
                           <div className="col-span-2 sm:col-span-1">
                             <Label>Description</Label>
                             <Input
+                              className="max-sm:h-11 max-sm:text-base"
                               value={draft.description}
                               onChange={(event) =>
                                 updateCharge(draft.key, {
@@ -1198,6 +656,7 @@ export function ReservationForm({
                           <div>
                             <Label>Qty</Label>
                             <Input
+                              className="max-sm:h-11 max-sm:text-base"
                               value={draft.quantity}
                               inputMode="numeric"
                               onChange={(event) =>
@@ -1214,6 +673,7 @@ export function ReservationForm({
                                 : "Amount (₱)"}
                             </Label>
                             <Input
+                              className="max-sm:h-11 max-sm:text-base"
                               value={draft.amountInput}
                               inputMode="decimal"
                               placeholder="5500"
@@ -1224,7 +684,7 @@ export function ReservationForm({
                               }
                             />
                           </div>
-                          <p className="pb-2.5 text-sm text-ink/70">
+                          <p className="pb-2.5 text-sm text-ink/70 max-sm:pb-0 max-sm:text-base max-sm:font-semibold max-sm:text-pine">
                             {subtotal === null ? "—" : formatPHP(subtotal)}
                           </p>
                           <button
@@ -1237,7 +697,7 @@ export function ReservationForm({
                               )
                             }
                             aria-label="Remove charge line"
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-clay-deep hover:bg-clay-mist"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-clay-deep hover:bg-clay-mist max-sm:h-11 max-sm:w-11 max-sm:justify-self-end max-sm:rounded-full max-sm:bg-clay-mist/60"
                           >
                             <Trash2 className="h-4 w-4" aria-hidden />
                           </button>
@@ -1737,7 +1197,7 @@ export function ReservationForm({
               </p>
             ) : null}
 
-            <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-pine/10 pt-5">
+            <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-pine/10 pt-5 max-lg:sticky max-lg:bottom-0 max-lg:z-10 max-lg:-mx-4 max-lg:-mb-4 max-lg:mt-6 max-lg:flex-nowrap max-lg:rounded-b-3xl max-lg:bg-surface/95 max-lg:px-4 max-lg:pb-3 max-lg:pt-3 max-lg:shadow-[0_-8px_24px_rgba(32,58,53,0.08)] max-lg:backdrop-blur">
               {edit ? (
                 <>
                   <Link
@@ -1748,6 +1208,7 @@ export function ReservationForm({
                   </Link>
                   <SaveNowButton
                     pending={pending}
+                    savingLabel={savingLabel}
                     blocked={firstBlocked !== -1}
                     onSave={saveNow}
                   />
@@ -1766,6 +1227,7 @@ export function ReservationForm({
                       type="button"
                       variant="outline"
                       onClick={() => goTo(steps[stepIndex - 1]!, true)}
+                      className="max-lg:h-12"
                     >
                       <ArrowLeft className="h-4 w-4" aria-hidden />
                       Back
@@ -1778,6 +1240,7 @@ export function ReservationForm({
                       size="lg"
                       onClick={submit}
                       disabled={pending}
+                      className="max-lg:h-12 max-lg:flex-1"
                     >
                       {pending ? (
                         <LoaderCircle
@@ -1788,7 +1251,7 @@ export function ReservationForm({
                         <Check className="h-4 w-4" aria-hidden />
                       )}
                       {pending
-                        ? "Saving…"
+                        ? savingLabel
                         : submitMode === "hold"
                           ? "Place hold"
                           : "Confirm booking"}
@@ -1799,9 +1262,13 @@ export function ReservationForm({
                       variant="clay"
                       size="lg"
                       onClick={next}
+                      className="max-lg:h-12 max-lg:flex-1"
                     >
-                      Continue to{" "}
-                      {STEP_LABELS[steps[stepIndex + 1]!].toLowerCase()}
+                      <span className="lg:hidden">Continue</span>
+                      <span className="hidden lg:inline">
+                        Continue to{" "}
+                        {STEP_LABELS[steps[stepIndex + 1]!].toLowerCase()}
+                      </span>
                       <ArrowRight className="h-4 w-4" aria-hidden />
                     </Button>
                   )}
@@ -1829,264 +1296,6 @@ export function ReservationForm({
           />
         </aside>
       </div>
-    </div>
-  );
-}
-
-function StepHeading({
-  title,
-  description,
-}: {
-  title: string;
-  description: string;
-}) {
-  return (
-    <div>
-      <div className="flex items-center gap-2">
-        <h2 className="font-display text-2xl text-pine">{title}</h2>
-        <InfoTip>{description}</InfoTip>
-      </div>
-    </div>
-  );
-}
-
-function AvailabilityBanner({
-  valid,
-  unitChosen,
-  result,
-  nights,
-  checkIn,
-  checkOut,
-  compact,
-  current,
-  changed,
-}: {
-  valid: boolean;
-  /** Editing, with the reservation's own unit and dates: they're booked by it, not "free". */
-  current?: boolean;
-  /** Editing, with a different unit or dates than saved. */
-  changed?: boolean;
-  unitChosen: boolean;
-  result: StayAvailability | null;
-  nights: number | null;
-  checkIn: string;
-  checkOut: string;
-  compact?: boolean;
-}) {
-  const range = `${dayLabel(checkIn)} → ${dayLabel(checkOut)} · ${plural(nights ?? 0, "night")}`;
-  const card =
-    !unitChosen || !valid
-      ? ({
-          tone: "blocked",
-          icon: CircleAlert,
-          title: "Dates needed",
-          detail: "Pick a check-out after check-in.",
-        } as const)
-      : current
-        ? ({
-            tone: "current",
-            icon: CalendarCheck,
-            title: "Booked for this reservation",
-            detail: `${range}. Change the unit or dates to check other availability.`,
-          } as const)
-        : !result
-          ? ({
-              tone: "pending",
-              icon: LoaderCircle,
-              title: "Checking availability…",
-              detail: range,
-            } as const)
-          : result.status === "available"
-            ? ({
-                tone: "free",
-                icon: CircleCheck,
-                title: changed ? "New dates are free" : "Dates are free",
-                detail: range,
-              } as const)
-            : result.status === "unavailable"
-              ? ({
-                  tone: "blocked",
-                  icon: CircleAlert,
-                  title: "Not free",
-                  detail: result.reason,
-                } as const)
-              : ({
-                  tone: "pending",
-                  icon: CircleAlert,
-                  title: "Couldn’t check",
-                  detail: `${result.message} Saving still runs the full check.`,
-                } as const);
-  const Icon = card.icon;
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      className={cn(
-        "flex items-start gap-3 rounded-xl border border-l-4 p-4",
-        compact && "mt-4",
-        card.tone === "free" && "border-sage border-l-pine bg-sage/30",
-        card.tone === "blocked" &&
-          "border-clay/25 border-l-clay bg-clay-mist/60",
-        card.tone === "current" &&
-          "border-pine/15 border-l-pine/60 bg-pine-mist/60",
-        card.tone === "pending" && "border-pine/10 border-l-ink/25 bg-linen",
-      )}
-    >
-      <span
-        className={cn(
-          "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
-          card.tone === "free" && "bg-pine text-white",
-          card.tone === "blocked" && "bg-clay text-white",
-          card.tone === "current" && "bg-pine/15 text-pine",
-          card.tone === "pending" && "bg-ink/10 text-ink/60",
-        )}
-      >
-        <Icon
-          className={cn(
-            "h-4 w-4",
-            card.icon === LoaderCircle && "animate-spin",
-          )}
-          aria-hidden
-        />
-      </span>
-      <div className="min-w-0">
-        <p className="text-xs font-medium uppercase tracking-wide text-ink/45">
-          Availability
-        </p>
-        <p
-          className={cn(
-            "font-medium",
-            card.tone === "blocked"
-              ? "text-clay-deep"
-              : card.tone === "pending"
-                ? "text-ink/70"
-                : "text-pine-deep",
-          )}
-        >
-          {card.title}
-        </p>
-        <p className="mt-0.5 break-words text-sm text-ink/65">{card.detail}</p>
-      </div>
-    </div>
-  );
-}
-
-function SaveNowButton({
-  pending,
-  blocked,
-  onSave,
-}: {
-  pending: boolean;
-  blocked: boolean;
-  onSave: () => void;
-}) {
-  return (
-    <Button
-      type="button"
-      variant="clay"
-      size="lg"
-      onClick={onSave}
-      disabled={pending}
-      aria-disabled={blocked}
-      className={cn(blocked && "opacity-60")}
-    >
-      {pending ? (
-        <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden />
-      ) : (
-        <Check className="h-4 w-4" aria-hidden />
-      )}
-      {pending ? "Saving…" : "Save changes"}
-    </Button>
-  );
-}
-
-function ReviewBlock({
-  title,
-  onEdit,
-  children,
-}: {
-  title: string;
-  onEdit: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <section className="rounded-xl border border-pine/10 p-4 sm:p-5">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <h3 className="text-xs font-medium uppercase tracking-wide text-ink/45">
-          {title}
-        </h3>
-        <button
-          type="button"
-          onClick={onEdit}
-          className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-pine/70 hover:bg-pine-mist hover:text-pine"
-        >
-          <Pencil className="h-3.5 w-3.5" aria-hidden />
-          Edit
-        </button>
-      </div>
-      {children}
-    </section>
-  );
-}
-
-function ReviewItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="min-w-0">
-      <dt className="text-xs text-ink/50">{label}</dt>
-      <dd className="mt-0.5 break-words font-medium text-pine">{value}</dd>
-    </div>
-  );
-}
-
-function SaveOption({
-  active,
-  onSelect,
-  icon: Icon,
-  title,
-  description,
-  children,
-}: {
-  active: boolean;
-  onSelect: () => void;
-  icon: typeof Clock;
-  title: string;
-  description: string;
-  children?: ReactNode;
-}) {
-  return (
-    <div
-      role="radio"
-      aria-checked={active}
-      tabIndex={0}
-      onClick={onSelect}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onSelect();
-        }
-      }}
-      className={cn(
-        "cursor-pointer rounded-xl border p-4 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay",
-        active
-          ? "border-clay bg-clay-mist/40 ring-1 ring-clay"
-          : "border-pine/15 hover:border-pine/35",
-      )}
-    >
-      <div className="flex items-start gap-3">
-        <span
-          className={cn(
-            "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
-            active ? "bg-clay text-white" : "bg-sage/60 text-pine",
-          )}
-        >
-          <Icon className="h-4 w-4" aria-hidden />
-        </span>
-        <div className="min-w-0">
-          <p className="font-medium text-pine">{title}</p>
-          <p className="mt-0.5 text-sm text-ink/60">{description}</p>
-        </div>
-      </div>
-      {children}
     </div>
   );
 }

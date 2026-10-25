@@ -8,6 +8,7 @@ import {
   Plus,
 } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
+import { FormActions } from "@/components/ui/form-actions";
 import { FieldError, Label, Textarea } from "@/components/ui/input";
 import { formatPHP } from "@/lib/money";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
@@ -152,17 +153,19 @@ export function ExtendStayForm({
       </div>
 
       <FieldError message={state.error} />
-      <Button
-        type="submit"
-        variant="clay"
-        size="lg"
-        disabled={pending}
-        className="w-full"
-      >
-        {pending
-          ? "Sending…"
-          : `Request late check-out until ${time.format(until)}`}
-      </Button>
+      <FormActions>
+        <Button
+          type="submit"
+          variant="clay"
+          size="lg"
+          disabled={pending}
+          className="w-full"
+        >
+          {pending
+            ? "Sending…"
+            : `Request late check-out until ${time.format(until)}`}
+        </Button>
+      </FormActions>
     </form>
   );
 }

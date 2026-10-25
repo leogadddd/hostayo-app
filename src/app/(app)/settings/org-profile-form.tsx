@@ -28,6 +28,7 @@ import { InfoTip } from "@/components/ui/info-tip";
 export type OrganizationProfileValues = {
   name: string;
   displayName: string | null;
+  tagline: string | null;
   logoUrl: string | null;
   contactEmail: string | null;
   contactPhone: string | null;
@@ -61,6 +62,7 @@ export function OrganizationProfileForm({
     const initial = {
       name: values.name,
       displayName: values.displayName ?? "",
+      tagline: values.tagline ?? "",
       legalName: values.legalName ?? "",
       taxId: values.taxId ?? "",
       contactEmail: values.contactEmail ?? "",
@@ -146,6 +148,19 @@ export function OrganizationProfileForm({
                   maxLength={80}
                   placeholder="Optional"
                 />
+              </div>
+              <div className="sm:col-span-2">
+                <Label htmlFor="tagline">Tagline</Label>
+                <Input
+                  id="tagline"
+                  name="tagline"
+                  defaultValue={values.tagline ?? ""}
+                  maxLength={120}
+                  placeholder="e.g. Beachfront stays in Batangas"
+                />
+                <p className="mt-1 text-sm text-ink/60">
+                  One line shown under your name on your public page.
+                </p>
               </div>
               <div>
                 <Label htmlFor="legalName">Legal business name</Label>

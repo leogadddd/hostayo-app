@@ -52,6 +52,9 @@ vi.mock("@/server/inventory/availability", () => ({
   listCalendarActivity: vi.fn(),
 }));
 vi.mock("@/server/operations/service", () => ({ listTasks: vi.fn() }));
+vi.mock("@/lib/device", () => ({
+  getDeviceClass: vi.fn(async () => "desktop"),
+}));
 vi.mock("@/server/reservations/extensions", () => ({
   getExtensionHours: vi.fn(async () => new Map()),
 }));

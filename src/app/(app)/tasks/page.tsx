@@ -12,6 +12,9 @@ import { PermissionDenied } from "@/components/app/permission-denied";
 import { TASK_STATUS_LABELS } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 import { listTasks } from "@/server/operations/service";
+import { getDeviceClass } from "@/lib/device";
+import { getMobileSearchProps } from "@/components/app/mobile-top-bar";
+import { MobileTasks } from "./mobile";
 import { PageHeading } from "@/components/app/page-heading";
 import { Badge } from "@/components/ui/badge";
 import { buttonClassName } from "@/components/ui/button";
@@ -108,6 +111,35 @@ export default async function TasksPage({
     return text ? `/tasks?${text}` : "/tasks";
   };
   const filtered = Boolean(query || status);
+
+  if ((await getDeviceClass()) === "mobile")
+    return (
+      <MobileTasks
+        search={await getMobileSearchProps()}
+        tasks={tasks.map((task) => ({
+          id: task.id,
+          unitName: task.unitName,
+          propertyName: task.propertyName,
+          status: task.status,
+          doneItems: task.doneItems,
+          totalItems: task.totalItems,
+          requiredLeft: task.requiredLeft,
+          checkedOut: stampLabel(task.createdAt, thisYear),
+          markedReady: stampLabel(task.markedReadyAt, thisYear),
+        }))}
+        counts={{
+          open: counts.get("open") ?? 0,
+          ready: counts.get("ready") ?? 0,
+        }}
+        allCount={allTasks.length}
+        status={status}
+        query={params.q ?? ""}
+        showProperty={showProperty}
+        canWork={canWork}
+        filtered={filtered}
+        hrefWith={hrefWith}
+      />
+    );
 
   return (
     <div className="min-w-0 overflow-hidden">

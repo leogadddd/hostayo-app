@@ -371,15 +371,15 @@ export function DayTimeline({
           </nav>
           <h2
             id="calendar-day"
-            className="font-display text-2xl tracking-tight text-pine sm:text-[1.75rem]"
+            className="font-display text-xl tracking-tight text-pine sm:text-[1.75rem]"
           >
             {label}
           </h2>
-          <div className="ml-auto flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
             <div
               role="group"
               aria-label="Zoom"
-              className="flex items-center overflow-hidden rounded-md border border-pine/20"
+              className="flex items-center max-sm:hidden overflow-hidden rounded-md border border-pine/20"
             >
               <button
                 type="button"
@@ -409,7 +409,7 @@ export function DayTimeline({
                 <Plus className="h-4 w-4" aria-hidden />
               </button>
             </div>
-            <InfoTip>
+            <InfoTip className="max-sm:hidden">
               Pinch, hold Ctrl and scroll, or double-click and drag to zoom.
             </InfoTip>
             {viewSwitcher}

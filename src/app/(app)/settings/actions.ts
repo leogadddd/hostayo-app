@@ -20,6 +20,8 @@ import {
   updatePaymentInstructions,
   getOrganizationLogoUrl,
   updateOrganizationContactChannels,
+  setPublicPageLive,
+  updateBookingSettings,
 } from "@/server/orgs/service";
 import { unexpectedErrorMessage } from "@/lib/errors";
 import {
@@ -108,6 +110,7 @@ export async function saveOrganizationProfile(
       data: {
         name: String(formData.get("name") ?? ""),
         displayName: String(formData.get("displayName") ?? ""),
+        tagline: String(formData.get("tagline") ?? ""),
         logoUrl,
         contactEmail: String(formData.get("contactEmail") ?? ""),
         contactPhone: String(formData.get("contactPhone") ?? ""),
@@ -195,6 +198,52 @@ export async function saveContactChannelsAction(
   revalidatePath("/settings/general");
   revalidatePath("/h/[host]", "page");
   revalidatePath("/h/[host]/[unit]", "page");
+  return { success: true };
+}
+
+export async function setPublicPageLiveAction(
+  live: boolean,
+): Promise<OrgFormState> {
+  const membership = await requireMembership();
+  assertCan(membership, "organization.update");
+  assertNotDemoAccount(membership);
+  try {
+    await setPublicPageLive({
+      organizationId: membership.organizationId,
+      actorUserId: membership.userId,
+      live,
+    });
+  } catch (error) {
+    return toFormError(error);
+  }
+  // The header and sidebar show the status on every page.
+  revalidatePath("/", "layout");
+  revalidatePath("/settings/general");
+  revalidatePath("/h/[host]", "page");
+  revalidatePath("/h/[host]/[unit]", "page");
+  return { success: true };
+}
+
+export async function saveBookingSettingsAction(
+  _prev: OrgFormState,
+  formData: FormData,
+): Promise<OrgFormState> {
+  const membership = await requireMembership();
+  assertCan(membership, "organization.update");
+  assertNotDemoAccount(membership);
+  try {
+    await updateBookingSettings({
+      organizationId: membership.organizationId,
+      actorUserId: membership.userId,
+      minStayNights: Number(formData.get("minStayNights")),
+      aboutText: String(formData.get("aboutText") ?? ""),
+      cancellationPolicy: String(formData.get("cancellationPolicy") ?? ""),
+    });
+  } catch (error) {
+    return toFormError(error);
+  }
+  revalidatePath("/settings/bookings");
+  revalidatePath("/h/[host]", "page");
   return { success: true };
 }
 

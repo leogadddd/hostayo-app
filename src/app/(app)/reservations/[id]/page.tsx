@@ -31,6 +31,8 @@ import { CHARGE_TYPE_LABELS, computeTotals } from "@/lib/charges";
 import { formatPHP } from "@/lib/money";
 import { listNights } from "@/lib/dates";
 import { cn } from "@/lib/utils";
+import { MobileFab, type FabAction } from "@/components/app/mobile-fab";
+import { MobileBackHeader } from "@/components/app/mobile-back-header";
 import {
   getReservationDetail,
   isLiveHold,
@@ -263,21 +265,222 @@ export default async function ReservationDetailPage({
     ...PROGRESS.map((step, index) => (reachedAt.has(step.status) ? index : 0)),
   );
 
+  const fabActions: FabAction[] = [];
+  if (canConfirmHold && liveHold)
+    fabActions.push({
+      href: `${href}/confirm`,
+      label: "Confirm hold",
+      icon: "check",
+    });
+  if (canRunStay && reservation.status === "confirmed")
+    fabActions.push({
+      href: `${href}/check-in`,
+      label: "Check in guest",
+      icon: "checkIn",
+    });
+  if (canRunStay && reservation.status === "checked_in")
+    fabActions.push({
+      href: `${href}/check-out`,
+      label: "Check out guest",
+      icon: "checkOut",
+    });
+  if (canEdit)
+    fabActions.push({
+      href: `${href}/edit`,
+      label: "Edit reservation",
+      icon: "edit",
+    });
+  if (canReviewLate)
+    fabActions.push({
+      href: `${href}/extend/review`,
+      label: "Review late check-out",
+      icon: "clock",
+    });
+  else if (canRequestLate && !extension?.requestBlockedReason)
+    fabActions.push({
+      href: `${href}/extend`,
+      label: "Request late check-out",
+      icon: "clock",
+    });
+  if (reservation.status === "checked_out" && canReportDamage)
+    fabActions.push({
+      href: `${href}/damage/new`,
+      label: "Report damage",
+      icon: "warning",
+    });
+  if (
+    !liveHold &&
+    !canReportDamage &&
+    can(membership, "reservations.create") &&
+    reservation.status !== "confirmed"
+  )
+    fabActions.push({
+      href: "/reservations/new",
+      label: "New reservation",
+      icon: "plus",
+    });
+  fabActions.push({
+    href: `/calendar?${new URLSearchParams({ unit: unit.id, month: reservation.checkInDate.slice(0, 7) })}`,
+    label: "View on calendar",
+    icon: "calendar",
+  });
+  if (canCancel)
+    fabActions.push({
+      href: `${href}/cancel`,
+      label:
+        reservation.status === "hold" ? "Cancel hold" : "Cancel reservation",
+      icon: "cancel",
+      tone: "danger",
+    });
+
+  const manage = (
+    <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)] max-lg:rounded-3xl max-lg:border-0 max-lg:shadow-[0_4px_24px_rgba(32,58,53,0.07)] max-lg:ring-1 max-lg:ring-pine/[0.06]">
+      <h2 className="font-display text-lg text-pine">Manage reservation</h2>
+      <div className="mt-4 space-y-2">
+        {canConfirmHold && liveHold ? (
+          <Link
+            href={`${href}/confirm`}
+            className={buttonClassName(
+              "outline",
+              "md",
+              "w-full justify-between",
+            )}
+          >
+            Confirm hold
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </Link>
+        ) : null}
+        {canRunStay && reservation.status === "confirmed" ? (
+          <Link
+            href={`${href}/check-in`}
+            className={buttonClassName(
+              "outline",
+              "md",
+              "w-full justify-between",
+            )}
+          >
+            Check in guest
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </Link>
+        ) : null}
+        {canRunStay && reservation.status === "checked_in" ? (
+          <Link
+            href={`${href}/check-out`}
+            className={buttonClassName(
+              "outline",
+              "md",
+              "w-full justify-between",
+            )}
+          >
+            Check out guest
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </Link>
+        ) : null}
+        {canEdit ? (
+          <Link
+            href={`${href}/edit`}
+            className={buttonClassName(
+              "outline",
+              "md",
+              "w-full justify-between",
+            )}
+          >
+            Edit reservation
+            <Pencil className="h-4 w-4" aria-hidden />
+          </Link>
+        ) : null}
+        {canReviewLate ? (
+          <Link
+            href={`${href}/extend/review`}
+            className={buttonClassName("clay", "md", "w-full justify-between")}
+          >
+            Review late check-out request
+            <Clock className="h-4 w-4" aria-hidden />
+          </Link>
+        ) : canRequestLate && !extension?.requestBlockedReason ? (
+          <Link
+            href={`${href}/extend`}
+            className={buttonClassName(
+              "outline",
+              "md",
+              "w-full justify-between",
+            )}
+          >
+            Request late check-out
+            <Clock className="h-4 w-4" aria-hidden />
+          </Link>
+        ) : null}
+        {canCancel ? (
+          <Link
+            href={`${href}/cancel`}
+            className={buttonClassName(
+              "ghost",
+              "md",
+              "w-full justify-start text-clay",
+            )}
+          >
+            {reservation.status === "hold"
+              ? "Cancel hold"
+              : "Cancel reservation"}
+          </Link>
+        ) : null}
+        {!liveHold &&
+        !canReportDamage &&
+        can(membership, "reservations.create") &&
+        reservation.status !== "confirmed" ? (
+          <Link
+            href="/reservations/new"
+            className={buttonClassName("clay", "md", "w-full")}
+          >
+            <Plus className="h-4 w-4" aria-hidden />
+            New reservation
+          </Link>
+        ) : null}
+        {reservation.status === "checked_out" && canReportDamage ? (
+          <Link
+            href={`${href}/damage/new`}
+            className={buttonClassName(
+              "outline",
+              "md",
+              "w-full justify-between",
+            )}
+          >
+            Report damage
+            <Plus className="h-4 w-4" aria-hidden />
+          </Link>
+        ) : null}
+        {liveHold && !canConfirmHold ? (
+          <p className="text-sm text-ink/60">
+            Someone who can confirm bookings will confirm or cancel this hold.
+          </p>
+        ) : null}
+      </div>
+    </section>
+  );
+
   return (
     <div className="min-w-0 overflow-x-clip">
+      <div className="sm:hidden">
+        <MobileBackHeader
+          title="Reservation"
+          subtitle={`#${reservation.id.slice(0, 8).toUpperCase()}`}
+          backHref="/reservations"
+          backLabel="All reservations"
+        />
+      </div>
       <Link
         href="/reservations"
-        className="mb-4 inline-flex items-center gap-2 text-sm text-pine/70 hover:text-clay"
+        className="mb-4 inline-flex items-center gap-2 text-sm text-pine/70 hover:text-clay max-sm:hidden"
       >
         <ArrowLeft className="h-4 w-4" aria-hidden />
         All reservations
       </Link>
 
-      <section className="overflow-hidden rounded-2xl border border-pine/10 bg-surface shadow-[0_1px_2px_rgba(32,58,53,0.06)]">
+      <section className="overflow-hidden rounded-2xl border border-pine/10 bg-surface shadow-[0_1px_2px_rgba(32,58,53,0.06)] max-lg:rounded-3xl max-lg:border-0 max-lg:shadow-[0_4px_24px_rgba(32,58,53,0.07)] max-lg:ring-1 max-lg:ring-pine/[0.06]">
         <div className="grid md:grid-cols-[16rem_minmax(0,1fr)] xl:grid-cols-[20rem_minmax(0,1fr)]">
           <UnitPhoto
             src={unitOrPropertyPhotoSrc(unit, property)}
-            className="aspect-[16/9] md:aspect-auto md:h-full md:min-h-56"
+            className="aspect-[16/9] max-md:aspect-[21/8] md:aspect-auto md:h-full md:min-h-56"
           />
           <div className="@container flex min-w-0 flex-col gap-5 p-5 sm:p-6">
             {/* Who and what on the left, the next actions on the right. */}
@@ -308,7 +511,7 @@ export default async function ReservationDetailPage({
                     </span>
                   ) : null}
                 </div>
-                <h1 className="mt-3 truncate font-display text-3xl tracking-tight text-pine sm:text-4xl">
+                <h1 className="mt-3 break-words font-display text-[1.7rem] leading-tight tracking-tight text-pine sm:truncate sm:text-4xl">
                   {can(membership, "guests.view") ? (
                     <Link
                       href={`/guests/${guest.id}`}
@@ -325,17 +528,21 @@ export default async function ReservationDetailPage({
                     className="h-4 w-4 shrink-0 text-pine/45"
                     aria-hidden
                   />
-                  <span className="truncate">
+                  <span className="sm:truncate">
                     {unit.name}
                     {property ? ` · ${property.name}` : ""}
                   </span>
                 </p>
               </div>
-              <div className="flex flex-wrap items-center gap-2 xl:justify-end">
+              <div className="flex flex-wrap items-center gap-2 max-sm:hidden xl:justify-end">
                 {canConfirmHold && liveHold ? (
                   <Link
                     href={`${href}/confirm`}
-                    className={buttonClassName("clay", "md")}
+                    className={buttonClassName(
+                      "clay",
+                      "md",
+                      "max-sm:col-span-2",
+                    )}
                   >
                     <Check className="h-4 w-4" aria-hidden />
                     Confirm hold
@@ -344,7 +551,11 @@ export default async function ReservationDetailPage({
                 {canRunStay && reservation.status === "confirmed" ? (
                   <Link
                     href={`${href}/check-in`}
-                    className={buttonClassName("clay", "md")}
+                    className={buttonClassName(
+                      "clay",
+                      "md",
+                      "max-sm:col-span-2",
+                    )}
                   >
                     <BedDouble className="h-4 w-4" aria-hidden />
                     Check in
@@ -353,7 +564,11 @@ export default async function ReservationDetailPage({
                 {canRunStay && reservation.status === "checked_in" ? (
                   <Link
                     href={`${href}/check-out`}
-                    className={buttonClassName("clay", "md")}
+                    className={buttonClassName(
+                      "clay",
+                      "md",
+                      "max-sm:col-span-2",
+                    )}
                   >
                     <LogOut className="h-4 w-4" aria-hidden />
                     Check out
@@ -362,7 +577,11 @@ export default async function ReservationDetailPage({
                 {canEdit ? (
                   <Link
                     href={`${href}/edit`}
-                    className={buttonClassName("outline", "md")}
+                    className={buttonClassName(
+                      "outline",
+                      "md",
+                      "max-sm:w-full",
+                    )}
                   >
                     <Pencil className="h-4 w-4" aria-hidden />
                     Edit
@@ -370,7 +589,14 @@ export default async function ReservationDetailPage({
                 ) : null}
                 <Link
                   href={`/calendar?${new URLSearchParams({ unit: unit.id, month: reservation.checkInDate.slice(0, 7) })}`}
-                  className={buttonClassName("ghost", "md")}
+                  className={buttonClassName(
+                    "ghost",
+                    "md",
+                    cn(
+                      "max-sm:w-full max-sm:ring-1 max-sm:ring-pine/12",
+                      !canEdit && "max-sm:col-span-2",
+                    ),
+                  )}
                 >
                   <CalendarDays className="h-4 w-4" aria-hidden />
                   Calendar
@@ -463,7 +689,7 @@ export default async function ReservationDetailPage({
 
       <div className="mt-6 grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_24rem]">
         <div className="min-w-0 space-y-6">
-          <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)] sm:p-6">
+          <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)] max-lg:rounded-3xl max-lg:border-0 max-lg:shadow-[0_4px_24px_rgba(32,58,53,0.07)] max-lg:ring-1 max-lg:ring-pine/[0.06] sm:p-6">
             <h2 className="font-display text-lg text-pine">Stay progress</h2>
             <ol className="mt-5 grid gap-3 sm:grid-cols-[1fr_1fr_1fr_auto]">
               {PROGRESS.map((step, index) => {
@@ -575,7 +801,7 @@ export default async function ReservationDetailPage({
             ) : null}
           </section>
 
-          <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)] sm:p-6">
+          <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)] max-lg:rounded-3xl max-lg:border-0 max-lg:shadow-[0_4px_24px_rgba(32,58,53,0.07)] max-lg:ring-1 max-lg:ring-pine/[0.06] sm:p-6">
             <h2 className="font-display text-lg text-pine">Guests</h2>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <div className="min-w-0 rounded-xl bg-linen p-4">
@@ -673,67 +899,132 @@ export default async function ReservationDetailPage({
                   </h2>
                 </CardHeader>
                 <CardBody>
-                  <Table aria-label="Booking charges">
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Description</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead className="text-right">Qty</TableHead>
-                        <TableHead className="text-right">Unit price</TableHead>
-                        <TableHead className="text-right">Amount</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
+                  <div className="lg:hidden">
+                    <ul className="divide-y divide-pine/8">
                       {charges.map((charge) => (
-                        <TableRow key={charge.id}>
-                          <TableCell className="min-w-40 text-pine">
-                            {charge.description}
-                          </TableCell>
-                          <TableCell className="whitespace-nowrap text-ink/55">
-                            {CHARGE_TYPE_LABELS[charge.type]}
-                          </TableCell>
-                          <TableCell className="text-right tabular-nums text-ink/70">
-                            {charge.quantity}
-                          </TableCell>
-                          <TableCell className="whitespace-nowrap text-right tabular-nums text-ink/70">
-                            {formatPHP(charge.unitAmountCents)}
-                          </TableCell>
-                          <TableCell
+                        <li
+                          key={charge.id}
+                          className="flex items-start justify-between gap-3 py-3"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-[15px] font-medium text-pine">
+                              {charge.description}
+                            </p>
+                            {(() => {
+                              // Name the type only when the description doesn't already say it.
+                              const label = CHARGE_TYPE_LABELS[charge.type];
+                              const parts = [
+                                charge.description
+                                  .toLowerCase()
+                                  .includes(label.toLowerCase())
+                                  ? null
+                                  : label,
+                                charge.quantity > 1
+                                  ? `${charge.quantity} × ${formatPHP(charge.unitAmountCents)}`
+                                  : null,
+                              ].filter(Boolean);
+                              return parts.length ? (
+                                <p className="mt-0.5 text-xs text-ink/55">
+                                  {parts.join(" · ")}
+                                </p>
+                              ) : null;
+                            })()}
+                          </div>
+                          <p
                             className={cn(
-                              "whitespace-nowrap text-right font-medium tabular-nums",
+                              "shrink-0 text-base font-semibold tabular-nums",
                               charge.type === "discount"
                                 ? "text-clay-deep"
                                 : "text-pine",
                             )}
                           >
                             {formatPHP(charge.amountCents)}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="mt-1 space-y-2 border-t border-pine/15 pt-3">
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-sm text-ink/60">
+                          Booking total (excl. deposit)
+                        </span>
+                        <span className="font-display text-xl tabular-nums text-pine">
+                          {formatPHP(totals.bookingTotalCents)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm text-ink/65">
+                        <span>Refundable deposit</span>
+                        <span className="tabular-nums">
+                          {formatPHP(totals.depositTotalCents)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="max-lg:hidden">
+                    <Table aria-label="Booking charges">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Description</TableHead>
+                          <TableHead>Type</TableHead>
+                          <TableHead className="text-right">Qty</TableHead>
+                          <TableHead className="text-right">
+                            Unit price
+                          </TableHead>
+                          <TableHead className="text-right">Amount</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {charges.map((charge) => (
+                          <TableRow key={charge.id}>
+                            <TableCell className="min-w-40 text-pine">
+                              {charge.description}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap text-ink/55">
+                              {CHARGE_TYPE_LABELS[charge.type]}
+                            </TableCell>
+                            <TableCell className="text-right tabular-nums text-ink/70">
+                              {charge.quantity}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap text-right tabular-nums text-ink/70">
+                              {formatPHP(charge.unitAmountCents)}
+                            </TableCell>
+                            <TableCell
+                              className={cn(
+                                "whitespace-nowrap text-right font-medium tabular-nums",
+                                charge.type === "discount"
+                                  ? "text-clay-deep"
+                                  : "text-pine",
+                              )}
+                            >
+                              {formatPHP(charge.amountCents)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                      <TableFooter>
+                        <TableRow>
+                          <TableCell colSpan={4}>
+                            Booking total (excl. deposit)
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap text-right font-semibold text-pine">
+                            {formatPHP(totals.bookingTotalCents)}
                           </TableCell>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                    <TableFooter>
-                      <TableRow>
-                        <TableCell colSpan={4}>
-                          Booking total (excl. deposit)
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap text-right font-semibold text-pine">
-                          {formatPHP(totals.bookingTotalCents)}
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell colSpan={4}>
-                          Refundable deposit
-                          <InfoTip className="ml-1.5">
-                            The security deposit is not part of the booking
-                            total and does not reduce the booking balance.
-                          </InfoTip>
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap text-right text-pine">
-                          {formatPHP(totals.depositTotalCents)}
-                        </TableCell>
-                      </TableRow>
-                    </TableFooter>
-                  </Table>
+                        <TableRow>
+                          <TableCell colSpan={4}>
+                            Refundable deposit
+                            <InfoTip className="ml-1.5">
+                              The security deposit is not part of the booking
+                              total and does not reduce the booking balance.
+                            </InfoTip>
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap text-right text-pine">
+                            {formatPHP(totals.depositTotalCents)}
+                          </TableCell>
+                        </TableRow>
+                      </TableFooter>
+                    </Table>
+                  </div>
                 </CardBody>
               </Card>
               <PaymentsCard
@@ -758,7 +1049,7 @@ export default async function ReservationDetailPage({
             />
           ) : null}
 
-          <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)] sm:p-6">
+          <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)] max-lg:rounded-3xl max-lg:border-0 max-lg:shadow-[0_4px_24px_rgba(32,58,53,0.07)] max-lg:ring-1 max-lg:ring-pine/[0.06] sm:p-6">
             <h2 className="font-display text-lg text-pine">History</h2>
             <ReservationHistory
               transitions={transitions}
@@ -773,7 +1064,7 @@ export default async function ReservationDetailPage({
           aria-label="Reservation actions"
         >
           {canSeeMoney && balances ? (
-            <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)]">
+            <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)] max-lg:rounded-3xl max-lg:border-0 max-lg:shadow-[0_4px_24px_rgba(32,58,53,0.07)] max-lg:ring-1 max-lg:ring-pine/[0.06]">
               <div className="flex items-baseline justify-between gap-3">
                 <h2 className="font-display text-lg text-pine">Balance</h2>
                 <span
@@ -885,141 +1176,13 @@ export default async function ReservationDetailPage({
             </section>
           ) : null}
 
-          <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)]">
-            <h2 className="font-display text-lg text-pine">
-              Manage reservation
-            </h2>
-            <div className="mt-4 space-y-2">
-              {canConfirmHold && liveHold ? (
-                <Link
-                  href={`${href}/confirm`}
-                  className={buttonClassName(
-                    "outline",
-                    "md",
-                    "w-full justify-between",
-                  )}
-                >
-                  Confirm hold
-                  <ArrowRight className="h-4 w-4" aria-hidden />
-                </Link>
-              ) : null}
-              {canRunStay && reservation.status === "confirmed" ? (
-                <Link
-                  href={`${href}/check-in`}
-                  className={buttonClassName(
-                    "outline",
-                    "md",
-                    "w-full justify-between",
-                  )}
-                >
-                  Check in guest
-                  <ArrowRight className="h-4 w-4" aria-hidden />
-                </Link>
-              ) : null}
-              {canRunStay && reservation.status === "checked_in" ? (
-                <Link
-                  href={`${href}/check-out`}
-                  className={buttonClassName(
-                    "outline",
-                    "md",
-                    "w-full justify-between",
-                  )}
-                >
-                  Check out guest
-                  <ArrowRight className="h-4 w-4" aria-hidden />
-                </Link>
-              ) : null}
-              {canEdit ? (
-                <Link
-                  href={`${href}/edit`}
-                  className={buttonClassName(
-                    "outline",
-                    "md",
-                    "w-full justify-between",
-                  )}
-                >
-                  Edit reservation
-                  <Pencil className="h-4 w-4" aria-hidden />
-                </Link>
-              ) : null}
-              {canReviewLate ? (
-                <Link
-                  href={`${href}/extend/review`}
-                  className={buttonClassName(
-                    "clay",
-                    "md",
-                    "w-full justify-between",
-                  )}
-                >
-                  Review late check-out request
-                  <Clock className="h-4 w-4" aria-hidden />
-                </Link>
-              ) : canRequestLate && !extension?.requestBlockedReason ? (
-                <Link
-                  href={`${href}/extend`}
-                  className={buttonClassName(
-                    "outline",
-                    "md",
-                    "w-full justify-between",
-                  )}
-                >
-                  Request late check-out
-                  <Clock className="h-4 w-4" aria-hidden />
-                </Link>
-              ) : null}
-              {canCancel ? (
-                <Link
-                  href={`${href}/cancel`}
-                  className={buttonClassName(
-                    "ghost",
-                    "md",
-                    "w-full justify-start text-clay",
-                  )}
-                >
-                  {reservation.status === "hold"
-                    ? "Cancel hold"
-                    : "Cancel reservation"}
-                </Link>
-              ) : null}
-              {!liveHold &&
-              !canReportDamage &&
-              can(membership, "reservations.create") &&
-              reservation.status !== "confirmed" ? (
-                <Link
-                  href="/reservations/new"
-                  className={buttonClassName("clay", "md", "w-full")}
-                >
-                  <Plus className="h-4 w-4" aria-hidden />
-                  New reservation
-                </Link>
-              ) : null}
-              {reservation.status === "checked_out" && canReportDamage ? (
-                <Link
-                  href={`${href}/damage/new`}
-                  className={buttonClassName(
-                    "outline",
-                    "md",
-                    "w-full justify-between",
-                  )}
-                >
-                  Report damage
-                  <Plus className="h-4 w-4" aria-hidden />
-                </Link>
-              ) : null}
-              {liveHold && !canConfirmHold ? (
-                <p className="text-sm text-ink/60">
-                  Someone who can confirm bookings will confirm or cancel this
-                  hold.
-                </p>
-              ) : null}
-            </div>
-          </section>
+          <div className="max-sm:hidden">{manage}</div>
 
           {can(membership, "guests.update") &&
           !["checked_out", "cancelled", "expired"].includes(
             reservation.status,
           ) ? (
-            <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)]">
+            <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)] max-lg:rounded-3xl max-lg:border-0 max-lg:shadow-[0_4px_24px_rgba(32,58,53,0.07)] max-lg:ring-1 max-lg:ring-pine/[0.06]">
               <h2 className="font-display text-lg text-pine">Welcome link</h2>
               <div className="mt-4">
                 <GuestLinkCard
@@ -1040,7 +1203,7 @@ export default async function ReservationDetailPage({
 
           {reservation.status === "checked_out" &&
           can(membership, "guests.update") ? (
-            <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)]">
+            <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)] max-lg:rounded-3xl max-lg:border-0 max-lg:shadow-[0_4px_24px_rgba(32,58,53,0.07)] max-lg:ring-1 max-lg:ring-pine/[0.06]">
               <h2 className="font-display text-lg text-pine">Guest review</h2>
               <div className="mt-4">
                 {stayReview ? (
@@ -1062,7 +1225,7 @@ export default async function ReservationDetailPage({
           ) : null}
 
           {turnoverTask ? (
-            <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)]">
+            <section className="rounded-2xl border border-pine/10 bg-surface p-5 shadow-[0_1px_2px_rgba(32,58,53,0.06)] max-lg:rounded-3xl max-lg:border-0 max-lg:shadow-[0_4px_24px_rgba(32,58,53,0.07)] max-lg:ring-1 max-lg:ring-pine/[0.06]">
               <h2 className="font-display text-lg text-pine">Turnover</h2>
               <p className="mt-3 text-sm text-ink/70">
                 {turnoverTask.doneItems} of {turnoverTask.totalItems} checklist
@@ -1086,6 +1249,13 @@ export default async function ReservationDetailPage({
             </section>
           ) : null}
         </aside>
+      </div>
+      <div className="sm:hidden">
+        <MobileFab
+          actions={fabActions}
+          label="Reservation actions"
+          trigger="dots"
+        />
       </div>
     </div>
   );
@@ -1140,15 +1310,18 @@ function StayRangeCard({
           <dt className="text-xs font-medium uppercase tracking-wide text-ink/45">
             Check-in
           </dt>
-          <dd className="mt-0.5 truncate font-display text-lg text-pine">
+          <dd className="mt-0.5 font-display text-base text-pine sm:truncate sm:text-lg">
             {checkIn}
           </dd>
           {checkInDetail ? (
-            <dd className="truncate text-xs text-ink/55">{checkInDetail}</dd>
+            <dd className="text-xs text-ink/55 sm:truncate">{checkInDetail}</dd>
           ) : null}
         </div>
       </div>
-      <div className="flex min-w-[5.5rem] flex-1 items-center" aria-hidden>
+      <div
+        className="flex min-w-[5.5rem] flex-1 items-center max-sm:min-w-[2.5rem]"
+        aria-hidden
+      >
         <span className="h-px flex-1 border-t border-dashed border-pine/25" />
         <span className="mx-2 inline-flex shrink-0 items-center gap-1 rounded-full bg-pine-mist px-2.5 py-1 text-xs font-medium text-pine">
           <BedDouble className="h-3.5 w-3.5" />
@@ -1167,11 +1340,13 @@ function StayRangeCard({
           <dt className="text-xs font-medium uppercase tracking-wide text-ink/45">
             Check-out
           </dt>
-          <dd className="mt-0.5 truncate font-display text-lg text-pine">
+          <dd className="mt-0.5 font-display text-base text-pine sm:truncate sm:text-lg">
             {checkOut}
           </dd>
           {checkOutDetail ? (
-            <dd className="truncate text-xs text-ink/55">{checkOutDetail}</dd>
+            <dd className="text-xs text-ink/55 sm:truncate">
+              {checkOutDetail}
+            </dd>
           ) : null}
         </div>
         <span className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sage/60 text-pine sm:flex">

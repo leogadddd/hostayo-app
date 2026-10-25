@@ -62,7 +62,7 @@ export function PlatformBreakdown({
         {chartData.length ? (
           <div className="grid items-center gap-5 md:grid-cols-[13rem_minmax(0,1fr)]">
             <div
-              className="relative mx-auto h-52 w-52"
+              className="relative mx-auto h-44 w-44 sm:h-52 sm:w-52"
               aria-label={`Booking sources pie chart with ${total} reservations`}
             >
               <ResponsiveContainer width="100%" height="100%">
@@ -157,23 +157,26 @@ export function PlatformBreakdown({
             No reservations are checking in this month yet.
           </p>
         )}
-        <table className="sr-only">
-          <caption>Booking sources for {monthLabel}</caption>
-          <thead>
-            <tr>
-              <th scope="col">Platform</th>
-              <th scope="col">Reservations</th>
-            </tr>
-          </thead>
-          <tbody>
-            {chartData.map((platform) => (
-              <tr key={platform.platformId ?? "not-recorded"}>
-                <th scope="row">{platform.name}</th>
-                <td>{platform.reservationCount}</td>
+        {/* A div carries sr-only: browsers ignore overflow clipping on a table itself. */}
+        <div className="sr-only">
+          <table>
+            <caption>Booking sources for {monthLabel}</caption>
+            <thead>
+              <tr>
+                <th scope="col">Platform</th>
+                <th scope="col">Reservations</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {chartData.map((platform) => (
+                <tr key={platform.platformId ?? "not-recorded"}>
+                  <th scope="row">{platform.name}</th>
+                  <td>{platform.reservationCount}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </CardBody>
     </Card>
   );
