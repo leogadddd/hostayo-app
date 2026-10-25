@@ -1,5 +1,9 @@
 import { AppHeader, AppSidebar } from "@/components/app/sidebar";
 import { MobileTabBar } from "@/components/app/mobile-tab-bar";
+import {
+  ConnectionStrip,
+  ConnectivityWatcher,
+} from "@/components/app/connectivity-watcher";
 import { ViewportSync } from "@/components/app/viewport-sync";
 import { getAppIdentity } from "@/lib/app-identity";
 import { getDeviceClass } from "@/lib/device";
@@ -22,6 +26,8 @@ export default async function AppLayout({
         Skip to content
       </a>
       <ViewportSync rendered={device} />
+      <ConnectivityWatcher userKey={identity.userEmail} />
+      <ConnectionStrip />
       <AppSidebar {...identity} />
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <AppHeader {...identity} initialNow={new Date().toISOString()} />

@@ -22,6 +22,7 @@ import {
 } from "@/components/app/nav-config";
 import { Logo } from "@/components/logo";
 import { AccountMenu } from "@/components/app/account-menu";
+import { AppStatusPill } from "@/components/app/app-status-pill";
 import { SharePublicLink } from "@/components/app/share-public-link";
 import { LiveClock } from "@/components/app/live-clock";
 import { GlobalSearch } from "@/components/app/global-search";
@@ -174,41 +175,6 @@ type SidebarProps = {
   canManageGoLive?: boolean;
 };
 
-/** Live / Offline pill for the public page. Links to the switch when the member can change it. */
-function LiveStatus({ live, manage }: { live: boolean; manage: boolean }) {
-  const content = (
-    <>
-      <span
-        aria-hidden
-        className={cn("h-2 w-2 rounded-full", live ? "bg-moss" : "bg-ink/35")}
-      />
-      {live ? "Live" : "Offline"}
-    </>
-  );
-  const className = cn(
-    "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium",
-    live
-      ? "border-moss/40 bg-sage/40 text-pine"
-      : "border-pine/20 bg-pine-mist text-ink/65",
-  );
-  const title = live
-    ? "Your public page is live"
-    : "Your public page is offline";
-  return manage ? (
-    <Link
-      href="/settings/general"
-      title={`${title}. Open settings`}
-      className={cn(className, "hover:border-pine/40")}
-    >
-      {content}
-    </Link>
-  ) : (
-    <span title={title} className={className}>
-      {content}
-    </span>
-  );
-}
-
 /** Setup progress under the navigation. The whole card links to the checklist on the dashboard. */
 function SetupProgress({
   goLive,
@@ -307,8 +273,10 @@ function Navigation({
   return (
     <nav
       aria-label="Primary"
-      className="min-h-0 flex-1 select-none space-y-1 overflow-y-auto px-3 py-3"
+      className="min-h-0 flex-1 select-none space-y-1 overflow-y-auto px-3 pb-3"
     >
+      {/* Top spacing lives here, not in the nav padding, so sticky titles sit flush at the top. */}
+      <div aria-hidden className="h-3" />
       {NAV.map((entry) => {
         if (!isGroup(entry)) {
           return linkVisible(entry, role, permissions) ? (
@@ -343,7 +311,7 @@ function Navigation({
               aria-expanded={expanded}
               aria-controls={panelId}
               onClick={() => toggle(entry.id, !expanded)}
-              className="flex w-full items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wider text-paper/50 transition-colors hover:text-paper/80"
+              className="sticky top-0 z-10 flex w-full items-center gap-2 rounded-lg bg-pine px-4 py-2 text-xs font-semibold uppercase tracking-wider text-paper/50 transition-colors hover:text-paper/80"
             >
               <span className="flex-1 text-left">{entry.label}</span>
               {!expanded && unread > 0 ? (
@@ -540,9 +508,9 @@ export function AppHeader({
       </div>
       <div className="flex shrink-0 items-center gap-5">
         {props.publicPageLive !== undefined ? (
-          <LiveStatus
-            live={props.publicPageLive}
-            manage={props.canManageGoLive ?? false}
+          <AppStatusPill
+            publicPageLive={props.publicPageLive}
+            canManageGoLive={props.canManageGoLive ?? false}
           />
         ) : null}
         {props.organizationSlug && props.publicPageLive !== false ? (

@@ -47,7 +47,20 @@ vi.mock("@/lib/auth/session", async () =>
     isL1: vi.fn(),
   }),
 );
-vi.mock("@/server/orgs/service", () => ({ getOrganizationLogoUrl: vi.fn() }));
+vi.mock("@/server/orgs/service", () => ({
+  getOrganizationLogoUrl: vi.fn(),
+  getPublicPageStatus: vi.fn(async () => ({ slug: "example", live: true })),
+}));
+vi.mock("@/server/orgs/checklist", () => ({
+  getGoLiveChecklist: vi.fn(async () => ({
+    items: [],
+    doneCount: 0,
+    total: 1,
+    live: true,
+    ready: true,
+    completed: true,
+  })),
+}));
 
 const identity = {
   organizationName: "Example stays",
