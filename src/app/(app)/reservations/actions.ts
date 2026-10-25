@@ -11,10 +11,9 @@ import { can } from "@/lib/permissions";
 import {
   cancelReservation,
   confirmHold,
-  createConfirmed,
-  createHold,
   updateReservation,
 } from "@/server/reservations/service";
+import { createReservationFromRequest } from "@/server/reservations/create-request";
 import {
   createGuestLink,
   revokeGuestLink,
@@ -24,16 +23,8 @@ import {
   checkOut,
   OperationsError,
 } from "@/server/operations/service";
-import {
-  ReservationError,
-  reservationDetailsSchema,
-} from "@/server/reservations/validation";
-import { getUnitOrThrow } from "@/server/inventory/service";
+import { ReservationError } from "@/server/reservations/validation";
 import { InventoryError } from "@/server/inventory/validation";
-import { buildDefaultCharges } from "@/lib/charges";
-import { unitRateResolver } from "@/lib/pricing-rules";
-import { listPricingRules } from "@/server/pricing/service";
-import { nightsBetween } from "@/lib/dates";
 import { MoneyParseError, pesosToCentavos } from "@/lib/money";
 import type { ChargeLineInput } from "@/server/reservations/validation";
 import { unexpectedErrorMessage } from "@/lib/errors";
@@ -89,113 +80,56 @@ export async function createReservationAction(
   formData: FormData,
 ): Promise<ReservationFormState> {
   const membership = await requireMembership();
-  const mode =
-    readString(formData, "mode") === "confirmed" ? "confirmed" : "hold";
+  // Refusals by role throw, as they always have; only the service's own
+  // errors become a form message.
   assertCan(membership, "reservations.create");
-  // Booking straight to confirmed skips the hold review and records payment.
-  if (mode === "confirmed") {
+  if (readString(formData, "mode") === "confirmed") {
     assertCan(membership, "reservations.update");
     assertCan(membership, "payments.create");
   }
-
   const guestMode =
     readString(formData, "guestMode") === "new" ? "new" : "existing";
-  const guest =
-    guestMode === "new"
-      ? {
-          newGuest: {
-            name: readString(formData, "guestName"),
-            email: readString(formData, "guestEmail") || undefined,
-            phone: readString(formData, "guestPhone") || undefined,
-            notes: readString(formData, "guestNotes") || undefined,
-          },
-        }
-      : { guestId: readString(formData, "guestId") };
-
   try {
-    const details = reservationDetailsSchema.parse({
+    const reservation = await createReservationFromRequest(membership, {
+      mode: readString(formData, "mode") === "confirmed" ? "confirmed" : "hold",
+      idempotencyKey: readString(formData, "idempotencyKey") || undefined,
+      ...(guestMode === "new"
+        ? {
+            newGuest: {
+              name: readString(formData, "guestName"),
+              email: readString(formData, "guestEmail") || undefined,
+              phone: readString(formData, "guestPhone") || undefined,
+              notes: readString(formData, "guestNotes") || undefined,
+            },
+          }
+        : { guestId: readString(formData, "guestId") }),
       unitId: readString(formData, "unitId"),
       checkIn: readString(formData, "checkIn"),
       checkOut: readString(formData, "checkOut"),
       guestCount: Number(readString(formData, "guestCount") || "1"),
       platformId: readString(formData, "platformId") || undefined,
       platformReference: readString(formData, "platformReference") || undefined,
+      // Parsed only for people who may set prices; the service validates each line.
+      charges: can(membership, "payments.create")
+        ? readChargeLines(formData)
+        : undefined,
+      occupantNames: formData
+        .getAll("occupantName")
+        .map((value) => String(value).trim()),
+      holdMinutes: Number(readString(formData, "holdMinutes") || "1440"),
+      acknowledgeUnpaid: formData.get("acknowledgeUnpaid") === "on",
+      initialPayment: readString(formData, "paymentAmountPesos")
+        ? {
+            amountPesos: readString(formData, "paymentAmountPesos"),
+            allocation: readString(formData, "paymentAllocation") as
+              "booking" | "security_deposit",
+            method: readString(formData, "paymentMethod") as
+              "gcash" | "maya" | "bank_transfer" | "cash",
+            reference: readString(formData, "paymentReference") || undefined,
+            receivedAt: readString(formData, "paymentReceivedAt") || undefined,
+          }
+        : undefined,
     });
-    if (details.checkOut <= details.checkIn) {
-      throw new ReservationError(
-        "Check-out must be after check-in.",
-        "checkOut",
-      );
-    }
-    let charges: ChargeLineInput[];
-    // Only people who may set prices send their own charge lines; everyone
-    // else gets the unit's standard rates.
-    if (can(membership, "payments.create")) {
-      charges = readChargeLines(formData);
-    } else {
-      const unit = await getUnitOrThrow(
-        membership.organizationId,
-        details.unitId,
-      );
-      charges = buildDefaultCharges({
-        nightlyRateCents: unit.defaultNightlyRateCents,
-        dayRates: unit.dayRates,
-        rateFor: unitRateResolver(
-          unit,
-          await listPricingRules(membership.organizationId, {
-            activeOnly: true,
-          }),
-        ),
-        checkIn: details.checkIn,
-        cleaningFeeCents: unit.cleaningFeeCents,
-        securityDepositCents: unit.securityDepositCents,
-        nights: nightsBetween(details.checkIn, details.checkOut),
-      });
-    }
-    const base = { ...details, charges };
-    const occupantNames = formData
-      .getAll("occupantName")
-      .map((value) => String(value).trim());
-    const idempotencyKey = readString(formData, "idempotencyKey") || undefined;
-    const reservation =
-      mode === "hold"
-        ? await createHold({
-            organizationId: membership.organizationId,
-            actorUserId: membership.userId,
-            guest,
-            idempotencyKey,
-            data: {
-              ...base,
-              occupantNames,
-              holdMinutes: Number(
-                readString(formData, "holdMinutes") || "1440",
-              ),
-            },
-          })
-        : await createConfirmed({
-            organizationId: membership.organizationId,
-            actorUserId: membership.userId,
-            guest,
-            idempotencyKey,
-            data: {
-              ...base,
-              occupantNames,
-              acknowledgeUnpaid: formData.get("acknowledgeUnpaid") === "on",
-              initialPayment: readString(formData, "paymentAmountPesos")
-                ? {
-                    amountPesos: readString(formData, "paymentAmountPesos"),
-                    allocation: readString(formData, "paymentAllocation") as
-                      "booking" | "security_deposit",
-                    method: readString(formData, "paymentMethod") as
-                      "gcash" | "maya" | "bank_transfer" | "cash",
-                    reference:
-                      readString(formData, "paymentReference") || undefined,
-                    receivedAt:
-                      readString(formData, "paymentReceivedAt") || undefined,
-                  }
-                : undefined,
-            },
-          });
 
     revalidatePath("/calendar");
     revalidatePath("/reservations");

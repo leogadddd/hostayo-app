@@ -10,6 +10,8 @@
 
 const DB_NAME = "hostayo-offline";
 const STORE = "outbox";
+/** Changes the server refused, kept until the person dismisses them. */
+const REJECTED_STORE = "rejected";
 
 export interface OutboxRequest {
   url: string;
@@ -18,6 +20,8 @@ export interface OutboxRequest {
   body?: string | null;
   /** What the person did, in words, for the "couldn't sync" message. */
   label?: string;
+  /** Small facts for showing the change while it waits (unit, dates, guest). */
+  meta?: Record<string, string>;
 }
 
 export interface OutboxEntry extends OutboxRequest {
@@ -26,10 +30,16 @@ export interface OutboxEntry extends OutboxRequest {
   attempts: number;
 }
 
+/** A change the server refused, with its own words for why. */
+export interface RejectedEntry extends OutboxEntry {
+  reason: string;
+  rejectedAt: number;
+}
+
 export interface DrainResult {
   sent: number;
-  /** Entries the server refused for good; they were dropped from the outbox. */
-  rejected: OutboxEntry[];
+  /** Entries the server refused for good; they moved to the rejected list. */
+  rejected: RejectedEntry[];
   /** Entries still waiting, because the connection or the server failed. */
   remaining: number;
 }
@@ -40,9 +50,15 @@ function available(): boolean {
 
 function open(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1);
+    const request = indexedDB.open(DB_NAME, 2);
     request.onupgradeneeded = () => {
-      request.result.createObjectStore(STORE, { keyPath: "id" });
+      const db = request.result;
+      if (!db.objectStoreNames.contains(STORE)) {
+        db.createObjectStore(STORE, { keyPath: "id" });
+      }
+      if (!db.objectStoreNames.contains(REJECTED_STORE)) {
+        db.createObjectStore(REJECTED_STORE, { keyPath: "id" });
+      }
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
@@ -52,11 +68,14 @@ function open(): Promise<IDBDatabase> {
 async function run<T>(
   mode: IDBTransactionMode,
   work: (store: IDBObjectStore) => IDBRequest<T>,
+  storeName: string = STORE,
 ): Promise<T> {
   const db = await open();
   try {
     return await new Promise<T>((resolve, reject) => {
-      const request = work(db.transaction(STORE, mode).objectStore(STORE));
+      const request = work(
+        db.transaction(storeName, mode).objectStore(storeName),
+      );
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
     });
@@ -69,6 +88,18 @@ export async function listOutbox(): Promise<OutboxEntry[]> {
   if (!available()) return [];
   const all = await run("readonly", (store) => store.getAll());
   return (all as OutboxEntry[]).sort((a, b) => a.createdAt - b.createdAt);
+}
+
+/** Changes the server refused, newest first. */
+export async function listRejected(): Promise<RejectedEntry[]> {
+  if (!available()) return [];
+  const all = await run("readonly", (s) => s.getAll(), REJECTED_STORE);
+  return (all as RejectedEntry[]).sort((a, b) => b.rejectedAt - a.rejectedAt);
+}
+
+export async function dismissRejected(id: string): Promise<void> {
+  if (!available()) return;
+  await run("readwrite", (s) => s.delete(id), REJECTED_STORE);
 }
 
 export async function outboxCount(): Promise<number> {
@@ -97,9 +128,30 @@ async function bump(entry: OutboxEntry): Promise<void> {
   );
 }
 
-/** Statuses that will never succeed by retrying: the server understood and said no. */
+/**
+ * Statuses that will never succeed by retrying: the server understood and said no.
+ * A 401 is not one of them: the person just has to sign in again, and the
+ * change must wait for that rather than be thrown away.
+ */
 function isFinal(status: number): boolean {
-  return status >= 400 && status < 500 && status !== 408 && status !== 429;
+  return (
+    status >= 400 &&
+    status < 500 &&
+    status !== 401 &&
+    status !== 408 &&
+    status !== 429
+  );
+}
+
+async function reasonFrom(response: Response): Promise<string> {
+  try {
+    const body: unknown = await response.json();
+    const message = (body as { error?: unknown } | null)?.error;
+    if (typeof message === "string" && message) return message;
+  } catch {
+    // Not JSON; fall back to the generic words.
+  }
+  return "The server did not accept this change.";
 }
 
 /**
@@ -130,8 +182,15 @@ export async function drainOutbox(
       await remove(entry.id);
       result.sent += 1;
     } else if (isFinal(response.status)) {
+      const refused: RejectedEntry = {
+        ...entry,
+        reason: await reasonFrom(response),
+        rejectedAt: Date.now(),
+      };
+      // Keep it before dropping it, so a crash in between loses nothing.
+      await run("readwrite", (s) => s.put(refused), REJECTED_STORE);
       await remove(entry.id);
-      result.rejected.push(entry);
+      result.rejected.push(refused);
     } else {
       await bump(entry);
       result.remaining = entries.length - index;
@@ -145,4 +204,5 @@ export async function drainOutbox(
 export async function clearOutbox(): Promise<void> {
   if (!available()) return;
   await run("readwrite", (store) => store.clear());
+  await run("readwrite", (store) => store.clear(), REJECTED_STORE);
 }

@@ -36,6 +36,9 @@ import {
   updateReservationAction,
   type ReservationFormState,
 } from "../actions";
+import { toast } from "sonner";
+import { probeServer } from "@/lib/offline/connectivity";
+import { queueRequest } from "@/lib/offline/queue";
 import { checkStayAvailabilityAction, type StayAvailability } from "./actions";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
 import { plural } from "../../calendar/availability/stay-display";
@@ -362,7 +365,8 @@ export function useReservationDraft(props: ReservationFormProps) {
   // Busy from the tap on Save until the next page shows, not only while the
   // request runs. Otherwise the buttons come back to life for a second, and a
   // second tap could save twice.
-  const busy = pending || navigating || saved;
+  const [queued, setQueued] = useState(false);
+  const busy = pending || navigating || saved || queued;
   const savingLabel = saved ? "Saved · opening…" : "Saving…";
 
   const selectedUnit = units.find((unit) => unit.id === unitId);
@@ -652,6 +656,7 @@ export function useReservationDraft(props: ReservationFormProps) {
       );
       return;
     }
+    const mode = submitMode;
     const data = new FormData();
     data.set("mode", submitMode);
     data.set("idempotencyKey", idempotencyKey);
@@ -675,7 +680,63 @@ export function useReservationDraft(props: ReservationFormProps) {
       data.set("paymentReference", payment.reference.trim());
       data.set("paymentReceivedAt", receivedNow ? "" : payment.receivedAt);
     }
-    startTransition(() => formAction(data));
+    void sendOrQueue(mode, data);
+  }
+
+  /**
+   * Online, the form saves through the server action as always. When the
+   * server can't be reached the booking is kept on this device and sent
+   * when the connection returns.
+   */
+  async function sendOrQueue(mode: "hold" | "confirmed", data: FormData) {
+    if (await probeServer()) {
+      startTransition(() => formAction(data));
+      return;
+    }
+    const guestName = selectedGuest?.name ?? "guest";
+    const unitName = selectedUnit?.name ?? "unit";
+    const body = {
+      mode,
+      idempotencyKey,
+      guestId,
+      unitId,
+      checkIn,
+      checkOut,
+      guestCount,
+      platformId,
+      platformReference: platformReference.trim(),
+      charges: submittableLines,
+      occupantNames: additional.map((name) => name.trim()),
+      holdMinutes: Number(holdMinutes),
+      acknowledgeUnpaid: noPayment,
+      initialPayment: paymentCents
+        ? {
+            amountPesos: payment.amount.trim(),
+            allocation: payment.allocation,
+            method: payment.method,
+            reference: payment.reference.trim() || undefined,
+            receivedAt: receivedNow ? undefined : payment.receivedAt,
+          }
+        : undefined,
+    };
+    try {
+      await queueRequest({
+        url: "/api/reservations",
+        body,
+        label: `${mode === "hold" ? "Hold" : "Booking"} for ${guestName}, ${unitName}, ${checkIn} to ${checkOut}`,
+        meta: { guestName, unitName, checkIn, checkOut, mode },
+      });
+    } catch {
+      setReviewError(
+        "You're offline and this device couldn't keep the booking. Try again when you're back online.",
+      );
+      return;
+    }
+    setQueued(true);
+    toast.success("Saved on this device", {
+      description: "It will be sent when you're back online.",
+    });
+    router.push("/reservations");
   }
 
   return {

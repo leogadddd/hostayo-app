@@ -17,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { OfflineChanges } from "@/components/app/offline-changes";
 import { PageHeading } from "@/components/app/page-heading";
 import {
   RESERVATION_STATUS_STYLES,
@@ -64,6 +65,8 @@ export function DesktopReservations({ model }: { model: ReservationsModel }) {
           New reservation
         </Link>
       </PageHeading>
+
+      <OfflineChanges />
 
       <nav
         aria-label="Filter by status"

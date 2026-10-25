@@ -26,6 +26,18 @@ const listeners = new Set<() => void>();
 let started = false;
 let draining = false;
 const rejectedHandlers = new Set<(entries: OutboxEntry[]) => void>();
+const changeListeners = new Set<() => void>();
+
+/** Tells the lists of waiting and refused changes to read the outbox again. */
+export function notifyChanged(): void {
+  for (const listener of changeListeners) listener();
+}
+
+/** Runs when the outbox or the rejected list may have changed. */
+export function onChanges(listener: () => void): () => void {
+  changeListeners.add(listener);
+  return () => changeListeners.delete(listener);
+}
 
 function set(next: Partial<ConnectionState>) {
   const merged = { ...state, ...next };
@@ -68,6 +80,16 @@ async function reachable(): Promise<boolean> {
   }
 }
 
+/**
+ * Asks the server right now, for the moment before sending something that
+ * would be lost if it can't be reached. Marks the app offline when it can't.
+ */
+export async function probeServer(): Promise<boolean> {
+  const online = await reachable();
+  set({ online });
+  return online;
+}
+
 /** Sends waiting changes. Safe to call any time; only one run happens at once. */
 export async function syncNow(): Promise<void> {
   if (draining || !state.online) return;
@@ -84,6 +106,7 @@ export async function syncNow(): Promise<void> {
     draining = false;
     await refreshPending();
     set({ syncing: false });
+    notifyChanged();
   }
 }
 
@@ -116,6 +139,7 @@ export function startConnectivity(): () => void {
 /** Called after something is added to the outbox, so the pill updates at once. */
 export function notifyQueued(): void {
   void refreshPending().then(() => {
+    notifyChanged();
     if (state.online) void syncNow();
   });
 }

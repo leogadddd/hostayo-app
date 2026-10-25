@@ -15,6 +15,7 @@ import {
   RESERVATION_STATUS_STYLES,
   ReservationStatusBadge,
 } from "@/components/app/reservation-status-badge";
+import { OfflineChanges } from "@/components/app/offline-changes";
 import { DataList } from "@/components/app/data-list";
 import { EndOfPage } from "@/components/app/end-of-page";
 import { MobileFab } from "@/components/app/mobile-fab";
@@ -257,6 +258,8 @@ export function MobileReservations({ model }: { model: ReservationsModel }) {
           platforms={platforms}
         />
       </header>
+
+      <OfflineChanges />
 
       <form method="get" role="search">
         {status ? <input type="hidden" name="status" value={status} /> : null}
